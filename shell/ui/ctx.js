@@ -46,14 +46,15 @@ function cellItems(cell) {
     out.push({ k: 'r', n: 'Recall what you know', run: () => sendRaw(`M 2 ${dx} ${dy}`) });
     return out;
   }
-  out.push({ k: 'w', n: adj ? 'Step here' : 'Walk here', run: () => sendRaw(`M 1 ${dx} ${dy}`) });
+  out.push({ k: 'w', n: adj ? 'Step here' : 'Walk here', run: () => (!adj && !walkPath(dx, dy) && exploreGoto(dx, dy)) || sendRaw(`M 1 ${dx} ${dy}`) });
   if (adj) {
     const d = dirKey(dx, dy);
     if (/open door|broken door/.test(f)) out.push({ k: 'c', n: 'Close the door', run: () => sendText(cmd('c') + d) });
     if (/closed door|locked door|door$/.test(f) && !/open|broken/.test(f)) out.push({ k: 'o', n: 'Open the door', run: () => sendText(cmd('o') + d) });
     if (/door/.test(f)) out.push({ k: 'j', n: 'Jam the door shut', run: () => sendText(cmd('j') + d) });
     if (/trap|rune|glyph/.test(f)) out.push({ k: 'D', n: 'Disarm', run: () => sendText(cmd('D') + d) });
-    if (/wall|rubble|vein|tree|granite|magma|quartz|seam/.test(f)) out.push({ k: 'T', n: 'Tunnel through', run: () => sendText(cmd('T') + d) });
+    if (/wall|rubble|vein|tree|granite|magma|quartz|seam/.test(f) && !/permanent/.test(f)) { const pw = (DICT.f[cell.c[0]] || [])[3], hard = !/rubble/.test(f) && S.p.dig != null && pw != null && S.p.dig <= pw;
+      out.push({ k: 'T', n: hard ? 'Tunnel through (too hard for what you hold)' : 'Tunnel through', run: () => sendText(cmd('T') + d), dim: hard }); }
   }
   out.push({ k: 'x', n: 'Target this spot', run: () => sendRaw(`T ${dx} ${dy}`) });
   out.push({ k: 'r', n: 'Look closely', run: () => sendRaw(`M 2 ${dx} ${dy}`) });
