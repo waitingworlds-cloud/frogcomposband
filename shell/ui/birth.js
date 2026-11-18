@@ -96,7 +96,7 @@ function birthHtml() {
     else if (k.type === 'p') right += `<p class="bp">${k.html}</p>`;
     else if (k.type === 'stats') right += `<div class="bst" style="grid-template-columns:90px 34px 64px 34px repeat(${Math.max(0, k.cols.length - 1)},70px)"><span></span><span></span><span class="bh">${esc(k.cols[0] || '')}</span><span></span>${k.cols.slice(1).map(c => `<span class="bh">${esc(c)}</span>`).join('')}
       ${k.rows.map(r => `<span class="sn">${esc(r.name)}</span><span class="key kb" data-key="${esc(r.dec)}" data-tip="Lower (${esc(r.dec)})">&minus;</span><b class="sv">${esc(r.vals[0] || '')}</b><span class="key kb" data-key="${esc(r.inc)}" data-tip="Raise (${esc(r.inc)})">+</span>${r.vals.slice(1).map((v, i) => `<span class="${i === r.vals.length - 2 ? 'st' : 'sm ' + (/^-/.test(v) ? 'neg' : /^\+0$/.test(v) ? 'zero' : /^\+/.test(v) ? 'pos' : '')}">${esc(v)}</span>`).join('')}`).join('')}
-      ${k.left !== null ? `<span class="sn" style="grid-column:1/5;color:#b3ac9f;font-size:16px">Points left</span><span class="sm" style="color:#ffcf6a;font-size:19px">${esc(k.left)}</span>` : ''}</div>`;
+      ${k.left !== null ? `<span class="sn" style="grid-column:1/5;color:#b3ac9f;font-size:16px" data-tip="Each stat costs points: higher stats cost more. You have 30 to spend.">Points spent</span><span class="sm" style="color:${+k.left > 30 ? '#ff7a66' : +k.left === 30 ? '#a9c98c' : '#ffcf6a'};font-size:19px;white-space:nowrap">${esc(k.left)}<span style="color:#7d776c;font-size:14px"> / 30</span></span>` : ''}</div>`;
     else if (k.type === 'pre') right += `<pre class="bpre">${k.rows.join('\n')}</pre>`;
     else if (!k.items.length) continue;
     else { const n = k.items.length, cols = k.cols > 1 ? k.cols : n > 16 ? 3 : n > 5 ? 2 : 1;
