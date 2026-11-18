@@ -634,7 +634,7 @@ static void send_state(void)
     o_kstr("cls", get_class()->name);
     o_kstr("pers", get_personality()->name);
     o_kstr("realm", p_ptr->realm1 ? realm_names[p_ptr->realm1] : "");
-    o_kint("lev", p_ptr->lev);
+    o_kint("lev", p_ptr->lev); if (rogue_like_commands) o_kint("rl", 1);
     o_kint("exp", p_ptr->exp);
     o_kint("expNext", exp_requirement(p_ptr->lev));
     o_kint("au", p_ptr->au);
