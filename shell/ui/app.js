@@ -511,12 +511,20 @@ function drawTerm(float) {
   }
   // a scrolling page (messages, help, lists): its caption and key line become a title bar and buttons
   PAGER = pagerInfo(y0, y1); BROWSE = PAGER ? null : browseInfo(y0, y1); const skip = {};
+  // a creature's recall: its picture and name head the card
+  const rc = !PAGER && !BROWSE && float ? /^\s*Name\s*:\s*(.+?) \((.)\)\s*$/.exec((G.s[y0] || '').replace(/\x01/g, ' ')) : null;
+  RECALL = !!rc; if (rc) { skip[y0] = 1; y0++; }
   if (BROWSE) { skip[BROWSE.foot] = 1; if (BROWSE.foot === y1) y1--; if (BROWSE.title >= 0) { skip[BROWSE.title] = 1; if (BROWSE.title === y0) y0++; }
     while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; while (y0 < y1 && !(G.s[y0] || '').replace(/[\x01 ]/g, '')) y0++; }
   if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--;
     while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; }
-  setHtml($('#termh'), PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
-  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : '');
+  const rcH = rc ? `<canvas class="rmob" data-n="${esc(rc[1])}"></canvas><b>${esc(rc[1])}</b><span class="pgn">creature recall</span>` : '';
+  setHtml($('#termh'), rc ? rcH : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
+  const rcv = rc && $('#termh .rmob');
+  if (rcv && !rcv._ok) {
+    const c = rcv, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', rc[1], 0, 0, 72); sprite.flat = false;
+  }
+  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : '');
   const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
   let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
@@ -527,7 +535,7 @@ function drawTerm(float) {
   TERMGEO = { x0, y0, cw, chh };
   return true;
 }
-let TERMGEO = null, PAGER = null, BROWSE = null;
+let TERMGEO = null, PAGER = null, BROWSE = null, RECALL = false;
 // list browsers (knowledge, visuals): the bottom line reads "<dir>, 'r' to recall, ..., ESC"
 function browseInfo(y0, y1) {
   let foot = -1;
@@ -582,7 +590,7 @@ function draw() {
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  PAGER = null; BROWSE = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
+  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
   const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;

@@ -234,7 +234,8 @@ document.addEventListener('mousedown', ev => {
     const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
     while ((m = re.exec(s))) { const at = m.index + m[1].length; if (at <= gx + 1) best = m[2]; else if (!best) best = m[2]; }
     if (best) sendText(best);
-    else if (/press any (other )?key|press space/i.test(G.s.join('\n'))) sendText(' ');   // a page that waits for any key: a click will do
+    else if (/press any (other )?key|press space/i.test(G.s.join('\n'))) sendText(' ');
+    else if (RECALL) sendText('r');   // a recall over the look prompt: back to looking   // a page that waits for any key: a click will do
   }
 });
 document.addEventListener('contextmenu', ev => ev.preventDefault());
