@@ -74,7 +74,11 @@ function menuCards(rows, b) {
   let groups = [[]];
   rows.slice(title ? first + 1 : 0, lastItem + 1).forEach(r => { if (r.toks.length) groups[groups.length - 1].push(r); else if (groups[groups.length - 1].length) groups.push([]); });
   groups = groups.filter(g => g.length);
-  const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
+  // the game marks the row its cursor is on with its own colour: the one item coloured unlike the rest
+  const hue = r => { const a = G.a[r.y] || [], t = r.toks[0]; for (let x = t.at + t.len; x < t.end; x++) if (rowText(r.y)[x] !== ' ') return a[x] & 31; return -1; };
+  const hues = items.map(hue), tally = {}; hues.forEach(h => tally[h] = (tally[h] || 0) + 1);
+  const odd = hues.filter(h => tally[h] === 1), cur = odd.length === 1 && Object.keys(tally).length === 2 ? items[hues.indexOf(odd[0])] : null;
+  const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard${r === cur ? ' cur' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
   return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
     ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
     ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}</div>` : ''}</div>`;
