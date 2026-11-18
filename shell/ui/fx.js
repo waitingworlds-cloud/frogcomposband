@@ -20,7 +20,7 @@ function fxOnState(prev, cur) {
   const old = {}; for (const m of prev.mons) old[m.i] = m;
   // what the game just said: a telling blow earns the crit look
   const seenTurn = prev.msgs && prev.msgs.length ? prev.msgs[prev.msgs.length - 1] : null, fresh = [];
-  for (let i = (cur.msgs || []).length - 1; i >= 0 && fresh.length < 6; i--) { const m = cur.msgs[i]; if (seenTurn && m.turn === seenTurn.turn && m.s === seenTurn.s) break; fresh.push(m.s); }
+  for (let i = (cur.msgs || []).length - 1; i >= 0 && fresh.length < 6; i--) { const m = cur.msgs[i]; if (seenTurn && m.turn === seenTurn.turn && m.s === seenTurn.s) break; fresh.push(String(m.s).replace(/<\/?color[^>]*>/g, '')); }
   const said = fresh.join(' '), crit = /(good|great|superb|\*GREAT\*|\*SUPERB\*) hit|backstab|cruelly attack|ruthlessly sneak|critical/i.test(said);
   let beats = 0;
   const seen = {};
