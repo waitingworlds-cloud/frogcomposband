@@ -294,10 +294,63 @@ function descRows(list) {
   while (rows.length && !rows[rows.length - 1]) rows.pop();
   return `<div class="dsc">${rows.join('\n')}</div>`;
 }
+/* ---------- compare: what changes if you put this on ----------
+ * From the two describe pages: armour, damage per hit, to-hit, weight and launcher power as numbers, then every
+ * property one has and the other lacks, as gains and losses. */
+const rowTxt = r => r.s.replace(/\x01/g, ' ').replace(/\s+$/, '');
+function cmpFacts(rows) {
+  const t = rows.map(rowTxt), name = (t[0] || '').replace(/\s+[\d.]+ lbs?$/, '').trim(), wt = +(((t[0] || '').match(/([\d.]+) lbs?$/) || [])[1] || 0);
+  // blocks between blank lines; a block of plain sentences is what the thing looks like or where it came from: not a property
+  const PROP = /^(Sustain|Increase|Decrease|Aura of|Immunity to|Resist|Slay|Vulnerability to|Kill|Brand|[+-][\d.]+%? to|It |Score:)/;
+  const blocks = []; let cur = [];
+  for (let i = 1; i < t.length; i++) { if (t[i].trim()) cur.push(t[i]); else if (cur.length) { blocks.push(cur); cur = []; } } if (cur.length) blocks.push(cur);
+  const lines = [];
+  const STRONG = /^(Sustain|Increase|Decrease|Aura of|Immunity to|Resist|Slay|Vulnerability to|Kill|Brand|[+-][\d.]+%? to)/;
+  for (const [bi, b] of blocks.entries()) {
+    const f = b[0].trim();
+    if (/^You can't remember/.test(f)) continue;
+    if (bi === 0 && !STRONG.test(f)) continue;   // the first block says what it looks like
+    if (!PROP.test(f) && /\b[a-z]{3,}\b/.test(f)) continue;   // lower-case words: a sentence about it, not a list of powers
+    for (const l of b) { if (/^\s{3,}\S/.test(l) && lines.length) lines[lines.length - 1] += ' ' + l.trim(); else lines.push(l.trim()); }
+  }
+  const facts = new Set();
+  for (const l of lines) {
+    if (/^(Score:|This object|You can't|It reminds you)/.test(l)) continue;
+    const m = l.match(/^(Sustain|Increase|Decrease|Aura of|Immunity to|Resist|Slay|Vulnerability to|Kill|Brand|[+-][\d.]+%? to)\s+(.+?)\.?$/);
+    const parts = m ? m[2].split(/,\s*|\s+and\s+/) : !/\.$/.test(l) && /,/.test(l) ? l.split(/,\s*/) : [l.replace(/\.$/, '')];
+    for (const p of parts) if (p.trim()) facts.add(m ? m[1] + ' ' + p.trim() : p.trim());
+  }
+  const num = (re, f) => { const x = name.match(re); return x ? f(x) : null; };
+  return { name, wt, facts,
+    ac: num(/\[(\d+),\s*([+-]\d+)\]/, x => +x[1] + +x[2]) ?? num(/\[([+-]\d+)\]/, x => +x[1]),
+    dice: num(/\((\d+)d(\d+)\)/, x => +x[1] * (+x[2] + 1) / 2),
+    hit: num(/\(([+-]\d+),\s*([+-]\d+)\)/, x => [+x[1], +x[2]]) ?? num(/\(([+-]\d+)\)/, x => [+x[1], 0]),   // body armour shows only a to-hit penalty
+    mult: num(/\(x(\d+(?:\.\d+)?)\)/, x => +x[1]) };
+}
+function cmpHtml(rows, cmp) {
+  const a = cmpFacts(rows), b = cmpFacts(cmp), out = [];
+  const d = (label, x, y, unit, fix) => { if (x == null && y == null) return; x = x || 0; y = y || 0; const v = x - y; if (Math.abs(v) < 1e-9) return;
+    out.push(`<span class="${v > 0 ? 'up' : 'down'}">${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(fix || 0)}${unit || ''} ${label}</span>`); };
+  d('armour', a.ac, b.ac);
+  if (a.dice != null || b.dice != null) d('damage a hit', (a.dice || 0) + ((a.hit || [0, 0])[1]), (b.dice || 0) + ((b.hit || [0, 0])[1]), '', 1);
+  if (a.hit || b.hit) d('to hit', (a.hit || [0])[0], (b.hit || [0])[0]);
+  if (a.dice == null && b.dice == null && (a.hit || b.hit)) d('to damage', (a.hit || [0, 0])[1], (b.hit || [0, 0])[1]);
+  d('launcher power', a.mult, b.mult, 'x', 1);
+  // bonuses that both have in different amounts read as one change ("+1 Stealth"), not a gain and a loss
+  const nums = fs => { const m = {}; for (const f of fs) { const x = f.match(/^([+-][\d.]+)(%?) to (.+)$/); if (x) m[x[3]] = [+x[1], x[2]]; } return m; };
+  const na = nums(a.facts), nb = nums(b.facts);
+  for (const k of new Set([...Object.keys(na), ...Object.keys(nb)])) { const x = na[k] || [0, (nb[k] || [])[1]], y = nb[k] || [0, x[1]]; d(k, x[0], y[0], x[1] || y[1], Number.isInteger(x[0] - y[0]) ? 0 : 2); }
+  const isNum = f => /^[+-][\d.]+%? to /.test(f);
+  const gain = [...a.facts].filter(f => !isNum(f) && !b.facts.has(f)), loss = [...b.facts].filter(f => !isNum(f) && !a.facts.has(f));
+  const wd = a.wt - b.wt; const wtxt = Math.abs(wd) >= .05 ? `<span class="${wd > 0 ? 'down' : 'up'} soft">${wd > 0 ? '+' : '−'}${Math.abs(wd).toFixed(1)} lb${a.dice != null && wd > 0 ? ' (heavier: maybe fewer blows)' : ''}</span>` : '';
+  if (!out.length && !gain.length && !loss.length && !wtxt) return `<div class="cmpb"><div class="dsch">if you wear this instead</div><span class="soft">no difference you know of</span></div>`;
+  return `<div class="cmpb"><div class="dsch">if you wear this instead of ${esc(b.name.replace(/^(an?|the) /i, '').replace(/\s*[([][^)\]]*[)\]]/g, ''))}</div>${out.join('')}${wtxt}
+    ${gain.length ? `<div class="cmpl up">${gain.map(f => '+ ' + esc(f)).join('<br>')}</div>` : ''}${loss.length ? `<div class="cmpl down">${loss.map(f => '− ' + esc(f)).join('<br>')}</div>` : ''}</div>`;
+}
 function descIn(m) {
   if (typeof loreIn === 'function') loreIn(m);
   // something you could wear arrives with what you wear in that place now, shown beside it
-  DESC[m.key] = m.cmp && m.cmp.length ? `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
+  DESC[m.key] = m.cmp && m.cmp.length ? cmpHtml(m.rows, m.cmp) + `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
   if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }
   if (descHover === m.key && descEv) { const de = descEv.target.closest && descEv.target.closest('[data-desc]'); $('#tip').classList.add('wide'); showTip(DESC[m.key] + (de ? descHint(de) : ''), descEv); }
 }
