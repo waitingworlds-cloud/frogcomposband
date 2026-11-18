@@ -210,8 +210,17 @@ function postKey(e) {
   if (e.key === 'F7') { LIGHT.on = !LIGHT.on; try { localStorage.setItem('light', LIGHT.on ? '1' : '0'); } catch (x) {} postToast('Map lighting: ' + (LIGHT.on ? 'on' : 'off')); return true; }
   return false;
 }
+// the toast sits under the game's message line when one is up, never on top of it
+function toastPlace() {
+  requestAnimationFrame(() => {
+    const el = document.getElementById('toast'), b = document.getElementById('banner'), st = document.getElementById('stage'); if (!el || !st) return;
+    let top = 92;
+    if (b && b.offsetParent && getComputedStyle(b).display !== 'none') { const r = b.getBoundingClientRect(), sr = st.getBoundingClientRect(); top = Math.max(top, (r.bottom - sr.top) / SCALE + 10); }
+    el.style.top = Math.round(top) + 'px';
+  });
+}
 function postToast(text) {
   let el = document.getElementById('toast'); if (!el) { el = document.createElement('div'); el.id = 'toast'; document.getElementById('stage').appendChild(el); }
-  el.textContent = text; el.classList.add('on'); clearTimeout(postToast.h); postToast.h = setTimeout(() => el.classList.remove('on'), 1600);
+  el.textContent = text; el.classList.add('on'); clearTimeout(postToast.h); postToast.h = setTimeout(() => el.classList.remove('on'), 1600); toastPlace();
   if (S && S.map) drawMap();
 }

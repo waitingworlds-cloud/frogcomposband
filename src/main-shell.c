@@ -47,6 +47,29 @@ typedef int sock_t;
 
 extern rect_t ui_effects_rect(void);
 extern int ui_screen_depth(void);
+/* the effect type of the last projection the game drew (set in project()) */
+/* a describe page as rows of text and colours (64 wide, at most 48 rows) */
+static void _doc_rows(doc_ptr doc);
+int shell_proj_gf = 0;
+static cptr _gf_elem(int gf)
+{
+    switch (gf)
+    {
+    case GF_FIRE: case GF_PLASMA: case GF_HELL_FIRE: case GF_ROCKET: case GF_METEOR: return "fire";
+    case GF_COLD: case GF_ICE: return "cold";
+    case GF_WATER: return "water";
+    case GF_ELEC: case GF_STORM: return "elec";
+    case GF_ACID: return "acid";
+    case GF_POIS: case GF_NUKE: return "poison";
+    case GF_DARK: case GF_NETHER: case GF_CAUSE_1: case GF_CAUSE_2: case GF_CAUSE_3: case GF_CAUSE_4:
+    case GF_HAND_DOOM: case GF_BLOOD_CURSE: return "dark";
+    case GF_LITE: case GF_HOLY_FIRE: return "light";
+    case GF_MANA: case GF_CHAOS: case GF_NEXUS: case GF_DISENCHANT: case GF_CONFUSION: case GF_TIME:
+    case GF_GRAVITY: case GF_DISINTEGRATE: case GF_PSY_SPEAR: case GF_PSI: case GF_PSI_STORM: return "arcane";
+    case GF_SHARDS: case GF_ROCK: case GF_ARROW: case GF_MISSILE: case GF_FORCE: case GF_SOUND: case GF_INERT: return "shard";
+    }
+    return NULL;
+}
 
 static term shell_term;
 static sock_t shell_sock = INVALID_SOCKET;
@@ -66,6 +89,7 @@ bool shell_take_click(int *kind, int *x, int *y)
 }
 static int view_w = 61, view_h = 41;   /* squares of map sent around the player */
 static bool dict_sent = FALSE;
+static u32b dict_seed = 0;   /* flavours are shuffled per game: send the list again when they change */
 static int  want_w = 0, want_h = 0;
 
 /* ---------------------------------------------------------------- output */
@@ -124,6 +148,25 @@ static void o_close(char c)
     o_need(2);
     obuf[olen++] = c;
 }
+static void _doc_rows(doc_ptr doc)
+{
+    int y, x, n = doc_line_count(doc);
+    if (n > 48) n = 48;
+    o_raw("[");
+    for (y = 0; y < n; y++)
+    {
+        char rs[65]; char ra[64 * 2 + 1];
+        for (x = 0; x < 64; x++)
+        {
+            doc_char_ptr c = doc_char(doc, doc_pos_create(x, y));
+            rs[x] = (c && c->c) ? c->c : ' ';
+            sprintf(ra + x * 2, "%02x", c ? c->a : 1);
+        }
+        rs[64] = 0;
+        o_raw("{"); o_kstr("s", rs); o_kstr("a", ra); o_close('}'); o_raw(",");
+    }
+    o_close(']');
+}
 /* the interface has gone: keep the character safe, then leave */
 static void shell_lost(void)
 {
@@ -173,6 +216,65 @@ static void shell_command(char *line)
             p += 2;
         }
     }
+    else if (line[0] == 'D' && line[1] == ' ' && line[2] && line[3] == ' ' && line[4])
+    {
+        /* the interface wants an item's full description for a tooltip: "D p a" (pack slot a) or "D e a" (worn).
+           Read only: the game's own describe page, sent as coloured rows */
+        obj_ptr o = NULL;
+        int i;
+        if (!character_generated) return;
+        if (line[2] == 'p') { for (i = 1; i <= pack_max() && !o; i++) if (slot_label(i) == line[4]) o = pack_obj(i); }
+        else if (line[2] == 'e') { for (i = 1; i <= equip_max() && !o; i++) if (slot_label(i) == line[4]) o = equip_obj(i); }
+        else if (line[2] == 'm') { i = atoi(line + 4); if (i <= 0 || i >= max_r_idx) return; }
+        else if (line[2] == 'o')
+        {
+            /* an object lying on the floor that the player has seen */
+            i = atoi(line + 4);
+            if (i <= 0 || i >= o_max) return;
+            o = &o_list[i];
+            if (!o->k_idx || !(o->marked & OM_FOUND) || o->held_m_idx || o->loc.where != INV_FLOOR) return;
+        }
+        else if (line[2] == 's')
+        {
+            /* an item on the shelves of the shop the player is in */
+            o = shell_shop_obj(atoi(line + 4));
+            if (!o) return;
+        }
+        else if (line[2] == 'h')
+        {
+            /* an item kept at home, or shown in the museum */
+            extern obj_ptr shell_home_obj(int slot);
+            o = shell_home_obj(atoi(line + 4));
+            if (!o) return;
+        }
+        if (o || line[2] == 'm')
+        {
+            doc_ptr doc = doc_alloc(64);
+            if (o) obj_display_doc(o, doc);
+            else mon_display_doc(&r_info[atoi(line + 4)], doc);
+            o_raw("{\"t\":\"desc\",");
+            { char k[16]; my_strcpy(k, line + 2, sizeof(k)); k[1] = ':'; o_kstr("key", k); }
+            o_raw("\"rows\":");
+            _doc_rows(doc);
+            /* something you could wear: what you wear there now, to compare side by side */
+            if (o && line[2] != 'e' && object_is_wearable(o))
+            {
+                slot_t sl = equip_first_slot(o);
+                obj_ptr w = sl ? equip_obj(sl) : NULL;
+                if (w)
+                {
+                    doc_ptr d2 = doc_alloc(64);
+                    obj_display_doc(w, d2);
+                    o_raw(",\"cmp\":");
+                    _doc_rows(d2);
+                    doc_free(d2);
+                }
+            }
+            o_raw("}");
+            o_send();
+            doc_free(doc);
+        }
+    }
     else if (line[0] == 'Q')
     {
         /* the window is closing: save and leave, as the game's own Exit menu does */
@@ -204,7 +306,12 @@ static void shell_command(char *line)
             return;
         }
         if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
-        if (kind == 1 && !dx && !dy) { Term_keypress('\\'); Term_keypress('g'); }
+        if (kind == 1 && !dx && !dy)
+        {
+            /* clicking yourself: in a shop doorway, go back in; elsewhere pick up what is here */
+            Term_keypress('\\');
+            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : 'g');
+        }
         else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
         {
             Term_keypress('\\'); Term_keypress(';');
@@ -215,6 +322,26 @@ static void shell_command(char *line)
             click_kind = kind; click_x = px + dx; click_y = py + dy;
             Term_keypress('\\'); Term_keypress('`');
         }
+    }
+    else if (line[0] == 'T' && line[1] == ' ')
+    {
+        /* right-click menu: aim at this square (a monster you can see there, else the square itself).
+         * Only while the game waits for a command; the next "fire/cast/throw" can then use it with 't'. */
+        int dx = 0, dy = 0, y, x;
+        if (sscanf(line + 2, "%d %d", &dx, &dy) != 2) return;
+        /* also taken while the game asks for a direction, so a click on the map can aim */
+        if (character_icky || !character_generated || p_ptr->wild_mode) return;
+        y = py + dy; x = px + dx;
+        if (!in_bounds(y, x)) return;
+        if (cave[y][x].m_idx && target_able(cave[y][x].m_idx))
+        {
+            health_track(cave[y][x].m_idx);
+            target_who = cave[y][x].m_idx;
+        }
+        else target_who = -1;
+        target_row = y; target_col = x;
+        p_ptr->redraw |= PR_HEALTH_BARS;
+        want_state = TRUE;
     }
     else if (line[0] == 'V' && line[1] == ' ')
     {
@@ -296,19 +423,20 @@ static void send_dict(void)
     for (i = 0; i < max_f_idx; i++)
     {
         feature_type *f = &f_info[i];
-        o_raw("["); o_str(f->name ? f_name + f->name : ""); o_fmt(",%d,%d],", f->d_char[F_LIT_STANDARD], f->d_attr[F_LIT_STANDARD]);
+        o_raw("["); o_str(f->name ? f_name + f->name : ""); o_fmt(",%d,%d,%d],", f->d_char[F_LIT_STANDARD], f->d_attr[F_LIT_STANDARD], f->power);
     }
     o_close(']');
     o_raw(",\"k\":[");
     for (i = 0; i < max_k_idx; i++)
     {
         object_kind *k = &k_info[i];
-        o_raw("["); o_str(k->name ? k_name + k->name : ""); o_fmt(",%d,%d,%d,%d],", k->tval, k->sval, k->d_char, k->d_attr);
+        o_raw("["); o_str(k->name ? k_name + k->name : ""); o_fmt(",%d,%d,%d,%d,%d],", k->tval, k->sval, k->d_char, k->d_attr, k->flavor);
     }
     o_close(']');
     o_raw("}");
     o_send();
     dict_sent = TRUE;
+    dict_seed = seed_flavor;
 }
 
 static void o_obj(obj_ptr o, char label)
@@ -485,7 +613,7 @@ static void send_state(void)
     rect_t mr = ui_map_rect();
 
     if (!character_generated) return;
-    if (!dict_sent) send_dict();
+    if (!dict_sent || (character_generated && dict_seed != seed_flavor)) send_dict();
 
     o_raw("{\"t\":\"s\",");
     o_kint("icky", character_icky ? 1 : 0);
@@ -506,7 +634,7 @@ static void send_state(void)
     o_kstr("cls", get_class()->name);
     o_kstr("pers", get_personality()->name);
     o_kstr("realm", p_ptr->realm1 ? realm_names[p_ptr->realm1] : "");
-    o_kint("lev", p_ptr->lev);
+    o_kint("lev", p_ptr->lev); o_kint("dig", p_ptr->skill_dig); if (rogue_like_commands) o_kint("rl", 1);
     o_kint("exp", p_ptr->exp);
     o_kint("expNext", exp_requirement(p_ptr->lev));
     o_kint("au", p_ptr->au);
@@ -613,6 +741,7 @@ static void send_state(void)
         o_kint("tv", o->tval);
         o_kint("ki", o->k_idx);
         o_kint("dx", o->loc.x - px); o_kint("dy", o->loc.y - py);
+        o_kint("oi", i);
         o_kint("col", tval_to_attr[o->tval % 128]);
         o_close('}');
         o_raw(",");
@@ -693,6 +822,18 @@ static void send_frame(void)
         o_fmt("{\"t\":\"f\",\"w\":%d,\"h\":%d,\"icky\":%d,\"ov\":%d,", w, h, character_icky ? 1 : 0, ov ? 1 : 0);
         Term_locate(&cx, &cy);
         o_fmt("\"cx\":%d,\"cy\":%d,\"cv\":%d,", cx, cy, t->scr->cv ? 1 : 0);
+        /* the cursor over the map (looking, targeting): which square it marks, from the player */
+        if (character_generated && !character_icky && t->scr->cv && rect_contains_pt(ui_map_rect(), cx, cy))
+        {
+            point_t cp = ui_xy_to_cave_pt(cx, cy);
+            o_fmt("\"lk\":[%d,%d],", cp.x - px, cp.y - py);
+        }
+        /* what the projection now on screen is made of, so the interface can give it its own look */
+        if (shell_proj_gf && character_generated && !character_icky)
+        {
+            cptr e = _gf_elem(shell_proj_gf);
+            if (e) o_fmt("\"gf\":\"%s\",", e);
+        }
         o_raw("\"rows\":[");
         for (y = 0; y < h; y++)
         {
@@ -771,6 +912,17 @@ static errr Term_xtra_shell(int n, int v)
             return 0;
         case TERM_XTRA_FRESH:
             send_frame();
+            /* while running, travelling or resting the game draws without waiting for a key:
+             * send the state whenever you have moved, so the map shows you (not the text "@") every step */
+            if (character_generated && !character_icky && !p_ptr->is_dead)
+            {
+                static int last_x = -1, last_y = -1;
+                if (px != last_x || py != last_y)
+                {
+                    last_x = px; last_y = py;
+                    send_state();
+                }
+            }
             return 0;
         case TERM_XTRA_REACT:
             send_hello();

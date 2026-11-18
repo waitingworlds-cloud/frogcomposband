@@ -2724,6 +2724,9 @@ bool project(int who, int rad, int y, int x, int dam, int typ, int flg)
     monster_target_y=py;
     monster_target_x=px;
 
+    /* the interface draws each element its own way */
+    { extern int shell_proj_gf; shell_proj_gf = typ; }
+
     /* Hack -- Jump to target */
     if (flg & (PROJECT_JUMP))
     {

@@ -59,7 +59,23 @@ function birthParse() {
   }
   return out;
 }
+/* the title screen: the game's news page waits for a key. Here it is a proper front door */
+const TITLE_MOBS = ['giant green frog', "grip, farmer maggot's dog", 'cave troll', 'smeagol', 'morgoth, lord of darkness', 'lich', '5-headed hydra', 'mature red dragon', 'giant pink frog'];
+function titleHtml() {
+  if (S && S.p) return '';
+  const all = G.s.join('\n'); if (!/Press Any Other Key to Play/.test(all)) return '';
+  const v = (/FrogComposband ([^\s]+)( \([^)]*\))?/.exec(all) || []);
+  return `<div class="tscr"><div class="tglow"></div>
+    <div class="tmobs">${TITLE_MOBS.map((n, i) => `<canvas class="tmob" data-n="${esc(n)}" style="--i:${i - 4}"></canvas>`).join('')}</div>
+    <h1>FrogComposband</h1><div class="tver">${esc((v[1] || '') + (v[2] || ''))}</div>
+    <div class="tbtns"><span class="tbtn main" data-key=" "><span class="key">Enter</span>Play</span><span class="tbtn" data-key="?"><span class="key">?</span>Credits</span></div>
+    <div class="ttip">Full keyboard play · click to walk · right-click anything for its actions · F1 all the controls</div></div>`;
+}
+function titleAfter() {
+  document.querySelectorAll('.tmob').forEach(c => { const S2 = 96, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(S2 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; sprite(g, 'mon', c.dataset.n, 0, 0, S2); sprite.flat = false; });
+}
 function birthHtml() {
+  topicsLoad();
   if (G.ov) return '';
   const b = birthParse(); if (!b || (!b.nchoice && !b.fields.length)) return '';
   const val = n => (b.fields.find(f => f.label === n) || {}).value || '';
@@ -80,13 +96,13 @@ function birthHtml() {
     else if (k.type === 'p') right += `<p class="bp">${k.html}</p>`;
     else if (k.type === 'stats') right += `<div class="bst" style="grid-template-columns:90px 34px 64px 34px repeat(${Math.max(0, k.cols.length - 1)},70px)"><span></span><span></span><span class="bh">${esc(k.cols[0] || '')}</span><span></span>${k.cols.slice(1).map(c => `<span class="bh">${esc(c)}</span>`).join('')}
       ${k.rows.map(r => `<span class="sn">${esc(r.name)}</span><span class="key kb" data-key="${esc(r.dec)}" data-tip="Lower (${esc(r.dec)})">&minus;</span><b class="sv">${esc(r.vals[0] || '')}</b><span class="key kb" data-key="${esc(r.inc)}" data-tip="Raise (${esc(r.inc)})">+</span>${r.vals.slice(1).map((v, i) => `<span class="${i === r.vals.length - 2 ? 'st' : 'sm ' + (/^-/.test(v) ? 'neg' : /^\+0$/.test(v) ? 'zero' : /^\+/.test(v) ? 'pos' : '')}">${esc(v)}</span>`).join('')}`).join('')}
-      ${k.left !== null ? `<span class="sn" style="grid-column:1/5;color:#b3ac9f;font-size:16px">Points left</span><span class="sm" style="color:#ffcf6a;font-size:19px">${esc(k.left)}</span>` : ''}</div>`;
+      ${k.left !== null ? `<span class="sn" style="grid-column:1/5;color:#b3ac9f;font-size:16px" data-tip="Each stat costs points: higher stats cost more. You have 30 to spend.">Points spent</span><span class="sm" style="color:${+k.left > 30 ? '#ff7a66' : +k.left === 30 ? '#a9c98c' : '#ffcf6a'};font-size:19px;white-space:nowrap">${esc(k.left)}<span style="color:#7d776c;font-size:14px"> / 30</span></span>` : ''}</div>`;
     else if (k.type === 'pre') right += `<pre class="bpre">${k.rows.join('\n')}</pre>`;
     else if (!k.items.length) continue;
     else { const n = k.items.length, cols = k.cols > 1 ? k.cols : n > 16 ? 3 : n > 5 ? 2 : 1;
       // two columns of text read down each column, so keep that order
       const ordered = k.cols > 1 ? k.items.filter(i => i.col === 0).concat(k.items.filter(i => i.col > 0)) : k.items, per = Math.ceil(ordered.length / cols);
-      right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
+      right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-topic="${esc(i.html.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, '').trim())}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
   }
   return `<div class="pane npanel birth" style="width:${left ? 1320 : 900}px"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
     <div class="bbody">${left}<div class="bright">${right}</div></div></div>`;

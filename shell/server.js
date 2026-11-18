@@ -10,9 +10,12 @@ function start(opts = {}) {
   const exe = process.platform === 'win32' ? 'frogcomposband.exe' : 'frogcomposband';
   const game = opts.game || [path.join(root, exe), path.join(root, 'src', exe)].find(p => fs.existsSync(p));
   const clients = new Set();
-  let hello = null, dict = null, lastState = null, lastMap = null, lastUi = null, gameSock = null, child = null, pending = [];
+  let spawnGame = null, hello = null, dict = null, lastState = null, lastMap = null, lastUi = null, gameSock = null, child = null, pending = [];
   const rows = new Map(); let frameMeta = null;   // full copy of the text grid for late joiners
 
+  // the game ending: tell the page once per run; the page answers K (keep the window: a death, a new character may follow) or E (close)
+  let ended = false;
+  const gone = () => { if (ended) return; ended = true; push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); };
   const push = line => { for (const r of clients) r.write(`data: ${line}\n\n`); };
   const toGame = s => { if (gameSock) gameSock.write(s + '\n'); else pending.push(s); };
 
@@ -31,7 +34,7 @@ function start(opts = {}) {
         push(line);
       }
     });
-    sock.on('close', () => { gameSock = null; push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); });
+    sock.on('close', () => { gameSock = null; gone(); });
     sock.on('error', () => {});
   });
 
@@ -50,9 +53,19 @@ function start(opts = {}) {
       return;
     }
     if (u.pathname === '/in' && req.method === 'POST') {
-      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVM] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
+      let b = ''; req.on('data', d => b += d); req.on('end', () => {
+        for (const l of b.split('\n')) {
+          if (/^([XRVMT] [0-9a-fA-F -]+|Q|D [pe] [!-~]|D [mosh] [0-9]{1,5})$/.test(l)) toGame(l);
+          else if (l === 'K' && ended && opts.onKeep) opts.onKeep();
+          else if (l === 'E' && ended && opts.onLeave) opts.onLeave();
+          else if (l === 'N' && ended && spawnGame) spawnGame();
+        }
+        res.writeHead(204); res.end(); });
       return;
     }
+    // the game's own help files, read-only, for tooltips (races, classes, options...)
+    const hm = /^\/help\/([A-Za-z0-9_-]+\.txt)$/.exec(u.pathname);
+    if (hm) { fs.readFile(path.join(root, 'lib', 'help', hm[1]), 'latin1', (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(d); }); return; }
     let f = path.normalize(path.join(uiDir, u.pathname === '/' ? 'index.html' : u.pathname));
     if (!f.startsWith(uiDir)) { res.writeHead(403); return res.end(); }
     fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); return res.end('not found'); } res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(d); });
@@ -61,14 +74,22 @@ function start(opts = {}) {
   return new Promise(resolve => {
     tcp.listen(0, '127.0.0.1', () => {
       const gport = tcp.address().port;
-      web.listen(opts.port || 0, '127.0.0.1', () => {
+      // a fixed port keeps the page's origin the same from one launch to the next, so remembered settings (sound, zoom,
+      // screen style) survive; if another copy holds it, any free port will do
+      const ready = () => {
         const env = { ...process.env, FROG_SHELL_PORT: String(gport), FROG_SHELL_COLS: String(opts.cols || 110), FROG_SHELL_ROWS: String(opts.rows || 40) };
-        if (game && !opts.noGame) {
+        spawnGame = () => {
+          ended = false; hello = dict = lastState = lastMap = lastUi = null; rows.clear(); frameMeta = null; pending = [];
+          if (opts.onRespawn) opts.onRespawn();
           child = spawn(game, ['-mshell', ...(opts.args || [])], { cwd: root, env, stdio: ['ignore', 'inherit', 'inherit'] });
-          child.on('exit', () => { push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); });
-        }
+          child.on('exit', gone);
+        };
+        if (game && !opts.noGame) spawnGame(); else spawnGame = null;
         resolve({ port: web.address().port, gport, quit: () => toGame('Q'), stop: () => { try { child && child.kill(); } catch (e) {} tcp.close(); web.close(); } });
-      });
+      };
+      const want = opts.port || 0;
+      web.once('error', e => { if (want && e.code === 'EADDRINUSE') web.listen(0, '127.0.0.1', ready); else throw e; });
+      web.listen(want, '127.0.0.1', ready);
     });
   });
 }
@@ -79,5 +100,6 @@ if (require.main === module) {
   if (i >= 0) o.args = a.splice(i).slice(1);
   for (let j = 0; j < a.length; j += 2) o[a[j].replace(/^--/, '')] = a[j + 1];
   if (o.port) o.port = +o.port;
-  start({ ...o, onExit: () => process.exit(0) }).then(s => console.log(`interface at http://127.0.0.1:${s.port}/`));
+  let t = 0;   // a death keeps the server for a new character; anything else ends it
+  start({ ...o, onExit: () => { t = setTimeout(() => process.exit(0), 2500); }, onKeep: () => clearTimeout(t), onLeave: () => process.exit(0), onRespawn: () => clearTimeout(t) }).then(s => console.log(`interface at http://127.0.0.1:${s.port}/`));
 }
