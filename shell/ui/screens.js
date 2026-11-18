@@ -135,7 +135,7 @@ function nativeAfter() { lmapDraw(); }
 function nativeHtml() {
   NATIVE_SIDE = false;
   if (!(G.ov || G.icky)) return '';
-  if (!UI || !UI.kind || !uiOnTop()) return menuHtml();
+  if (!UI || !UI.kind || !uiOnTop()) return optsHtml() || menuHtml();
   if (UI.kind === 'items') return itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
@@ -178,7 +178,7 @@ document.addEventListener('mousemove', ev => {
   if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
-  const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic) : '';
+  const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
   $('#tip').classList.toggle('wide', !!th);
   if (th) return showTip(th, ev);
   if (tipEl) return showTip(esc(tipEl.dataset.tip), ev);

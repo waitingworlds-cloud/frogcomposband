@@ -101,8 +101,18 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 #tip.wide{max-width:560px;white-space:normal;padding:12px 16px 13px}#tip .ttl{font:400 21px Fell,serif;letter-spacing:.05em;color:#ffcfa8;margin-bottom:6px}
 #tip .tgrp{font-size:15px;line-height:1.4;color:#ddd6c8;margin-top:6px}#tip .tgrp b{color:#f4efe4;font-weight:600}
 #tip .tbody{font-size:15.5px;line-height:1.45;color:#ddd6c8}#tip .ttab{margin:10px 0 0;padding:8px 10px;background:#0b0c0e;box-shadow:0 0 0 1px #2e3135;font:500 13px/1.35 "DejaVu Sans Mono",Consolas,monospace;color:#b3ac9f;white-space:pre}
+.optp{width:1040px;padding:14px 26px 14px!important}
+.orows{display:flex;flex-direction:column;margin-top:8px;max-height:820px;overflow:auto}
+.orow{display:grid;grid-template-columns:1fr 210px 150px;align-items:center;gap:14px;height:38px;padding:0 12px;cursor:pointer;font-size:18px;color:#e9e3d6;box-shadow:0 1px 0 #24272b}
+.orow:hover{background:linear-gradient(90deg,#ff8a3c1f,transparent)}.orow.sel{background:linear-gradient(90deg,#ff8a3c33,#ff8a3c08);box-shadow:inset 3px 0 0 var(--em),0 1px 0 #24272b}
+.orow.ro{cursor:default}.oid{font:500 13px "DejaVu Sans Mono",Consolas,monospace;color:#6f6b63;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osw{justify-self:end;width:50px;height:24px;border-radius:12px;background:#0c0d0f;box-shadow:inset 0 0 0 1px #3a3d42,inset 0 2px 4px #000;position:relative;transition:background .15s}
+.osw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:linear-gradient(#8a8f96,#4a4e54);box-shadow:0 1px 2px #000;transition:left .15s}
+.osw.on{background:linear-gradient(#c8682a,#8a3c14);box-shadow:inset 0 0 0 1px #ffb070,inset 0 2px 4px #0006}.osw.on i{left:29px;background:linear-gradient(#fff3e2,#d9c3a6)}
+.oval{justify-self:end;display:flex;align-items:center;gap:8px;font:600 16px Inter,sans-serif;color:#ffcfa8}.oval .key{cursor:pointer}
+.oro{justify-self:end;font:600 15px Inter,sans-serif;color:#b3ac9f}.onote{padding:8px 12px 4px;font:italic 400 15px Spectral,serif;color:#ffc46a}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="ctx.js"></script>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script>
 </body></html>

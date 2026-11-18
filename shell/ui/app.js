@@ -504,7 +504,7 @@ function draw() {
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
   const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
-  if (setHtml(nat, nh) && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
+  const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
