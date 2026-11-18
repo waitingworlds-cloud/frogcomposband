@@ -44,6 +44,12 @@ function itemsHtml() {
 
 let uiSel = '', spHover = '';
 function gridHas(re) { for (let y = 0; y < G.h; y++) if (re.test((G.s[y] || '').replace(/\x01/g, ' '))) return true; return false; }
+// a spell's element read off its name, for a coloured edge and a faint glow on its card
+const SP_ELEM = [[/acid|corro/i, '#a6e05a'], [/lightning|zap|shock|thunder|storm|elec/i, '#9fb4ff'], [/frost|cold|\bice|freez|glacier|blizzard/i, '#8fd8ff'],
+  [/fire|flame|burn|inferno|heat|plasma|meteor|hellfire|scorch/i, '#ff7a2a'], [/poison|stinking|venom|toxic/i, '#6ac85a'],
+  [/dark|nether|shadow|death|drain|curse|doom|vampir|necro/i, '#a06ad0'], [/heal|cure|bless|holy|\blight\b|sun|star|radian|prayer|protection/i, '#ffe08a'],
+  [/mana|chaos|missile|arcane|teleport|blink|portal|time|gravity|nexus|dimension/i, '#c08aff']];
+function spElem(n) { const m = SP_ELEM.find(([re]) => re.test(n)); return m ? m[1] : ''; }
 function spellsHtml() {
   const u = UI, rows = u.rows, big = rows.length <= 14;
   const prompt = (G.s[0] || '').replace(/\x01/g, ' ').trim();
@@ -51,7 +57,8 @@ function spellsHtml() {
   const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
   const cards = rows.map((r, i) => {
     const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
-    return `<div class="spc ${r.dim || !r.ok ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}">
+    const el = spElem(r.n);
+    return `<div class="spc ${r.dim || !r.ok ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'} ${el ? 'el' : ''}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}>
       <span class="key kb">${esc(r.k)}</span>
       <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? 'level ' + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
       ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
