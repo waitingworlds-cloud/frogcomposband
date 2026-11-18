@@ -56,12 +56,13 @@ function spellsHtml() {
   const cur = rows.find(r => r.n === spHover) || rows.find(r => r.n === uiSel) || (u.sel >= 0 ? rows[u.sel] : null);
   const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
   const have = u.unit === 'HP' ? S.p.hp : u.unit === 'au' ? S.p.au : S.p.sp;   // a cost above what you have shows red
+  const study = /\bStudy\b/i.test(prompt);   // learning: a spell you do not know yet but may learn stands out
   const cards = rows.map((r, i) => {
     const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
-    const el = spElem(r.n);
-    return `<div class="spc ${r.dim || !r.ok ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'} ${el ? 'el' : ''}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}>
+    const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl;   // a spell above your level: not yet yours to learn or cast
+    return `<div class="spc ${r.dim || early || (!r.ok && !study) ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'} ${el ? 'el' : ''}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}>
       <span class="key kb">${esc(r.k)}</span>
-      <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? 'level ' + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
+      <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? (early ? 'needs level ' : 'level ') + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
       ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
       ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}"${r.cost > have ? ` data-tip="You have ${have} ${unit}: not enough to cast this safely."` : ''}>${icon('potion')}<b>${r.cost}</b></span>` : ''}
       ${f != null ? `<span class="ring" style="--p:${Math.min(100, f)};--rc:${fc}"><span class="rv">${f}%</span></span>` : ''}</div>`;
