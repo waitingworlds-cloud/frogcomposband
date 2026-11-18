@@ -1811,8 +1811,10 @@ void bell(void)
  */
 void sound(int val)
 {
+#ifndef USE_SHELL
     /* No sound */
     if (!use_sound) return;
+#endif   /* the shell has its own sound switch */
 
     /* Make a sound (if allowed) */
     Term_xtra(TERM_XTRA_SOUND, val);

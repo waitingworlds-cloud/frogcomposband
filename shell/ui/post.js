@@ -199,6 +199,7 @@ function postRender(src, toPx, art, lowHealth) {
   run.forEach((m, i) => { kinds[i] = M_KIND[m.look]; str[i] = m.s; const [x, y] = toPx(m.x, m.y); cen[i * 2] = x; cen[i * 2 + 1] = y; ages[i] = m.age; tints.set(m.tint, i * 3); });
   gl.uniform1i(U('moment_count'), run.length); gl.uniform1iv(U('moment_kinds'), kinds); gl.uniform1fv(U('moment_strengths'), str); gl.uniform2fv(U('moment_centers'), cen); gl.uniform1fv(U('moment_ages'), ages); gl.uniform3fv(U('moment_tints'), tints);
   const depth = postClimaxDepth(t); gl.uniform1f(U('climax_zoom'), CLIMAX_ZOOM * depth);
+  sndRate(1 - .55 * depth);   // sound slows with the picture
   if (POST.climax) { const [x, y] = toPx(POST.climax.x, POST.climax.y); gl.uniform2f(U('climax_center'), x, y); }
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }

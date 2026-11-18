@@ -1,5 +1,6 @@
 // Windows/desktop wrapper: opens the interface in its own window and runs the game behind it.
 const { app, BrowserWindow, Menu } = require('electron');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');   // sound may start with the game
 const path = require('path'), fs = require('fs');
 const { start } = require('./server.js');
 

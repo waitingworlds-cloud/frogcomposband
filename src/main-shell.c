@@ -785,6 +785,9 @@ static errr Term_xtra_shell(int n, int v)
 #endif
             }
             return 0;
+        case TERM_XTRA_SOUND:
+            if (shell_sock != INVALID_SOCKET) { char sb[40]; int sn = sprintf(sb, "{\"t\":\"snd\",\"v\":%d}\n", v); (void)send(shell_sock, sb, sn, 0); }   /* its own line; never mixed into a message being built */
+            return 0;
         case TERM_XTRA_CLEAR:
         case TERM_XTRA_NOISE:
         case TERM_XTRA_SHAPE:

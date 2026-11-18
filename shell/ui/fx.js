@@ -12,6 +12,7 @@ function fxOnState(prev, cur) {
   const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
   if (!near) { FX.scroll = null; FX.mons = {}; FX.floats = []; FX.puffs = []; FX.lunge = {}; return; }
   if (mx || my) FX.scroll = { dx: mx, dy: my, t };
+  if (mx || my) sndPlay('walk');
   // creatures: slide to their new square, flash when hurt, puff when gone
   const old = {}; for (const m of prev.mons) old[m.i] = m;
   // what the game just said: a telling blow earns the crit look
@@ -29,7 +30,7 @@ function fxOnState(prev, cur) {
       // we strike: lean into the blow when it is next to us, then the flash and number land on the hit
       const melee = Math.abs(m.dx) <= 1 && Math.abs(m.dy) <= 1 && !mx && !my, at = melee ? t + HIT_MS : t;
       if (melee) FX.lunge.p = { dx: m.dx, dy: m.dy, t };
-      POST.hit = { x: ax, y: ay, t: at, w: crit ? 1.3 : .7 }; if (crit && !beats) { beats++; postBeat('crit', ax, ay, at); }
+      POST.hit = { x: ax, y: ay, t: at, w: crit ? 1.3 : .7 }; if (crit && !beats) { beats++; postBeat('crit', ax, ay, at); sndPlay('crit'); }
       FX.flash[m.i] = at; FX.floats.push({ x: ax, y: ay, s: o.rh != null ? '-' + lost : '-' + (o.hp - m.hp) + '%', c: '#ffd9a8', t: at, small: 1, px: Math.sign(m.dx) * .28 });
     }
   }

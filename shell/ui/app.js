@@ -29,7 +29,7 @@ function trigger(ks, e) {
   sendText(String.fromCharCode(31) + m + '_' + ks.toString(16).toUpperCase() + '\r');
 }
 addEventListener('keydown', e => {
-  if (postKey(e)) { e.preventDefault(); return; }
+  if (postKey(e) || sndKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -66,6 +66,7 @@ function onMsg(m) {
     else { UI = m.all ? null : UIback; UIback = null; }
     uiSel = ''; schedule();
   }
+  else if (m.t === 'snd') sndEvent(m.v);
   else if (m.t === 'uisel') { uiSel = m.name; schedule(); }
   else if (m.t === 'bye') { $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; built = false; S = null; $('#term').classList.remove('on'); }
 }
