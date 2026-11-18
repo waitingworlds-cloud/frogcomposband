@@ -561,7 +561,12 @@ function drawMap() {
       g.fillStyle = on ? 'rgba(255,138,60,.28)' : 'rgba(255,207,158,.08)'; g.fillRect(hx + 2, hy + 2, T - 4, T - 4); g.strokeStyle = on ? 'rgba(255,176,112,.95)' : 'rgba(255,207,158,.35)'; g.lineWidth = 1.5; g.strokeRect(hx + 2.5, hy + 2.5, T - 5, T - 5); }
   } else if (am === 'aim' && hover && (hover.dx || hover.dy)) {   // aiming: a line from you to the square, and a reticle on it
     const x0 = ox + (pcx + .5) * T, y0 = oy + (pcy + .5) * T, x1 = ox + (pcx + hover.dx + .5) * T, y1 = oy + (pcy + hover.dy + .5) * T;
-    g.save(); g.strokeStyle = 'rgba(255,176,112,.85)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+    // the line runs to where the shot would stop; past a wall or a creature in the way it goes faint, with a mark where it stops
+    const bk = aimPath(hover.dx, hover.dy), bx1 = bk ? ox + (pcx + bk.dx + .5) * T : x1, by1 = bk ? oy + (pcy + bk.dy + .5) * T : y1;
+    g.save(); g.strokeStyle = 'rgba(255,176,112,.85)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(x0, y0); g.lineTo(bx1, by1); g.stroke();
+    if (bk) { g.strokeStyle = 'rgba(255,176,112,.25)'; g.beginPath(); g.moveTo(bx1, by1); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+      const q = T * .22; g.strokeStyle = bk.why === 'wall' ? '#c9c2b6' : TH.danger; g.lineWidth = 2.5; g.beginPath(); g.moveTo(bx1 - q, by1 - q); g.lineTo(bx1 + q, by1 + q); g.moveTo(bx1 + q, by1 - q); g.lineTo(bx1 - q, by1 + q); g.stroke(); }
+    g.setLineDash([]);
     // a ball or a storm: the ground it will cover, about two squares round the reticle
     if (/ball|storm|burst|cloud|explosion|breath|blast|nova|wave/i.test(CAST.n) && Date.now() - CAST.t < 15000) {
       g.save(); g.setLineDash([]); g.fillStyle = 'rgba(255,90,60,.10)'; g.strokeStyle = 'rgba(255,138,90,.55)'; g.lineWidth = 1.5;

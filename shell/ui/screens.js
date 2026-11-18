@@ -223,6 +223,18 @@ function mapCellAt(ev) {
 }
 const playing = () => S && S.map && !G.icky && !G.ov;
 // is the game asking for a direction? 'aim' takes any square (a target), 'dir' only the eight around you
+// where a bolt aimed at a square would stop: at the first wall (or closed door, or rubble) or the first creature on the way
+function aimPath(dx, dy) {
+  const n = Math.max(Math.abs(dx), Math.abs(dy)), mw = S.map.w, cx = mw >> 1, cy = S.map.h >> 1;
+  for (let i = 1; i < n; i++) {
+    const x = Math.round(dx * i / n), y = Math.round(dy * i / n), c = S.map.c[(cy + y) * mw + cx + x];
+    const fc = c && c[0] ? featClass(c[0]) : '';
+    if (fc === 'wall' || fc === 'door' || fc === 'rubble') return { dx: x, dy: y, why: 'wall', i, n };
+    const m = S.mons.find(m => m.dx === x && m.dy === y && !m.pet);
+    if (m) return { dx: x, dy: y, why: 'mon', m, i, n };
+  }
+  return null;
+}
 function aimMode() { if (!S || G.icky || G.ov) return ''; const t = (G.s[0] || '').replace(/\x01/g, ' '); return /^Direction \(/.test(t) ? (/target/.test(t) ? 'aim' : 'dir') : ''; }
 // looking or picking a target: the prompt on the top line ends in the key list
 function lookMode() { if (!S || G.icky || G.ov) return ''; const t = (G.s[0] || '').replace(/\x01/g, ' '); if (!/,<dir>\]/.test(t)) return ''; return /\[[^\]]*\bt,/.test(t) && !/\bm,/.test(t) ? 'target' : 'look'; }
@@ -238,7 +250,7 @@ function cellTip(cell) {
   for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc(cap((DICT.f[c[0]] || [''])[0]))}</span>`);
   if (lookMode()) return (out.join('<br>') || 'here') + `<div class="hint">${lookMode() === 'target' ? 'click: target this' : 'click: look here'}</div>`;
-  if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : 'click: aim here'}</div>`;
+  if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : (() => { const b = aimPath(cell.dx, cell.dy); return b ? (b.why === 'wall' ? 'a wall is in the way · ' : `it would hit ${esc(b.m.n.replace(/^(an?|the) /i, 'the '))} first · `) : ''; })() + 'click: aim here'}</div>`;
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
   const bow = m && (cell.dx || cell.dy) && (S.equip || []).some(e => e.slot === 'Shooting' && e.o) ? ' · shift-click: fire' : '';
