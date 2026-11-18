@@ -228,7 +228,7 @@ function cellTip(cell) {
   const c = cell.c; if (!c) return '';
   const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
   if (!cell.dx && !cell.dy) out.push('<b>You</b>');
-  if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
+  if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${(DICT.r[m.r] || [])[3] != null ? 'level ' + DICT.r[m.r][3] + (threat(m) ? ` <b style="color:${threat(m) === 'deadly' ? '#ff8a70' : '#ffc46a'}">${threat(m)}</b>` : '') + ' · ' : ''}${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
   for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc(cap((DICT.f[c[0]] || [''])[0]))}</span>`);
   if (lookMode()) return (out.join('<br>') || 'here') + `<div class="hint">${lookMode() === 'target' ? 'click: target this' : 'click: look here'}</div>`;

@@ -255,3 +255,7 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .vb b{position:absolute;left:0;top:0;bottom:0;width:var(--to);background:linear-gradient(#fff3d6,#ffc98a);animation:vbghost .55s both cubic-bezier(.3,0,.2,1)}
 @keyframes vbghost{from{width:var(--from)}to{width:var(--to)}}
 .vb i.grow{animation:vbgrow .45s both ease-out}@keyframes vbgrow{from{width:var(--from)}to{width:var(--to)}}
+.thr{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:6px;border-radius:50%;font-size:11px;font-weight:700;vertical-align:1px;line-height:1}
+.thr.tough{background:#4a3410;color:#ffc46a;box-shadow:0 0 0 1px #8a6420 inset}
+.thr.deadly{background:#4a1410;color:#ff8a70;box-shadow:0 0 0 1px #a83a2a inset;animation:thrp 1.6s ease-in-out infinite}
+@keyframes thrp{50%{box-shadow:0 0 0 1px #ff5a3c inset,0 0 8px #ff5a3c88}}

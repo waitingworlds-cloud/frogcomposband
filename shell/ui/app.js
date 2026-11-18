@@ -257,10 +257,14 @@ function groupMons() {
   }
   return g;
 }
+// how hard a creature is next to you, from its depth and your level: nothing, tough, or deadly
+function threat(m) { const lv = +((DICT.r[m.r] || [])[3] || 0), pl = S.p.lev || 1; return m.pet || m.friendly ? '' : lv >= pl * 1.5 + 6 ? 'deadly' : lv >= pl + 4 ? 'tough' : ''; }
+const THREAT_TIP = { tough: 'Tougher than you are used to: level {L}.', deadly: 'Far beyond you: level {L}. Think twice.' };
+function threatPip(m) { const t = threat(m); return t ? `<span class="thr ${t}" data-tip="${THREAT_TIP[t].replace('{L}', (DICT.r[m.r] || [])[3])}">${t === 'deadly' ? '☠' : '!'}</span>` : ''; }
 function mobsHtml(g) {
   if (!g.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing in view</div>';
   return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-desc="m:${m.r}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
-  <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
+  <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${threatPip(m)}${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
