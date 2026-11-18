@@ -190,6 +190,10 @@ function fxSpell(lx, ly, ch, c) {
     if (who) fxCast(who[0], who[1], c);
   }
   const fresh = t - FX.lastProj > 260;
+  // a bolt leaves a fading streak from its last square to this one
+  if (!fresh && ch !== '*' && FX.lastMk && Math.max(Math.abs(FX.lastMk[0] - lx), Math.abs(FX.lastMk[1] - ly)) === 1 && FX.parts.length < 700)
+    FX.parts.push({ x: FX.lastMk[0] + .5, y: FX.lastMk[1] + .5, x2: lx + .5, y2: ly + .5, vx: 0, vy: 0, t, life: 320, c, kind: 'trail', g: 0 });
+  FX.lastMk = [lx, ly];
   FX.lastProj = t; FX.lastEl = (G && G.gf) || fxElem(c); FX.lastC = c;
   // each volley sounds like its element once; a ball adds its blast when it bursts
   if (fresh && typeof sndPlay === 'function') sndPlay(SPELL_SND[FX.lastEl] || 'zap');
@@ -259,6 +263,9 @@ function fxPartsDraw(g, toXY, T) {
     g.globalAlpha = (1 - k) * .9; g.strokeStyle = r.c; g.lineWidth = r.w * (1 - k * .6); g.beginPath(); g.arc(x, y, T * (r.r0 + (r.r1 - r.r0) * e), 0, 7); g.stroke(); }
   for (const p of FX.parts) { const k = (t - p.t) / p.life; if (k < 0 || k >= 1) continue; const s = (t - p.t) / 1000, drag = 1 - Math.min(.6, s * 1.4);
     const [x, y] = toXY(p.x + p.vx * s * drag, p.y + p.vy * s * drag + (p.g != null ? p.g : p.kind === 'spark' ? .9 : 0) * s * s);
+    if (p.kind === 'trail') { const [x2, y2] = toXY(p.x2, p.y2); g.globalCompositeOperation = 'lighter'; g.lineCap = 'round';
+      g.globalAlpha = (1 - k) * .35; g.strokeStyle = p.c; g.lineWidth = T * .32 * (1 - k * .5); g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+      g.globalAlpha = (1 - k) * .8; g.strokeStyle = '#fff'; g.lineWidth = Math.max(1.5, T / 20); g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke(); continue; }
     if (p.kind === 'arc') {   // a jagged fork, redrawn a little differently every frame so it crackles
       const n = 5, L = p.len * T, ca = Math.cos(p.a), sa = Math.sin(p.a), j = Math.floor(t / 40);
       g.globalCompositeOperation = 'lighter'; g.globalAlpha = (1 - k) * (.6 + .4 * rnd(j, p.seed)); g.strokeStyle = p.c; g.lineWidth = Math.max(1.5, T / 22); g.lineJoin = 'round';
