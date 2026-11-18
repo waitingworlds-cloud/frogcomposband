@@ -443,7 +443,17 @@ function drawMap() {
   if (G.cv && !G.icky && !G.ov && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
-  if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
+  const am = aimMode();
+  if (am === 'dir') {   // a direction is wanted: show the eight squares you can pick
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const hx = ox + (pcx + dx) * T, hy = oy + (pcy + dy) * T, on = hover && hover.dx === dx && hover.dy === dy;
+      g.fillStyle = on ? 'rgba(255,138,60,.28)' : 'rgba(255,207,158,.08)'; g.fillRect(hx + 2, hy + 2, T - 4, T - 4); g.strokeStyle = on ? 'rgba(255,176,112,.95)' : 'rgba(255,207,158,.35)'; g.lineWidth = 1.5; g.strokeRect(hx + 2.5, hy + 2.5, T - 5, T - 5); }
+  } else if (am === 'aim' && hover && (hover.dx || hover.dy)) {   // aiming: a line from you to the square, and a reticle on it
+    const x0 = ox + (pcx + .5) * T, y0 = oy + (pcy + .5) * T, x1 = ox + (pcx + hover.dx + .5) * T, y1 = oy + (pcy + hover.dy + .5) * T;
+    g.save(); g.strokeStyle = 'rgba(255,176,112,.85)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+    const r = T * .42; g.strokeStyle = TH.danger; g.lineWidth = 2; g.beginPath(); g.arc(x1, y1, r, 0, 7); g.stroke();
+    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { g.beginPath(); g.moveTo(x1 + a * r * .55, y1 + b * r * .55); g.lineTo(x1 + a * r * 1.3, y1 + b * r * 1.3); g.stroke(); }
+    g.restore();
+  } else if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
   fxDraw(g, (x, y) => [ox + (pcx + x - S.px) * T, oy + (pcy + y - S.py) * T], T);
   const vg = g.createRadialGradient(px, py, T * 6, px, py, Math.max(W, H) * .8); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,5,6,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
   drawMini(pcx, pcy, Math.ceil(W / T), Math.ceil(H / T));

@@ -154,13 +154,16 @@ function mapCellAt(ev) {
   return { dx, dy, c: cx >= 0 && cy >= 0 && cx < mw && cy < mh ? S.map.c[cy * mw + cx] : 0 };
 }
 const playing = () => S && S.map && !G.icky && !G.ov;
+// is the game asking for a direction? 'aim' takes any square (a target), 'dir' only the eight around you
+function aimMode() { if (!S || G.icky || G.ov) return ''; const t = (G.s[0] || '').replace(/\x01/g, ' '); return /^Direction \(/.test(t) ? (/target/.test(t) ? 'aim' : 'dir') : ''; }
 function cellTip(cell) {
   const c = cell.c; if (!c) return '';
   const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
   if (!cell.dx && !cell.dy) out.push('<b>You</b>');
   if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
   for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
-  if (c[0]) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[c[0]] || [''])[0])}</span>`);
+  if (c[0]) out.push(`<span style="color:#b3ac9f">${esc(cap((DICT.f[c[0]] || [''])[0]))}</span>`);
+  if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : 'click: aim here'}</div>`;
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
   return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'} · right-click: actions</div>`;
@@ -198,6 +201,13 @@ document.addEventListener('mousedown', ev => {
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap' && !UI.wild) {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);
     const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); return;
+  }
+  if (ev.target.id === 'map' && playing() && aimMode() && ev.button === 0) {
+    // the game is asking for a direction: a click answers it
+    const cell = mapCellAt(ev); if (!cell) return; ev.preventDefault();
+    if (aimMode() === 'dir') { if (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1) sendText(dirKey(cell.dx, cell.dy)); return; }
+    if (!cell.dx && !cell.dy) return;
+    sendRaw(`T ${cell.dx} ${cell.dy}`); setTimeout(() => sendText('t'), 40); return;
   }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev); if (!cell) return;
