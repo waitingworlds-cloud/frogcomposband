@@ -56,7 +56,7 @@ function exploreTick() {
 }
 function exploreKey(e) {
   if (EXP.on) { exploreStop(); if (e.key === 'Escape' || e.key === 'x') return true; return false; }   // any key stops it; Escape and x only stop
-  if (e.key === 'x' && !e.ctrlKey && !e.altKey && !e.metaKey && S && S.p && !S.p.rl && playing() && !expAsk() && !(UI && uiOnTop())) { exploreStart(); return true; }
+  if (e.key === 'x' && !e.ctrlKey && !e.altKey && !e.metaKey && S && S.p && !S.p.rl && playing() && !expAsk() && !(UI && uiOnTop()) && !lookMode() && !aimMode() && !/\]\s*$/.test((G.s[0] || '').replace(/\x01/g, ' ').trim())) { exploreStart(); return true; }
   return false;
 }
 addEventListener('mousedown', e => { if (EXP.on && !(e.target.closest && e.target.closest('[data-explore]'))) exploreStop(); }, { capture: true });
