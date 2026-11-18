@@ -123,6 +123,12 @@ function sndBed() {
   if (want === (SND.bed && SND.bed.kind || '')) return;
   if (SND.bed) { const b = SND.bed; b.g.gain.setTargetAtTime(0, SND.ctx.currentTime, .6); setTimeout(() => { try { b.s.stop(); } catch (e) {} SND.live.delete(b.s); }, 2500); clearInterval(b.iv); SND.bed = null; }
   if (!want) return;
+  // a recorded loop when the build has one, else filtered noise
+  const rec = SND.index && SND.index['bed:' + want] && SND.index['bed:' + want][0], rb = rec && CLIPS[rec.f];
+  if (rec && rb === undefined) { CLIPS[rec.f] = null; fetch('sounds/' + rec.f).then(r => r.arrayBuffer()).then(a => SND.ctx.decodeAudioData(a)).then(b => { CLIPS[rec.f] = b; }).catch(() => { CLIPS[rec.f] = false; }); return; }
+  if (rec && rb === null) return;   // still loading; try again on the next tick
+  if (rec && rb) { const c = SND.ctx, s = c.createBufferSource(), g = c.createGain(); s.buffer = rb; s.loop = true; g.gain.value = 0; g.gain.setTargetAtTime(rec.g == null ? .3 : rec.g, c.currentTime, 1.5);
+    s.connect(g); g.connect(SND.lp); s.start(); SND.live.add(s); if (SND.rate !== 1) s.detune.value = cents(SND.rate); SND.bed = { kind: want, s, g, iv: 0 }; return; }
   const c = SND.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = SND.noise; s.loop = true;
   f.type = want === 'deep' ? 'lowpass' : 'bandpass'; f.frequency.value = want === 'deep' ? 150 : 420; f.Q.value = .4; g.gain.value = 0; g.gain.setTargetAtTime(want === 'deep' ? .16 : .035, c.currentTime, 1.5);
   s.connect(f); f.connect(g); g.connect(SND.lp); s.start(); SND.live.add(s); if (SND.rate !== 1) s.detune.value = cents(SND.rate);

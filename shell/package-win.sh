@@ -12,6 +12,7 @@ mkdir -p "$APP/resources/app" "$APP/game"
 cp "$HERE/main.js" "$HERE/server.js" "$HERE/package.json" "$APP/resources/app/"
 cp -r "$HERE/ui" "$APP/resources/app/ui"
 # TILES=<folder with atlas.json and its sheets> puts a tileset into the build
+if [ -n "$SOUNDS" ]; then cp "$SOUNDS"/index.json "$SOUNDS"/*.ogg "$APP/resources/app/ui/sounds/"; fi
 if [ -n "$TILES" ]; then cp "$TILES"/atlas.json "$TILES"/*.png "$APP/resources/app/ui/tiles/"; fi
 OBJDIR="${OBJDIR:-$OUT/obj}" sh "$HERE/build-win.sh" "$APP/game"
 rm -rf "$APP/game/obj"
