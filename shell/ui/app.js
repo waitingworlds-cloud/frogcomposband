@@ -300,17 +300,17 @@ function rightHtml() {
   ${card('Area map', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
-const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what lies here' };
+const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what you stand on' };
 const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'], ['M', 'map'], ['Esc', 'menu']];
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
 function consoleHtml() {
   const cnt = { q: countTv(t => t === 75), r: countTv(t => t === 70), E: countTv(t => t === 80), a: countTv(t => t === 65 || t === 66 || t === 55) };
-  const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o);   // nothing to fire with: say so on the button
+  const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o), noFloor = !S.floor.some(o => !o.dx && !o.dy);   // nothing to fire with: say so on the button
   const msgs = S.msgs.filter(m => (String(m.s).match(/\n/g) || []).length < 3).slice(-8);   // a picture of the map kept in the log (after a death) is not a line to read
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) ? ' none' : ''}" data-key="${k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
+  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" data-key="${k === 'Esc' ? '\x1b' : k}"${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
