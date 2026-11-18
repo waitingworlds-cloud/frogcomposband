@@ -272,6 +272,9 @@ document.addEventListener('mousemove', ev => {
   }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev);
+    // the pointer says what a click will do: aim, attack, or walk
+    { const foe = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy && !m.pet && !m.friendly), want = aimMode() || lookMode() ? 'crosshair' : foe ? 'pointer' : 'default';
+      if (ev.target.style.cursor !== want) ev.target.style.cursor = want; }
     if (!hover || !cell || hover.dx !== cell.dx || hover.dy !== cell.dy) {
       hover = cell; requestAnimationFrame(drawMap); clearTimeout(loreT); loreKey = '';
       // resting the pointer on a creature for a moment opens what you know of it
