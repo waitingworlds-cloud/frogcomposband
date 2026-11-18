@@ -427,10 +427,12 @@ function draw() {
   }
   const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : ''; let show = false;
   if (setHtml(nat, nh) && nh) nativeAfter(); nat.classList.toggle('on', !!nh);
-  if (nh) show = false;
+  if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
+  else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
+  const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
 }
 document.addEventListener('click', e => {
   const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key);

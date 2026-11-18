@@ -2796,6 +2796,55 @@ void py_display(void)
     py_display_character_sheet(d);
 
     screen_save();
+    /* an overview as data, shown beside the full sheet by the interface */
+    {
+        skills_t skills = p_ptr->skills;
+        int      slot = equip_find_obj(TV_BOW, SV_ANY), i;
+        struct { cptr n; int amt; int div; } sk[8];
+        skills.thn += p_ptr->to_h_m * BTH_PLUS_ADJ;
+        if (slot)
+        {
+            object_type *bow = equip_obj(slot);
+            if (bow) skills.thb += (p_ptr->shooter_info.to_h + bow->to_h) * BTH_PLUS_ADJ;
+        }
+        if (!skills.stl) skills.stl = -1;
+        sk[0].n = "Melee"; sk[0].amt = skills.thn; sk[0].div = 12;
+        sk[1].n = "Archery"; sk[1].amt = skills.thb; sk[1].div = 12;
+        sk[2].n = "Saving throw"; sk[2].amt = skills.sav; sk[2].div = 7;
+        sk[3].n = "Stealth"; sk[3].amt = skills.stl; sk[3].div = 1;
+        sk[4].n = "Perception"; sk[4].amt = skills.fos; sk[4].div = 6;
+        sk[5].n = "Searching"; sk[5].amt = skills.srh; sk[5].div = 6;
+        sk[6].n = "Disarming"; sk[6].amt = skills.dis; sk[6].div = 8;
+        sk[7].n = "Devices"; sk[7].amt = skills.dev; sk[7].div = 7;
+        shell_ui_open("char");
+        shell_ui_str("sex", sex_info[p_ptr->psex].title);
+        shell_ui_int("exp", p_ptr->exp);
+        shell_ui_int("maxexp", p_ptr->max_exp);
+        shell_ui_int("adv", p_ptr->lev >= PY_MAX_LEVEL ? -1 : exp_requirement(p_ptr->lev));
+        shell_ui_int("kills", ct_kills());
+        shell_ui_int("uniques", ct_uniques(CTU_INCLUDE_SUPPRESSED | CTU_INCLUDE_RARE | CTU_COUNT_DEAD));
+        shell_ui_int("arts", no_artifacts ? -1 : ct_artifacts() + stats_rand_art_counts.found);
+        shell_ui_int("play", playtime);
+        shell_ui_int("maxdepth", max_dlv[DUNGEON_ANGBAND]);
+        for (i = 0; i < 8; i++)
+        {
+            skill_desc_t desc = skills_describe(sk[i].amt, sk[i].div);
+            shell_ui_row();
+            shell_ui_str("t", "skill");
+            shell_ui_str("n", sk[i].n);
+            shell_ui_str("d", desc.desc);
+            shell_ui_int("col", desc.color);
+            shell_ui_int("v", sk[i].div ? sk[i].amt / sk[i].div : sk[i].amt);
+        }
+        for (i = 0; i < RES_MAX; i++)
+        {
+            shell_ui_row();
+            shell_ui_str("t", "res");
+            shell_ui_str("n", res_name(i));
+            shell_ui_int("pct", res_pct(i));
+        }
+        shell_ui_close();
+    }
     doc_display(d, "Character Sheet", 0);
     screen_load();
 

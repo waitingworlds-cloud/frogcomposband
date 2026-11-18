@@ -12,6 +12,8 @@ function uiOnTop() {
   if (!UI) return false;
   if (UI.kind === 'items') { const last = plain(UI.prompt).trim().split('\n').pop().trim(); return (G.s[G.cy] || '').replace(/\x01/g, ' ').includes(last.slice(0, 14)); }
   if (UI.kind === 'shop') return !G.ov;
+  if (UI.kind === 'char') return gridHas(/\[Character Sheet/);
+  if (UI.kind === 'lmap') return G.icky && !gridHas(/-more-/);
   if (UI.kind === 'spells') return gridHas(/Lvl\s+(SP|HP|Cost)/);
   return true;
 }
@@ -107,14 +109,37 @@ function lmapDraw() {
     if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
   x.fillStyle = '#ffb070'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#000'; x.lineWidth = 1; x.strokeRect(u.px * s - 2.5, u.py * s - 2.5, s + 5, s + 5);
 }
+let NATIVE_SIDE = false;
+const SKL = ['very bad', 'bad', 'poor', 'fair', 'good', 'very good', 'excellent', 'superb', 'heroic', 'legendary'];
+function charHtml() {
+  const u = UI, p = S.p, sk = u.rows.filter(r => r.t === 'skill'), res = u.rows.filter(r => r.t === 'res');
+  const tile = (v, l) => `<div class="tile ch"><div class="ch"><b>${v}</b><span class="lbl">${l}</span></div></div>`;
+  const h = Math.floor(u.play / 3600), m = Math.floor(u.play / 60) % 60;
+  const bars = d => { let i = SKL.indexOf(d.toLowerCase().replace(/\[.*$/, '').trim()); if (i < 0) i = 9; const n = Math.max(1, Math.round((i + 1) * .8)); return `<span class="sbar">${Array.from({ length: 8 }, (_, k) => `<i class="${k < n ? 'on' : ''} ${i >= 8 ? 'hero' : ''}"></i>`).join('')}</span>`; };
+  return `<div class="pane npanel charp" style="width:660px">
+    <div class="tabs"><div class="on">Character</div></div>
+    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(p.race)} ${esc(p.cls)}</span></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${[u.sex, p.pers + ' personality', p.realm ? p.realm + ' realm' : ''].filter(Boolean).map(t => `<span class="grp" style="font-size:15px;padding:4px 10px">${esc(t)}</span>`).join('')}</div>
+    <div class="catr">progress</div>
+    <div class="ptiles">${tile(u.kills.toLocaleString(), 'kills')}${tile(u.uniques, 'uniques slain')}${tile(u.arts < 0 ? 'n/a' : u.arts, 'artifacts found')}${tile(u.maxdepth ? u.maxdepth * 50 + ' ft' : 'none', 'deepest dive')}${tile('Day ' + p.day, 'at ' + p.hour + ':' + String(p.min).padStart(2, '0'))}${tile(h + 'h ' + String(m).padStart(2, '0') + 'm', 'played')}</div>
+    <div class="row" style="gap:10px;margin:10px 2px 0"><span class="lbl">experience</span><div class="xp grow"><i style="width:${u.adv > 0 ? Math.min(100, u.exp / u.adv * 100) : 100}%"></i></div><span class="num" style="font-size:14px">${u.exp.toLocaleString()}${u.adv > 0 ? ' / ' + u.adv.toLocaleString() : ''}</span></div>
+    ${u.exp < u.maxexp ? `<div class="sub" style="color:#ffc46a;font-size:14px">experience drained: your best was ${u.maxexp.toLocaleString()}</div>` : ''}
+    <div class="catr">skills</div>
+    ${sk.map(r => `<div class="row skl"><span class="grow">${esc(r.n)}</span>${bars(r.d)}<span style="width:110px;text-align:right;color:${readable(col(r.col))}">${esc(r.d)}</span></div>`).join('')}
+    <div class="catr">resistances</div>
+    <div class="resg">${res.map(r => `<div class="rs ${r.pct > 0 ? 'on' : r.pct < 0 ? 'bad' : ''}"><span>${esc(r.n)}</span><b>${r.pct ? r.pct + '%' : '–'}</b></div>`).join('')}</div>
+    <div class="sub" style="font-size:14px;margin-top:8px">The full sheet is on the right. Arrow keys and Page Down scroll it.</div></div>`;
+}
 function nativeAfter() { lmapDraw(); }
 
 function nativeHtml() {
+  NATIVE_SIDE = false;
   if (!UI || !UI.kind || !(G.ov || G.icky) || !uiOnTop()) return '';
   if (UI.kind === 'items') return itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
   if (UI.kind === 'lmap') return lmapHtml();
+  if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
   return '';
 }
 
