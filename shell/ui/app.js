@@ -41,6 +41,7 @@ function travelRetry() {
 let CAST = { n: '', t: 0 };
 function sendBytes(bytes) {
   if (bytes.length === 1 && typeof UI !== 'undefined' && UI && UI.kind === 'spells' && typeof uiOnTop === 'function' && uiOnTop()) { const r = UI.rows.find(r => r.k === String.fromCharCode(bytes[0])); if (r) CAST = { n: r.n, t: Date.now() }; }
+  if (typeof hbNote === 'function') hbNote(bytes);
   if (bytes.length) sendRaw('X ' + hex(bytes));
 }
 function sendText(str) { sendBytes([...str].map(c => c.charCodeAt(0))); }
@@ -54,7 +55,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (hotbarKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -372,7 +373,7 @@ function consoleHtml() {
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
+  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
@@ -383,7 +384,7 @@ const MC = ['tl', 'tr', 'bl', 'br'].map(p => `<svg class="mcorner ${p}" viewBox=
   <path fill="url(#mc)" stroke="#000" d="M8 .5H53.500L47 14H22L14 22V47L.5 53.500V8z"/><path fill="none" stroke="#ff8a3c" stroke-opacity=".75" d="M43 9.500H20L9.500 20V43"/><path fill="#ff8a3c" stroke="#000" d="M14 9l5 5-5 5-5-5z"/></svg>`).join('');
 
 function buildMain() {
-  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div>${MC}</div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
+  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div>${MC}<div id="hbplate"></div></div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
   built = true;
 }
 function drawMobCanvas(cv, rIdx, size) {
@@ -764,7 +765,7 @@ function draw() {
   $('#stage').style.setProperty('--vw', VW + 'px');
   if (inGame) {
     if (!built) buildMain();
-    const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml());
+    const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
     const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();
