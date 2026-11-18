@@ -423,7 +423,7 @@ static void send_dict(void)
     for (i = 0; i < max_f_idx; i++)
     {
         feature_type *f = &f_info[i];
-        o_raw("["); o_str(f->name ? f_name + f->name : ""); o_fmt(",%d,%d],", f->d_char[F_LIT_STANDARD], f->d_attr[F_LIT_STANDARD]);
+        o_raw("["); o_str(f->name ? f_name + f->name : ""); o_fmt(",%d,%d,%d],", f->d_char[F_LIT_STANDARD], f->d_attr[F_LIT_STANDARD], f->power);
     }
     o_close(']');
     o_raw(",\"k\":[");
@@ -634,7 +634,7 @@ static void send_state(void)
     o_kstr("cls", get_class()->name);
     o_kstr("pers", get_personality()->name);
     o_kstr("realm", p_ptr->realm1 ? realm_names[p_ptr->realm1] : "");
-    o_kint("lev", p_ptr->lev); if (rogue_like_commands) o_kint("rl", 1);
+    o_kint("lev", p_ptr->lev); o_kint("dig", p_ptr->skill_dig); if (rogue_like_commands) o_kint("rl", 1);
     o_kint("exp", p_ptr->exp);
     o_kint("expNext", exp_requirement(p_ptr->lev));
     o_kint("au", p_ptr->au);

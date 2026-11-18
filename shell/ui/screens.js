@@ -226,7 +226,9 @@ function aimMode() { if (!S || G.icky || G.ov) return ''; const t = (G.s[0] || '
 // looking or picking a target: the prompt on the top line ends in the key list
 function lookMode() { if (!S || G.icky || G.ov) return ''; const t = (G.s[0] || '').replace(/\x01/g, ' '); if (!/,<dir>\]/.test(t)) return ''; return /\[[^\]]*\bt,/.test(t) && !/\bm,/.test(t) ? 'target' : 'look'; }
 // a vein or rubble right beside you: a click digs at it instead of bumping
-const digHere = cell => cell && cell.c && cell.c[0] && Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 && !S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy) && (n => /rubble|vein|magma|quartz|seam/i.test(n) && !/passable/i.test(n))((DICT.f[cell.c[0]] || [''])[0]);
+const digHere = cell => { if (!(cell && cell.c && cell.c[0] && Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1) || S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy)) return '';
+  const f = DICT.f[cell.c[0]] || [''], n = f[0]; if (!/rubble|vein|magma|quartz|seam/i.test(n) || /passable/i.test(n)) return '';
+  return /rubble/i.test(n) || S.p.dig == null || f[3] == null || S.p.dig > f[3] ? 'dig' : 'hard'; };   // the game will not even try a vein your digging cannot break
 function cellTip(cell) {
   const c = cell.c; if (!c) return '';
   const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
@@ -240,7 +242,7 @@ function cellTip(cell) {
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
   const bow = m && (cell.dx || cell.dy) && (S.equip || []).some(e => e.slot === 'Shooting' && e.o) ? ' · shift-click: fire' : '';
   const stair = !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && c[0] ? featClass(c[0]) : '';
-  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : digHere(cell) ? 'click: tunnel' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
+  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : digHere(cell) === 'dig' ? 'click: tunnel' : digHere(cell) === 'hard' ? 'too hard to dig with what you have' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
 }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
@@ -362,7 +364,7 @@ document.addEventListener('mousedown', ev => {
     // standing on stairs with nothing to pick up: a click on yourself takes them
     const sc = ev.button === 0 && !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && cell.c && cell.c[0] ? featClass(cell.c[0]) : '';
     if (sc === 'down' || sc === 'up') { sendText(cmd(sc === 'down' ? '>' : '<')); ev.preventDefault(); return; }
-    if (ev.button === 0 && digHere(cell)) { sendText(cmd('T') + dirKey(cell.dx, cell.dy)); ev.preventDefault(); return; }
+    if (ev.button === 0 && digHere(cell)) { if (digHere(cell) === 'dig') sendText(cmd('T') + dirKey(cell.dx, cell.dy)); else postToast('Too hard to dig with what you have'); ev.preventDefault(); return; }
     if (ev.button === 0 && (cell.dx || cell.dy) && S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy)) PICK_AT = { x: S.px + cell.dx, y: S.py + cell.dy, t: Date.now() };   // an item there: pick it up on arrival
     sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
   }
