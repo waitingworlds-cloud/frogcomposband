@@ -89,6 +89,7 @@ function onMsg(m) {
     if (DIED) {   // a death: say farewell, and offer a new character without closing the program
       sendRaw('K'); const d = DIED; DIED = null;
       $('#app').innerHTML = `<div class="tscr over"><div class="tglow"></div><div class="tver">the tale of</div><h1>${esc(d.name)}</h1><div class="tver">${esc([d.title, d.cls].filter(Boolean).join(' · '))}${d.by && !/^quitting$/i.test(d.by) ? ' · slain by ' + esc(d.by) : ''}</div>
+        ${d.lev || d.where ? `<div class="tver" style="font-size:.78em;opacity:.7;margin-top:2px">${esc([d.lev ? 'character level ' + d.lev : '', /^Level 0$/i.test(d.where) ? 'in the town' : d.where ? d.where.toLowerCase().replace(/^level/, 'dungeon level') : '', d.au ? d.au + ' gold' : ''].filter(Boolean).join(' · '))}</div>` : ''}
         <div class="tbtns"><span class="tbtn main" id="again"><span class="key">Enter</span>New character</span><span class="tbtn" id="leave"><span class="key">Esc</span>Quit</span></div></div>`;
       GAMEOVER = true;
     } else { sendRaw('E'); $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; }
