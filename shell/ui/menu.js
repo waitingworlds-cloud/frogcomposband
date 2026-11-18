@@ -20,8 +20,9 @@ function menuBox() {
 }
 function menuHtml() {
   const b = menuBox(); if (!b) return '';
-  const rows = []; let n = 0, prose = 0;
+  const rows = []; let n = 0, prose = 0; const pg = pagerInfo(b.y0, b.y1);
   for (let y = b.y0; y <= b.y1; y++) {
+    if (pg && (y === pg.head || y === pg.foot)) continue;
     const s = rowText(y).slice(0, b.x1 + 1), toks = []; let m; MENU_TOK.lastIndex = 0;
     while ((m = MENU_TOK.exec(s))) {
       const at = m.index + m[1].length, len = m[2].length, key = m[3] || m[4] || m[5];
@@ -31,6 +32,7 @@ function menuHtml() {
     if (!toks.length && s.trim().length > 60) prose++;
     rows.push({ y, s, toks });
   }
+  if (pg) while (rows.length && !rows[rows.length - 1].s.trim()) rows.pop();
   // only menus: a few choices, and not a page of running text or a table
   if (n < 3 || prose > 4 || n < rows.filter(r => r.s.trim()).length * .3) return '';
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
@@ -51,5 +53,8 @@ function menuHtml() {
     out += `<div class="mrow">${h || ' '}</div>`;
   });
   const caret = G.cv && G.cx >= b.x0 && G.cx <= b.x1 + 1 && G.cy >= b.y0 && G.cy <= b.y1 ? `<i class="mcaret" style="left:${G.cx - b.x0}ch;top:${(G.cy - b.y0) * lh + lh - 4}px"></i>` : '';
-  return `<div class="pane npanel menup"><div class="mbody" style="font-size:${fs}px;--lh:${lh}px;width:${nw + 1}ch">${out}${caret}</div></div>`;
+  const top = pg ? (pg.head === b.y0 ? 1 : 0) : 0;   // rows above the caret that were lifted into the title bar
+  const car = pg && G.cy === pg.foot ? '' : caret && top ? caret.replace(/top:(\d+)px/, (m, v) => `top:${v - lh}px`) : caret;
+  PAGER = pg;
+  return `<div class="pane npanel menup">${pg ? `<div class="pgh">${pagerHead(pg)}</div>` : ''}<div class="mbody" style="font-size:${fs}px;--lh:${lh}px;width:${nw + 1}ch">${out}${car}</div>${pg ? `<div class="pgf">${pagerFoot(pg)}</div>` : ''}</div>`;
 }

@@ -490,17 +490,42 @@ function drawTerm(float) {
     while (x1 > x0 && blankCol(x1)) x1--; while (x0 < x1 && blankCol(x0)) x0++;
     if (x0 === x1 && y0 === y1 && blankRow(y0)) return false;
   }
-  const cv = $('#termc'), availW = VW - 120, availH = VH - 110, nw = x1 - x0 + 1, nh = y1 - y0 + 1;
+  // a scrolling page (messages, help, lists): its caption and key line become a title bar and buttons
+  PAGER = pagerInfo(y0, y1); const skip = {};
+  if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--;
+    while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; }
+  setHtml($('#termh'), PAGER ? pagerHead(PAGER) : ''); setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : '');
+  const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
   let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
   cv.style.width = cw * nw + 'px'; cv.style.height = chh * nh + 'px'; cv.width = Math.round(cw * nw * d); cv.height = Math.round(chh * nh * d);
   const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.font = `500 ${fs}px "DejaVu Sans Mono","Cascadia Mono",Consolas,monospace`; g.textBaseline = 'middle';
-  for (let y = y0; y <= y1; y++) { const s = G.s[y] || '', a = G.a[y]; for (let x = x0; x <= x1; x++) { const ch = s[x]; if (!ch || ch === ' ' || ch === '\x01') continue; g.fillStyle = readable(col(a[x])); g.fillText(ch, (x - x0) * cw, (y - y0) * chh + chh / 2); } }
+  for (let y = y0; y <= y1; y++) { if (skip[y]) continue; const s = G.s[y] || '', a = G.a[y]; for (let x = x0; x <= x1; x++) { const ch = s[x]; if (!ch || ch === ' ' || ch === '\x01') continue; g.fillStyle = readable(col(a[x])); g.fillText(ch, (x - x0) * cw, (y - y0) * chh + chh / 2); } }
   if (G.cv && G.cx >= x0 && G.cx <= x1 && G.cy >= y0 && G.cy <= y1) { g.fillStyle = 'rgba(255,176,112,.85)'; g.fillRect((G.cx - x0) * cw, (G.cy - y0) * chh + chh - 3, cw, 2); }
   TERMGEO = { x0, y0, cw, chh };
   return true;
 }
-let TERMGEO = null;
+let TERMGEO = null, PAGER = null;
+function pagerInfo(y0, y1) {
+  let head = -1, foot = -1, cap = '', at = 0, of = 0, keys = '';
+  for (let y = y0; y <= Math.min(y1, y0 + 2); y++) { const m = /\[(.+?), Line (\d+)\/(\d+)\]/.exec((G.s[y] || '').replace(/\x01/g, ' ')); if (m) { head = y; cap = m[1]; at = +m[2]; of = +m[3]; break; } }
+  if (head < 0) return null;
+  for (let y = y1; y > head; y--) { const m = /\[(Press [^\]]*)\]/.exec((G.s[y] || '').replace(/\x01/g, ' ')); if (m) { foot = y; keys = m[1]; break; } }
+  return { head, foot, cap, at, of, keys, page: foot > head ? foot - head - 1 : y1 - head };
+}
+function pagerHead(p) {
+  let cap = p.cap.replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1);
+  const of = Math.max(p.of, 1), a = Math.min(p.at, of), b = Math.min(of, p.at + p.page), w = Math.max(4, Math.min(100, p.page / of * 100)), l = of > p.page ? (a / Math.max(1, of - p.page)) * (100 - w) : 0;
+  return `<b>${esc(cap)}</b><span class="pgn">${of > p.page ? `lines ${a + 1}–${b} of ${of}` : `${of} lines`}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>`;
+}
+function pagerFoot(p) {
+  const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
+  let h = k('Esc', 'data-key="\x1b"', 'close');
+  if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
+  if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
+  if (/\?/.test(p.keys)) h += k('?', 'data-key="?"', 'help');
+  return h + '<span class="pgw">wheel scrolls</span>';
+}
 
 /* ---------- frame ---------- */
 function draw() {
@@ -517,7 +542,7 @@ function draw() {
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
+  PAGER = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
   const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
@@ -527,6 +552,7 @@ function draw() {
   const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
 }
 document.addEventListener('click', e => {
+  const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
   const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key.replace(/\n/g, '\r'));   // HTML turns a stored Return into a newline: give the game its Return back
 });
 document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });

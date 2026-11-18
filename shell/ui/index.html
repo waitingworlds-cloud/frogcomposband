@@ -14,7 +14,16 @@
 #banner .caret{display:inline-block;width:9px;height:2px;background:#ffb070;margin-left:2px;animation:bl 1s steps(2) infinite}
 @keyframes bl{50%{opacity:0}}
 #term .pane{padding:18px 22px;display:block}
-#term canvas{width:auto;height:auto}
+#term canvas{width:auto;height:auto;display:block}
+.pgh:empty,.pgf:empty{display:none}
+.pgh{display:flex;align-items:center;gap:14px;margin:-4px 0 12px;padding:0 0 10px;border-bottom:1px solid #3a2a1c;font:600 15px/1 Cinzel,Georgia,serif;letter-spacing:.08em;color:#f0c890;text-transform:uppercase}
+.pgh .pgn{font:400 13px/1 Georgia,serif;letter-spacing:0;text-transform:none;color:#a89580;font-style:italic}
+.pgh .pgbar{flex:1;min-width:80px;height:4px;border-radius:2px;background:#24180f;position:relative;overflow:hidden}
+.pgh .pgbar i{position:absolute;top:0;bottom:0;border-radius:2px;background:linear-gradient(90deg,#c46a2a,#f0a050)}
+.pgf{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:12px 0 -4px;padding:10px 0 0;border-top:1px solid #3a2a1c;font:13px/1 Georgia,serif;color:#b8a48c}
+.pgf .pgb{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:3px 6px 3px 3px;border-radius:4px}
+.pgf .pgb:hover{background:#2a1c12;color:#f4dcb8}
+.pgf .pgw{margin-left:auto;font-style:italic;color:#7d6c5a}
 .live{color:#ffcf9e!important;opacity:1!important}
 .mob.far{opacity:.62}
 .doll .slot{cursor:pointer}
@@ -81,7 +90,7 @@ body.lowhp .vb.hp{animation:hpb 1.3s ease-in-out infinite}@keyframes hpb{50%{fil
 .menup{padding:22px 30px 20px!important;display:block}
 .mbody{position:relative;font-family:"DejaVu Sans Mono","Cascadia Mono",Consolas,monospace;font-weight:500;color:#d8d2c6;white-space:pre}
 .mrow{height:var(--lh);line-height:var(--lh)}
-.mtitle{font:400 1.45em/1 Fell,Spectral,serif;letter-spacing:.08em;color:#f4efe4;white-space:nowrap;border-bottom:1px solid #3a3d42;box-shadow:0 1px 0 #000;height:calc(var(--lh) + 6px);margin-bottom:-6px}
+.mtitle{font:400 1.3em/1 Fell,Spectral,serif;letter-spacing:.06em;color:#f4efe4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #3a3d42;box-shadow:0 1px 0 #000;height:calc(var(--lh) + 6px);margin-bottom:-6px}
 .mtitle span{color:#f4efe4!important}
 .mch{cursor:pointer;display:inline-block;height:var(--lh);border-radius:3px;margin:0 -4px;padding:0 4px}
 .mch:hover{background:linear-gradient(90deg,#ff8a3c33,#ff8a3c0a);box-shadow:inset 3px 0 0 var(--em)}
@@ -113,6 +122,6 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .oro{justify-self:end;font:600 15px Inter,sans-serif;color:#b3ac9f}.onote{padding:8px 12px 4px;font:italic 400 15px Spectral,serif;color:#ffc46a}
 </style></head>
 <body class="main">
-<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
+<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="pgh"></div><canvas id="termc"></canvas><div id="termf" class="pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
 <script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script>
 </body></html>

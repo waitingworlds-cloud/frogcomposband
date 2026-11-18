@@ -223,7 +223,12 @@ document.addEventListener('mousedown', ev => {
 });
 document.addEventListener('contextmenu', ev => ev.preventDefault());
 // the wheel over the map zooms it
+let wheelAcc = 0;
 document.addEventListener('wheel', ev => {
+  if (PAGER && ev.target.closest && ev.target.closest('#term,#native')) {   // a scrolling page: the wheel moves it three lines a notch
+    wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
+    for (let i = 0; i < Math.min(12, Math.abs(n) * 3); i++) trigger(n > 0 ? KS.ArrowDown : KS.ArrowUp, {}); return;
+  }
   if (ev.target.id !== 'map') return;
   const steps = [20, 24, 28, 32, 40, 48, 56, 64]; let i = steps.indexOf(TILE); if (i < 0) i = 3;
   i = Math.max(0, Math.min(steps.length - 1, i + (ev.deltaY < 0 ? 1 : -1))); TILE = steps[i];
