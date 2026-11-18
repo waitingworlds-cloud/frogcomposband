@@ -32,6 +32,7 @@ function fxOnState(prev, cur) {
       const melee = Math.abs(m.dx) <= 1 && Math.abs(m.dy) <= 1 && !mx && !my, at = melee ? t + HIT_MS : t;
       if (melee) FX.lunge.p = { dx: m.dx, dy: m.dy, t };
       POST.hit = { x: ax, y: ay, t: at, w: crit ? 1.3 : .7 }; if (crit && !beats) { beats++; postBeat('crit', ax, ay, at); sndPlay('crit'); }
+      fxImpact(ax, ay, at, crit ? 14 : 7, melee ? Math.sign(m.dx) : 0, melee ? Math.sign(m.dy) : 0);
       FX.flash[m.i] = at; FX.floats.push({ x: ax, y: ay, s: o.rh != null ? '-' + lost : '-' + (o.hp - m.hp) + '%', c: '#ffd9a8', t: at, small: 1, px: Math.sign(m.dx) * .28 });
     }
   }
@@ -56,6 +57,7 @@ function fxOnState(prev, cur) {
     const hit = foes.length ? t + HIT_MS : t;
     for (const m of foes) if (!FX.lunge[m.i]) FX.lunge[m.i] = { dx: -m.dx, dy: -m.dy, t };
     FX.floats.push({ x: cur.px, y: cur.py, s: String(d), c: '#ff6a55', t: hit, big: 1, up: .55 });
+    fxImpact(cur.px, cur.py, hit, Math.min(14, 5 + Math.round(-d / Math.max(1, cur.p.mhp) * 30)), foes.length ? -Math.sign(foes[0].dx) : 0, foes.length ? -Math.sign(foes[0].dy) : 0);
     const frac = Math.min(1, -d / Math.max(1, cur.p.mhp));
     FX.shake = { t: hit, amp: 2 + frac * 16, ms: 150 + frac * 250 };
     if (-d >= cur.p.mhp * .25) postBeat('hurt', cur.px, cur.py, hit); else POST.hit = POST.hit || { x: cur.px, y: cur.py, t: hit, w: .5 + frac * 2 };
@@ -116,6 +118,12 @@ function fxSpell(lx, ly, ch, c) {
   }
   fxKick();
 }
+// a blow lands: drops fly off the far side of the square, with a few bright chips at the point of contact
+function fxImpact(x, y, at, n, dx, dy) {
+  if (!FX.on) return; const cx = x + .5, cy = y + .45;
+  for (let i = 0; i < n; i++) { const a = Math.atan2(dy, dx) + rnd1() * (dx || dy ? 1.1 : 3.14), s = 2.4 + Math.random() * 3, bright = i % 4 === 0;
+    FX.parts.length < 700 && FX.parts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s - .9, t: at, life: 380 + Math.random() * 320, size: bright ? 2.5 : 3 + Math.random() * 2.5, c: bright ? '#ffe2c0' : (i % 3 ? '#c7352b' : '#7a1410'), kind: 'spark', solid: !bright }); }
+}
 function fxCast(x, y, c) {
   const t = now(), cx = x + .5, cy = y + .5;
   FX.rings.push({ x: cx, y: cy, t, life: 360, r0: .75, r1: .25, c, w: 2 });
@@ -156,8 +164,9 @@ function fxPartsDraw(g, toXY, T) {
     g.globalAlpha = (1 - k) * .9; g.strokeStyle = r.c; g.lineWidth = r.w * (1 - k * .6); g.beginPath(); g.arc(x, y, T * (r.r0 + (r.r1 - r.r0) * e), 0, 7); g.stroke(); }
   for (const p of FX.parts) { const k = (t - p.t) / p.life; if (k < 0 || k >= 1) continue; const s = (t - p.t) / 1000, drag = 1 - Math.min(.6, s * 1.4);
     const [x, y] = toXY(p.x + p.vx * s * drag, p.y + p.vy * s * drag + (p.kind === 'spark' ? s * s * .9 : 0));
-    if (p.kind === 'glow') { const r = T * (.35 + k * .4), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = (1 - k) * .55; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); continue; }
-    g.globalAlpha = 1 - k; g.fillStyle = p.c; const z = p.size * (1 - k * .5); g.fillRect(x - z / 2, y - z / 2, z, z); }
+    if (p.kind === 'glow') { const r = T * (.35 + k * .4), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalCompositeOperation = 'lighter'; g.globalAlpha = (1 - k) * .55; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); continue; }
+    if (p.solid) { g.globalCompositeOperation = 'source-over'; g.globalAlpha = Math.min(1, (1 - k) * 1.6); } else { g.globalCompositeOperation = 'lighter'; g.globalAlpha = 1 - k; }
+    g.fillStyle = p.c; const z = p.size * Math.max(1, T / 32) * (1 - k * .5); g.fillRect(x - z / 2, y - z / 2, z, z); }
   g.restore(); g.globalAlpha = 1;
 }
 // floating numbers and death puffs, drawn over the map. toXY turns a level square into canvas pixels
