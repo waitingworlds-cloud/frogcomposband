@@ -114,7 +114,7 @@ function ctxKey(e) {
 
 /* ---------- following up on the game's prompts ---------- */
 function ctxOnUi(m) {
-  hbOnUi(m);
+  hbOnUi(m); lvlOnUi(m);
   if (!PICK) return;
   if (Date.now() - PICK.t > 4000) { PICK = null; return; }
   if (m.kind !== 'items') return;
