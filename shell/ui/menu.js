@@ -81,7 +81,13 @@ function menuCards(rows, b) {
   const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard${r === cur ? ' cur' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
   return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
     ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
-    ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}</div>` : ''}</div>`;
+    ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${digitKeys(foot)}</div>` : ''}</div>`;
+}
+// a number asked below a menu ("Delay Factor (0-9 or ESC to accept)"): each digit is a button
+function digitKeys(foot) {
+  const m = foot.map(r => r.s).join(' ').match(/\((\d)-(\d) or ESC/i); if (!m) return '';
+  let h = ''; for (let d = +m[1]; d <= +m[2]; d++) h += `<span class="mcard mdig" data-key="${d}"><span class="key">${d}</span></span>`;
+  return `<div class="mdigs">${h}<span class="mcard mdig" data-key="Esc"><span class="key">Esc</span><span class="ml">done</span></span></div>`;
 }
 
 // two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
