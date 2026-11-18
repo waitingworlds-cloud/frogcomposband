@@ -59,4 +59,4 @@ function exploreKey(e) {
   if (e.key === 'x' && !e.ctrlKey && !e.altKey && !e.metaKey && S && S.p && !S.p.rl && playing() && !expAsk() && !(UI && uiOnTop())) { exploreStart(); return true; }
   return false;
 }
-addEventListener('mousedown', () => { if (EXP.on) exploreStop(); }, { capture: true });
+addEventListener('mousedown', e => { if (EXP.on && !(e.target.closest && e.target.closest('[data-explore]'))) exploreStop(); }, { capture: true });
