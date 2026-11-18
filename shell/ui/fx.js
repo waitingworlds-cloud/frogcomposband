@@ -102,7 +102,8 @@ function fxOnState(prev, cur) {
   }
   const gold = cur.p.au - prev.p.au; if (gold > 0 && !cur.icky) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + gold.toLocaleString() + ' gold', c: '#ffcf6a', t: t + 80, small: 1, up: .6, px: .6 });
   if (cur.p.lev > prev.p.lev) postBeat('level', cur.px, cur.py, t + 120);
-  if (cur.p.lev > prev.p.lev) fxBanner('Level ' + cur.p.lev, 'You grow stronger');
+  if (cur.p.lev > prev.p.lev) { const dh = cur.p.mhp - prev.p.mhp, dm = cur.p.msp - prev.p.msp;
+    fxBanner('Level ' + cur.p.lev, [dh > 0 ? `+${dh} life` : '', dm > 0 ? `+${dm} mana` : ''].filter(Boolean).join(' · ') || 'You grow stronger'); }
   for (const o of prev.mons) if (o.uniq && !seen[o.i] && o.los && (o.hp < 100 || o.dist <= 1) && cur.p.hp > 0 && /slain|destroyed/i.test(said)) fxBanner(String(o.n).replace(/^(an?|the) /i, ''), 'has fallen');
   document.body.classList.toggle('lowhp', cur.p.mhp > 0 && cur.p.hp / cur.p.mhp < .25 && cur.p.hp >= 0);
   fxKick();
