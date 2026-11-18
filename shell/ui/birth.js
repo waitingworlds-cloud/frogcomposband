@@ -69,7 +69,7 @@ function titleHtml() {
     <div class="tmobs">${TITLE_MOBS.map((n, i) => `<canvas class="tmob" data-n="${esc(n)}" style="--i:${i - 4}"></canvas>`).join('')}</div>
     <h1>FrogComposband</h1><div class="tver">${esc((v[1] || '') + (v[2] || ''))}</div>
     <div class="tbtns"><span class="tbtn main" data-key=" "><span class="key">Enter</span>Play</span><span class="tbtn" data-key="?"><span class="key">?</span>Credits</span></div>
-    <div class="ttip">Full keyboard play · click to walk · right-click anything for its actions · F6 sound</div></div>`;
+    <div class="ttip">Full keyboard play · click to walk · right-click anything for its actions · F1 all the controls</div></div>`;
 }
 function titleAfter() {
   document.querySelectorAll('.tmob').forEach(c => { const S2 = 96, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(S2 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; sprite(g, 'mon', c.dataset.n, 0, 0, S2); sprite.flat = false; });
