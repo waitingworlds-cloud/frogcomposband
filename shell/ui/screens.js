@@ -134,13 +134,14 @@ function nativeAfter() { lmapDraw(); }
 
 function nativeHtml() {
   NATIVE_SIDE = false;
-  if (!UI || !UI.kind || !(G.ov || G.icky) || !uiOnTop()) return '';
+  if (!(G.ov || G.icky)) return '';
+  if (!UI || !UI.kind || !uiOnTop()) return menuHtml();
   if (UI.kind === 'items') return itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
   if (UI.kind === 'lmap') return lmapHtml();
   if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
-  return '';
+  return UI.kind === 'char' ? '' : menuHtml();
 }
 
 /* ---------- mouse ---------- */
