@@ -2,7 +2,7 @@
 // The text keeps its exact place, so nothing is lost or reflowed; each choice gains a key cap,
 // a hover highlight, and a click that presses the same key. Keys work exactly as before.
 'use strict';
-const MENU_TOK = /(^|\s{2,}|^\s+)(\(([A-Za-z0-9@_])\)|([A-Za-z0-9])\))(?= \S)/g;
+const MENU_TOK = /(^|\s{2,}|^\s+)(\(([A-Za-z0-9@_?])\)|([A-Za-z0-9])\)|\[([A-Za-z0-9])\])(?= \S)/g;
 function menuBox() {
   let x0 = 0, y0 = 0, x1 = G.w - 1, y1 = G.h - 1;
   const ch = (y, x) => { const r = G.s[y]; return r ? r[x] : ' '; };
@@ -24,7 +24,7 @@ function menuHtml() {
   for (let y = b.y0; y <= b.y1; y++) {
     const s = rowText(y).slice(0, b.x1 + 1), toks = []; let m; MENU_TOK.lastIndex = 0;
     while ((m = MENU_TOK.exec(s))) {
-      const at = m.index + m[1].length, len = m[2].length, key = m[3] || m[4];
+      const at = m.index + m[1].length, len = m[2].length, key = m[3] || m[4] || m[5];
       let end = s.indexOf('  ', at + len + 1); if (end < 0) end = s.length;
       toks.push({ at, len, key, end }); n++;
     }
@@ -38,7 +38,7 @@ function menuHtml() {
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
   let out = '';
   rows.forEach((r, i) => {
-    if (i === first && !r.toks.length && r.s.trim().length < 50) { out += `<div class="mrow mtitle" style="padding-left:${r.s.search(/\S/) - b.x0 > 3 ? (r.s.search(/\S/) - b.x0) + 'ch' : 0}">${rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)}</div>`; return; }
+    if (i === first && !r.toks.length && r.s.trim().length < 50 && !/^[\[(<]/.test(r.s.trim())) { out += `<div class="mrow mtitle" style="padding-left:${r.s.search(/\S/) - b.x0 > 3 ? (r.s.search(/\S/) - b.x0) + 'ch' : 0}">${rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)}</div>`; return; }
     let h = '', x = b.x0;
     for (const t of r.toks) {
       if (t.at < x) continue;

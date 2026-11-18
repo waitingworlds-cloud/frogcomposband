@@ -102,5920 +102,6810 @@
    18,
    0
   ],
-  "large white snake": [
+  "grey mold": [
    0,
    19,
+   0
+  ],
+  "large white snake": [
+   0,
+   20,
    0
   ],
   "blinking dot": [
    0,
-   20,
+   21,
    0
   ],
   "newt": [
    0,
-   21,
+   22,
+   0
+  ],
+  "giant white centipede": [
+   0,
+   23,
+   0
+  ],
+  "white icky thing": [
+   0,
+   24,
+   0
+  ],
+  "clear icky thing": [
+   0,
+   25,
    0
   ],
   "giant white mouse": [
    0,
-   22,
+   26,
    0
   ],
   "large brown snake": [
    0,
-   23,
+   27,
+   0
+  ],
+  "small kobold": [
+   0,
+   28,
+   0
+  ],
+  "kobold": [
+   0,
+   29,
    0
   ],
   "green worm mass": [
    0,
-   24,
+   30,
    0
   ],
   "floating eye": [
    0,
-   25,
+   31,
    0
   ],
   "rock lizard": [
    0,
-   26,
+   32,
    0
   ],
   "grid bug": [
    0,
-   27,
+   33,
    0
   ],
   "jackal": [
    0,
-   28,
+   34,
+   0
+  ],
+  "soldier ant": [
+   0,
+   35,
+   0
+  ],
+  "fruit bat": [
+   0,
+   36,
    0
   ],
   "insect swarm": [
    0,
-   29,
+   37,
    0
   ],
   "greater hell-beast": [
    0,
-   30,
+   38,
    0
   ],
   "shrieker mushroom patch": [
    0,
-   31,
+   39,
+   0
+  ],
+  "blubbering icky thing": [
+   0,
+   40,
+   0
+  ],
+  "metallic green centipede": [
+   0,
+   41,
    0
   ],
   "novice warrior": [
    0,
-   32,
+   42,
    0
   ],
   "novice rogue": [
    0,
-   33,
+   43,
    0
   ],
   "novice archaeologist": [
    0,
-   34,
+   44,
    0
   ],
   "novice mage": [
    0,
-   35,
+   45,
    0
   ],
   "yellow mushroom patch": [
    0,
-   36,
+   46,
    0
   ],
   "yellow jelly": [
    0,
-   37,
+   47,
+   0
+  ],
+  "giant black ant": [
+   0,
+   48,
    0
   ],
   "salamander": [
    0,
-   38,
+   49,
    0
   ],
   "white harpy": [
    0,
-   39,
+   50,
+   0
+  ],
+  "blue yeek": [
+   0,
+   51,
    0
   ],
   "grip, farmer maggot's dog": [
    0,
-   40,
+   52,
    0
   ],
   "wolf, farmer maggot's dog": [
    0,
-   41,
+   53,
    0
   ],
   "fang, farmer maggot's dog": [
    0,
-   42,
+   54,
    0
   ],
   "giant green frog": [
    0,
-   43,
+   55,
    0
   ],
   "freesia": [
    0,
-   44,
+   56,
    0
   ],
   "slimy worm mass": [
    0,
-   45,
+   57,
    0
   ],
   "large yellow snake": [
    0,
-   46,
+   58,
    0
   ],
   "cave spider": [
    0,
-   47,
+   59,
    0
   ],
   "crow": [
    0,
-   48,
+   60,
    0
   ],
   "wild cat": [
    0,
-   49,
+   61,
    0
   ],
   "smeagol": [
    0,
-   50,
+   62,
    0
   ],
   "slimy ooze": [
    0,
-   51,
-   0
+   0,
+   1
   ],
   "poltergeist": [
    0,
-   52,
-   0
+   1,
+   1
   ],
   "green jelly": [
    0,
-   53,
-   0
+   2,
+   1
+  ],
+  "metallic blue centipede": [
+   0,
+   3,
+   1
   ],
   "raven": [
    0,
-   54,
-   0
+   4,
+   1
   ],
   "giant white louse": [
    0,
-   55,
-   0
+   5,
+   1
   ],
   "piranha": [
    0,
-   56,
-   0
+   6,
+   1
+  ],
+  "black naga": [
+   0,
+   7,
+   1
   ],
   "spotted mushroom patch": [
    0,
-   57,
-   0
+   8,
+   1
   ],
   "silver jelly": [
    0,
-   58,
-   0
+   9,
+   1
   ],
   "scruffy looking hobbit": [
    0,
-   59,
-   0
+   10,
+   1
+  ],
+  "giant white ant": [
+   0,
+   11,
+   1
+  ],
+  "yellow mold": [
+   0,
+   12,
+   1
+  ],
+  "metallic red centipede": [
+   0,
+   13,
+   1
   ],
   "yellow worm mass": [
    0,
-   60,
-   0
+   14,
+   1
   ],
   "clear worm mass": [
    0,
-   61,
-   0
+   15,
+   1
   ],
   "radiation eye": [
    0,
-   62,
-   0
+   16,
+   1
+  ],
+  "yellow light": [
+   0,
+   17,
+   1
   ],
   "cave lizard": [
    0,
-   0,
+   18,
    1
   ],
   "novice ranger": [
    0,
-   1,
+   19,
    1
   ],
   "frosty jelly": [
    0,
-   2,
+   20,
+   1
+  ],
+  "creeping copper coins": [
+   0,
+   21,
    1
   ],
   "giant white rat": [
    0,
-   3,
+   22,
    1
   ],
   "goblin": [
    0,
-   4,
+   23,
    1
   ],
   "swordfish": [
    0,
-   5,
+   24,
    1
   ],
   "white worm mass": [
    0,
-   6,
+   25,
    1
   ],
   "large grey snake": [
    0,
-   7,
+   26,
    1
   ],
   "skeleton kobold": [
    0,
-   8,
+   27,
    1
   ],
   "ewok": [
    0,
-   9,
+   28,
+   1
+  ],
+  "green naga": [
+   0,
+   29,
    1
   ],
   "giant leech": [
    0,
-   10,
+   30,
    1
   ],
   "barracuda": [
    0,
-   11,
+   31,
    1
   ],
   "novice paladin": [
    0,
-   12,
+   32,
    1
   ],
   "zog": [
    0,
-   13,
+   33,
    1
   ],
   "slush pile": [
    0,
-   14,
+   34,
    1
   ],
   "green glutton ghost": [
    0,
-   15,
+   35,
    1
   ],
   "slimy jelly": [
    0,
-   16,
+   36,
+   1
+  ],
+  "large kobold": [
+   0,
+   37,
+   1
+  ],
+  "grey icky thing": [
+   0,
+   38,
    1
   ],
   "disenchanter eye": [
    0,
-   17,
+   39,
    1
   ],
   "red worm mass": [
    0,
-   18,
+   40,
    1
   ],
   "copperhead snake": [
    0,
-   19,
+   41,
+   1
+  ],
+  "death sword": [
+   0,
+   42,
    1
   ],
   "purple mushroom patch": [
    0,
-   20,
+   43,
    1
   ],
   "novice priest": [
    0,
-   21,
+   44,
    1
   ],
   "nibelung": [
    0,
-   22,
+   45,
    1
   ],
   "disembodied hand that strangled people": [
    0,
-   23,
+   46,
+   1
+  ],
+  "brown mold": [
+   0,
+   47,
+   1
+  ],
+  "giant brown bat": [
+   0,
+   48,
    1
   ],
   "rat-thing": [
    0,
-   24,
+   49,
    1
   ],
   "novice archer": [
    0,
-   25,
+   50,
+   1
+  ],
+  "creeping silver coins": [
+   0,
+   51,
    1
   ],
   "snaga": [
    0,
-   26,
+   52,
    1
   ],
   "rattlesnake": [
    0,
-   27,
+   53,
    1
   ],
   "giant slug": [
    0,
-   28,
+   54,
    1
   ],
   "giant pink frog": [
    0,
-   29,
+   55,
    1
   ],
   "dark elf": [
    0,
-   30,
+   56,
    1
   ],
   "zombified kobold": [
    0,
-   31,
+   57,
    1
   ],
   "crypt creep": [
    0,
-   32,
+   58,
    1
   ],
   "rotting corpse": [
    0,
-   33,
+   59,
    1
   ],
   "cave orc": [
    0,
-   34,
+   60,
    1
   ],
   "wood spider": [
    0,
-   35,
+   61,
    1
   ],
   "manes": [
    0,
-   36,
+   62,
    1
   ],
   "bloodshot eye": [
    0,
-   37,
-   1
+   0,
+   2
+  ],
+  "pink naga": [
+   0,
+   1,
+   2
   ],
   "pink jelly": [
    0,
-   38,
-   1
+   2,
+   2
+  ],
+  "caustic icky thing": [
+   0,
+   3,
+   2
   ],
   "lost soul": [
    0,
-   39,
-   1
+   4,
+   2
   ],
   "night lizard": [
    0,
-   40,
-   1
+   5,
+   2
+  ],
+  "mughash the kobold lord": [
+   0,
+   6,
+   2
   ],
   "skeleton orc": [
    0,
-   41,
-   1
+   7,
+   2
   ],
   "wormtongue, agent of saruman": [
    0,
-   42,
-   1
+   8,
+   2
   ],
   "robin hood, the outlaw": [
    0,
-   43,
-   1
+   9,
+   2
   ],
   "nurgling": [
    0,
-   44,
-   1
+   10,
+   2
   ],
   "lagduf, the snaga": [
    0,
-   45,
-   1
+   11,
+   2
+  ],
+  "brown yeek": [
+   0,
+   12,
+   2
   ],
   "giant salamander": [
    0,
-   46,
-   1
+   13,
+   2
+  ],
+  "space monster": [
+   0,
+   14,
+   2
   ],
   "carnivorous flying monkey": [
    0,
-   47,
-   1
+   15,
+   2
+  ],
+  "green mold": [
+   0,
+   16,
+   2
   ],
   "lemure": [
    0,
-   48,
-   1
+   17,
+   2
   ],
   "hill orc": [
    0,
-   49,
-   1
+   18,
+   2
   ],
   "bandit": [
    0,
-   50,
-   1
+   19,
+   2
   ],
   "hunting hawk of julian": [
    0,
-   51,
-   1
+   20,
+   2
   ],
   "phantom warrior": [
    0,
-   52,
-   1
+   21,
+   2
   ],
   "gremlin": [
    0,
-   53,
-   1
+   22,
+   2
   ],
   "yeti": [
    0,
-   54,
-   1
+   23,
+   2
+  ],
+  "bloodshot icky thing": [
+   0,
+   24,
+   2
   ],
   "giant grey rat": [
    0,
-   55,
-   1
+   25,
+   2
   ],
   "black harpy": [
    0,
-   56,
-   1
+   26,
+   2
   ],
   "skaven": [
    0,
-   57,
-   1
+   27,
+   2
   ],
   "wounded bear": [
    0,
-   58,
-   1
+   28,
+   2
   ],
   "portuguese man-o-war": [
    0,
-   59,
-   1
+   29,
+   2
   ],
   "rock mole": [
    0,
-   60,
-   1
+   30,
+   2
   ],
   "orc shaman": [
    0,
-   61,
-   1
+   31,
+   2
   ],
   "baby blue dragon": [
    0,
-   62,
-   1
+   32,
+   2
   ],
   "baby white dragon": [
    0,
-   0,
+   33,
    2
   ],
   "baby green dragon": [
    0,
-   1,
+   34,
    2
   ],
   "baby black dragon": [
    0,
-   2,
+   35,
    2
   ],
   "baby red dragon": [
    0,
-   3,
+   36,
+   2
+  ],
+  "giant pink ant": [
+   0,
+   37,
    2
   ],
   "brodda, the easterling": [
    0,
-   4,
+   38,
    2
   ],
   "bloodfang the wolf": [
    0,
-   5,
+   39,
    2
   ],
   "king cobra": [
    0,
-   6,
+   40,
    2
   ],
   "eagle": [
    0,
-   7,
+   41,
    2
   ],
   "war bear": [
    0,
-   8,
+   42,
    2
   ],
   "killer bee": [
    0,
-   9,
+   43,
    2
   ],
   "giant spider": [
    0,
-   10,
+   44,
    2
   ],
   "giant white tick": [
    0,
-   11,
+   45,
    2
   ],
   "borshin": [
    0,
-   12,
+   46,
    2
   ],
   "dark elven mage": [
    0,
-   13,
+   47,
+   2
+  ],
+  "kamikaze yeek": [
+   0,
+   48,
+   2
+  ],
+  "orfax, son of boldor": [
+   0,
+   49,
    2
   ],
   "servant of glaaki": [
    0,
-   14,
+   50,
    2
   ],
   "dark elven warrior": [
    0,
-   15,
+   51,
    2
   ],
   "sand-dweller": [
    0,
-   16,
+   52,
    2
   ],
   "clear mushroom patch": [
    0,
-   17,
+   53,
    2
   ],
   "quiver slot": [
    0,
-   18,
+   54,
    2
   ],
   "grishnakh, the hill orc": [
    0,
-   19,
+   55,
    2
   ],
   "giant piranha": [
    0,
-   20,
+   56,
    2
   ],
   "owlbear": [
    0,
-   21,
+   57,
    2
   ],
   "blue horror": [
    0,
-   22,
+   58,
+   2
+  ],
+  "hairy mold": [
+   0,
+   59,
    2
   ],
   "grizzly bear": [
    0,
-   23,
+   60,
+   2
+  ],
+  "disenchanter mold": [
+   0,
+   61,
    2
   ],
   "pseudo dragon": [
    0,
-   24,
+   62,
    2
   ],
   "tengu": [
    0,
-   25,
-   2
+   0,
+   3
+  ],
+  "creeping gold coins": [
+   0,
+   1,
+   3
   ],
   "wolf": [
    0,
-   26,
-   2
+   2,
+   3
   ],
   "giant fruit fly": [
    0,
-   27,
-   2
+   3,
+   3
   ],
   "panther": [
    0,
-   28,
-   2
+   4,
+   3
   ],
   "tax collector": [
    0,
-   29,
-   2
+   5,
+   3
   ],
   "hobbes the tiger": [
    0,
-   30,
-   2
+   6,
+   3
   ],
   "shadow creature of fiona": [
    0,
-   31,
-   2
+   7,
+   3
   ],
   "undead mass": [
    0,
-   32,
-   2
+   8,
+   3
   ],
   "chaos shapechanger": [
    0,
-   33,
-   2
+   9,
+   3
   ],
   "baby multi-hued dragon": [
    0,
-   34,
-   2
+   10,
+   3
   ],
   "vorpal bunny": [
    0,
-   35,
-   2
+   11,
+   3
   ],
   "old man willow": [
    0,
-   36,
-   2
+   12,
+   3
   ],
   "hippocampus": [
    0,
-   37,
-   2
+   13,
+   3
   ],
   "zombified orc": [
    0,
-   38,
-   2
+   14,
+   3
   ],
   "hippogriff": [
    0,
-   39,
-   2
+   15,
+   3
   ],
   "black mamba": [
    0,
-   40,
-   2
+   16,
+   3
   ],
   "white wolf": [
    0,
-   41,
-   2
+   17,
+   3
   ],
   "grape jelly": [
    0,
-   42,
-   2
+   18,
+   3
   ],
   "nether worm mass": [
    0,
-   43,
-   2
+   19,
+   3
   ],
   "abyss worm mass": [
    0,
-   44,
-   2
+   20,
+   3
   ],
   "golfimbul, the hill orc chief": [
    0,
-   45,
-   2
+   21,
+   3
   ],
   "swordsman": [
    0,
-   46,
-   2
+   22,
+   3
   ],
   "skaven shaman": [
    0,
-   47,
-   2
+   23,
+   3
   ],
   "gazer": [
    0,
-   48,
-   2
+   24,
+   3
   ],
   "knight archer": [
    0,
-   49,
-   2
+   25,
+   3
   ],
   "ixitxachitl": [
    0,
-   50,
-   2
+   26,
+   3
   ],
   "mine-dog": [
    0,
-   51,
-   2
+   27,
+   3
   ],
   "hellcat": [
    0,
-   52,
-   2
+   28,
+   3
   ],
   "moon beast": [
    0,
-   53,
-   2
+   29,
+   3
+  ],
+  "master yeek": [
+   0,
+   30,
+   3
   ],
   "priest": [
    0,
-   54,
-   2
+   31,
+   3
   ],
   "dark elven priest": [
    0,
-   55,
-   2
+   32,
+   3
   ],
   "air spirit": [
    0,
-   56,
-   2
+   33,
+   3
   ],
   "skeleton human": [
    0,
-   57,
-   2
+   34,
+   3
   ],
   "zombified human": [
    0,
-   58,
-   2
+   35,
+   3
   ],
   "tiger": [
    0,
-   59,
-   2
+   36,
+   3
   ],
   "moaning spirit": [
    0,
-   60,
-   2
+   37,
+   3
+  ],
+  "frumious bandersnatch": [
+   0,
+   38,
+   3
   ],
   "spotted jelly": [
    0,
-   61,
-   2
+   39,
+   3
   ],
   "drider": [
    0,
-   62,
-   2
+   40,
+   3
+  ],
+  "mongbat": [
+   0,
+   41,
+   3
+  ],
+  "killer brown beetle": [
+   0,
+   42,
+   3
+  ],
+  "boldor, king of the yeeks": [
+   0,
+   43,
+   3
+  ],
+  "ogre": [
+   0,
+   44,
+   3
+  ],
+  "creeping mithril coins": [
+   0,
+   45,
+   3
   ],
   "illusionist": [
    0,
-   0,
+   46,
    3
   ],
   "druid": [
    0,
-   1,
+   47,
    3
   ],
   "pink horror": [
    0,
-   2,
+   48,
+   3
+  ],
+  "cloaker": [
+   0,
+   49,
    3
   ],
   "black orc": [
    0,
-   3,
+   50,
    3
   ],
   "ochre jelly": [
    0,
-   4,
+   51,
    3
   ],
   "software bug": [
    0,
-   5,
+   52,
+   3
+  ],
+  "lurker": [
+   0,
+   53,
    3
   ],
   "nixie": [
    0,
-   6,
+   54,
    3
   ],
   "vlasta": [
    0,
-   7,
+   55,
+   3
+  ],
+  "giant white dragon fly": [
+   0,
+   56,
    3
   ],
   "snaga sapper": [
    0,
-   8,
+   57,
+   3
+  ],
+  "blue icky thing": [
+   0,
+   58,
    3
   ],
   "gibbering mouther": [
    0,
-   9,
+   59,
    3
   ],
   "irish wolfhound of flora": [
    0,
-   10,
+   60,
    3
   ],
   "hill giant": [
    0,
-   11,
+   61,
    3
   ],
   "flesh golem": [
    0,
-   12,
+   62,
    3
   ],
   "warg": [
    0,
-   13,
-   3
+   0,
+   4
   ],
   "cheerful leprechaun": [
    0,
-   14,
-   3
+   1,
+   4
   ],
   "giant flea": [
    0,
-   15,
-   3
+   2,
+   4
   ],
   "ufthak of cirith ungol": [
    0,
-   16,
-   3
+   3,
+   4
   ],
   "clay golem": [
    0,
-   17,
-   3
+   4,
+   4
+  ],
+  "black ogre": [
+   0,
+   5,
+   4
   ],
   "dweller on the threshold": [
    0,
-   18,
-   3
+   6,
+   4
   ],
   "half-orc": [
    0,
-   19,
-   3
+   7,
+   4
+  ],
+  "dark naga": [
+   0,
+   8,
+   4
   ],
   "giant octopus": [
    0,
-   20,
-   3
+   9,
+   4
   ],
   "magic mushroom patch": [
    0,
-   21,
-   3
+   10,
+   4
   ],
   "plaguebearer of nurgle": [
    0,
-   22,
-   3
+   11,
+   4
+  ],
+  "guardian naga": [
+   0,
+   12,
+   4
   ],
   "wererat": [
    0,
-   23,
-   3
+   13,
+   4
   ],
   "light hound": [
    0,
-   24,
-   3
+   14,
+   4
   ],
   "shadow hound": [
    0,
-   25,
-   3
+   15,
+   4
   ],
   "flying skull": [
    0,
-   26,
-   3
+   16,
+   4
   ],
   "mi-go": [
    0,
-   27,
-   3
+   17,
+   4
   ],
   "giant tarantula": [
    0,
-   28,
-   3
+   18,
+   4
+  ],
+  "giant clear centipede": [
+   0,
+   19,
+   4
   ],
   "mirkwood spider": [
    0,
-   29,
-   3
+   20,
+   4
   ],
   "frost giant": [
    0,
-   30,
-   3
+   21,
+   4
   ],
   "griffon": [
    0,
-   31,
-   3
+   22,
+   4
   ],
   "homonculus": [
    0,
-   32,
-   3
+   23,
+   4
   ],
   "gnome mage": [
    0,
-   33,
-   3
+   24,
+   4
   ],
   "clear hound": [
    0,
-   34,
-   3
+   25,
+   4
+  ],
+  "umber hulk": [
+   0,
+   26,
+   4
   ],
   "rust monster": [
    0,
-   35,
-   3
+   27,
+   4
   ],
   "orc captain": [
    0,
-   36,
-   3
+   28,
+   4
   ],
   "gelatinous cube": [
    0,
-   37,
-   3
+   29,
+   4
+  ],
+  "giant green dragon fly": [
+   0,
+   30,
+   4
   ],
   "fire giant": [
    0,
-   38,
-   3
+   31,
+   4
   ],
   "hummerhorn": [
    0,
-   39,
-   3
+   32,
+   4
   ],
   "lizardman": [
    0,
-   40,
-   3
+   33,
+   4
   ],
   "ulfast, son of ulfang": [
    0,
-   41,
-   3
+   34,
+   4
   ],
   "hammerhead": [
    0,
-   42,
-   3
+   35,
+   4
   ],
   "berserker": [
    0,
-   43,
-   3
+   36,
+   4
   ],
   "quasit": [
    0,
-   44,
-   3
+   37,
+   4
   ],
   "sphinx": [
    0,
-   45,
-   3
+   38,
+   4
   ],
   "imp": [
    0,
-   46,
-   3
+   39,
+   4
   ],
   "forest troll": [
    0,
-   47,
-   3
+   40,
+   4
+  ],
+  "freezing sphere": [
+   0,
+   41,
+   4
+  ],
+  "jumping fireball": [
+   0,
+   42,
+   4
+  ],
+  "ball lightning": [
+   0,
+   43,
+   4
+  ],
+  "2-headed hydra": [
+   0,
+   44,
+   4
   ],
   "swamp thing": [
    0,
-   48,
-   3
+   45,
+   4
   ],
   "water spirit": [
    0,
-   49,
-   3
+   46,
+   4
   ],
   "giant pink scorpion": [
    0,
-   50,
-   3
+   47,
+   4
   ],
   "earth spirit": [
    0,
-   51,
-   3
+   48,
+   4
   ],
   "fire spirit": [
    0,
-   52,
-   3
+   49,
+   4
   ],
   "fire hound": [
    0,
-   53,
-   3
+   50,
+   4
   ],
   "cold hound": [
    0,
-   54,
-   3
+   51,
+   4
   ],
   "energy hound": [
    0,
-   55,
-   3
+   52,
+   4
+  ],
+  "potion mimic": [
+   0,
+   53,
+   4
+  ],
+  "door mimic": [
+   0,
+   54,
+   4
   ],
   "blink dog": [
    0,
-   56,
-   3
+   55,
+   4
   ],
   "uruk": [
    0,
-   57,
-   3
+   56,
+   4
   ],
   "shagrat, the orc captain": [
    0,
-   58,
-   3
+   57,
+   4
   ],
   "gorbag, the orc captain": [
    0,
-   59,
-   3
+   58,
+   4
   ],
   "shambling mound": [
    0,
-   60,
-   3
+   59,
+   4
   ],
   "white shark": [
    0,
-   61,
-   3
+   60,
+   4
   ],
   "chaos beastman": [
    0,
-   62,
-   3
+   61,
+   4
   ],
   "daemonette of slaanesh": [
    0,
-   0,
+   62,
    4
+  ],
+  "giant bronze dragon fly": [
+   0,
+   0,
+   5
   ],
   "stone giant": [
    0,
    1,
-   4
+   5
+  ],
+  "giant black dragon fly": [
+   0,
+   2,
+   5
   ],
   "stone golem": [
    0,
-   2,
-   4
+   3,
+   5
+  ],
+  "red mold": [
+   0,
+   4,
+   5
+  ],
+  "giant gold dragon fly": [
+   0,
+   5,
+   5
   ],
   "stunwall": [
    0,
-   3,
-   4
+   6,
+   5
   ],
   "ghast": [
    0,
-   4,
-   4
+   7,
+   5
   ],
   "ixitxachitl priest": [
    0,
-   5,
-   4
+   8,
+   5
   ],
   "huorn": [
    0,
-   6,
-   4
+   9,
+   5
   ],
   "bolg, son of azog": [
    0,
-   7,
-   4
+   10,
+   5
   ],
   "phase spider": [
    0,
-   8,
-   4
+   11,
+   5
   ],
   "lizard king": [
    0,
-   9,
-   4
+   12,
+   5
+  ],
+  "landmine": [
+   0,
+   13,
+   5
   ],
   "wyvern": [
    0,
-   10,
-   4
+   14,
+   5
   ],
   "great eagle": [
    0,
-   11,
-   4
+   15,
+   5
   ],
   "livingstone": [
    0,
-   12,
-   4
+   16,
+   5
   ],
   "earth hound": [
    0,
-   13,
-   4
+   17,
+   5
   ],
   "air hound": [
    0,
-   14,
-   4
+   18,
+   5
   ],
   "sabre-tooth tiger": [
    0,
-   15,
-   4
+   19,
+   5
   ],
   "water hound": [
    0,
-   16,
-   4
+   20,
+   5
   ],
   "chimera": [
    0,
-   17,
-   4
+   21,
+   5
   ],
   "quylthulg": [
    0,
-   18,
-   4
+   22,
+   5
   ],
   "sasquatch": [
    0,
-   19,
-   4
+   23,
+   5
   ],
   "weir": [
    0,
-   20,
-   4
+   24,
+   5
   ],
   "whale": [
    0,
-   21,
-   4
+   25,
+   5
   ],
   "electric eel": [
    0,
-   22,
-   4
+   26,
+   5
   ],
   "werewolf": [
    0,
-   23,
-   4
+   27,
+   5
   ],
   "dark elven lord": [
    0,
-   24,
-   4
+   28,
+   5
   ],
   "cloud giant": [
    0,
-   25,
-   4
+   29,
+   5
   ],
   "ugluk, the uruk": [
    0,
-   26,
-   4
+   30,
+   5
+  ],
+  "blue dragon bat": [
+   0,
+   31,
+   5
+  ],
+  "scroll mimic": [
+   0,
+   32,
+   5
+  ],
+  "chest mimic": [
+   0,
+   33,
+   5
   ],
   "fire vortex": [
    0,
-   27,
-   4
+   34,
+   5
   ],
   "water vortex": [
    0,
-   28,
-   4
+   35,
+   5
   ],
   "lugdush, the uruk": [
    0,
-   29,
-   4
+   36,
+   5
   ],
   "arch-vile": [
    0,
-   30,
-   4
+   37,
+   5
   ],
   "cold vortex": [
    0,
-   31,
-   4
+   38,
+   5
   ],
   "energy vortex": [
    0,
-   32,
-   4
+   39,
+   5
   ],
   "globefish": [
    0,
-   33,
-   4
+   40,
+   5
   ],
   "carrion": [
    0,
-   34,
-   4
+   41,
+   5
   ],
   "mummified orc": [
    0,
-   35,
-   4
+   42,
+   5
   ],
   "killer whale": [
    0,
-   36,
-   4
+   43,
+   5
   ],
   "serpent man": [
    0,
-   37,
-   4
+   44,
+   5
   ],
   "vampiric mist": [
    0,
-   38,
-   4
+   45,
+   5
+  ],
+  "killer stag beetle": [
+   0,
+   46,
+   5
   ],
   "iron golem": [
    0,
-   39,
-   4
+   47,
+   5
   ],
   "auto-roller": [
    0,
-   40,
-   4
+   48,
+   5
   ],
   "giant yellow scorpion": [
    0,
-   41,
-   4
+   49,
+   5
   ],
   "jade monk": [
    0,
-   42,
-   4
+   50,
+   5
   ],
   "black ooze": [
    0,
-   43,
-   4
+   51,
+   5
   ],
   "hardened warrior": [
    0,
-   44,
-   4
+   52,
+   5
   ],
   "azog, king of the uruk-hai": [
    0,
-   45,
-   4
+   53,
+   5
   ],
   "fleshhound of khorne": [
    0,
-   46,
-   4
+   54,
+   5
   ],
   "dark elven warlock": [
    0,
-   47,
-   4
+   55,
+   5
   ],
   "master rogue": [
    0,
-   48,
-   4
+   56,
+   5
+  ],
+  "red dragon bat": [
+   0,
+   57,
+   5
+  ],
+  "killer white beetle": [
+   0,
+   58,
+   5
   ],
   "ice skeleton": [
    0,
-   49,
-   4
+   59,
+   5
   ],
   "angamaite of umbar": [
    0,
-   50,
-   4
+   60,
+   5
   ],
   "kouko": [
    0,
-   51,
-   4
+   61,
+   5
   ],
   "mime, the nibelung": [
    0,
-   52,
-   4
+   62,
+   5
   ],
   "hagen, son of alberich": [
    0,
-   53,
-   4
+   0,
+   6
   ],
   "meneldor the swift": [
    0,
-   54,
-   4
+   1,
+   6
   ],
   "phantom beast": [
    0,
-   55,
-   4
+   2,
+   6
   ],
   "great white shark": [
    0,
-   56,
-   4
+   3,
+   6
+  ],
+  "4-headed hydra": [
+   0,
+   4,
+   6
   ],
   "lesser hell-beast": [
    0,
-   57,
-   4
+   5,
+   6
   ],
   "tyrannosaurus": [
    0,
-   58,
-   4
+   6,
+   6
   ],
   "mummified human": [
    0,
-   59,
-   4
+   7,
+   6
+  ],
+  "vampire bat": [
+   0,
+   8,
+   6
   ],
   "sangahyando of umbar": [
    0,
-   60,
-   4
+   9,
+   6
+  ],
+  "it": [
+   0,
+   10,
+   6
   ],
   "banshee": [
    0,
-   61,
-   4
+   11,
+   6
+  ],
+  "carrion crawler": [
+   0,
+   12,
+   6
   ],
   "xiclotlan": [
    0,
-   62,
-   4
+   13,
+   6
   ],
   "silent watcher": [
    0,
-   0,
-   5
+   14,
+   6
   ],
   "pukelman": [
    0,
-   1,
-   5
+   15,
+   6
   ],
   "disenchanter beast": [
    0,
-   2,
-   5
+   16,
+   6
   ],
   "dark elven druid": [
    0,
-   3,
-   5
+   17,
+   6
   ],
   "stone troll": [
    0,
-   4,
-   5
+   18,
+   6
   ],
   "black": [
    0,
-   5,
-   5
+   19,
+   6
   ],
   "troll priest": [
    0,
-   6,
-   5
+   20,
+   6
   ],
   "wereworm": [
    0,
-   7,
-   5
+   21,
+   6
+  ],
+  "killer crimson beetle": [
+   0,
+   22,
+   6
   ],
   "vampiric ixitxachitl": [
    0,
-   8,
-   5
+   23,
+   6
   ],
   "gnoph-keh": [
    0,
-   9,
-   5
+   24,
+   6
+  ],
+  "giant grey ant": [
+   0,
+   25,
+   6
   ],
   "kharis the powerslave": [
    0,
-   10,
-   5
+   26,
+   6
   ],
   "gwaihir the windlord": [
    0,
-   11,
-   5
+   27,
+   6
   ],
   "giant red tick": [
    0,
-   12,
-   5
+   28,
+   6
   ],
   "displacer beast": [
    0,
-   13,
-   5
+   29,
+   6
   ],
   "ulwarth, son of ulfang": [
    0,
-   14,
-   5
+   30,
+   6
   ],
   "agent of benedict": [
    0,
-   15,
-   5
+   31,
+   6
+  ],
+  "cave ogre": [
+   0,
+   32,
+   6
   ],
   "white wraith": [
    0,
-   16,
-   5
+   33,
+   6
   ],
   "angel": [
    0,
-   17,
-   5
+   34,
+   6
   ],
   "ghoul": [
    0,
-   18,
-   5
+   35,
+   6
   ],
   "alberich the nibelung king": [
    0,
-   19,
-   5
+   36,
+   6
+  ],
+  "hellblade": [
+   0,
+   37,
+   6
+  ],
+  "killer red beetle": [
+   0,
+   38,
+   6
   ],
   "beast of nurgle": [
    0,
-   20,
-   5
+   39,
+   6
+  ],
+  "creeping adamantite coins": [
+   0,
+   40,
+   6
   ],
   "algroth": [
    0,
-   21,
-   5
+   41,
+   6
   ],
   "flamer of tzeentch": [
    0,
-   22,
-   5
+   42,
+   6
   ],
   "roper": [
    0,
-   23,
-   5
+   43,
+   6
   ],
   "headless": [
    0,
-   24,
-   5
+   44,
+   6
   ],
   "vibration hound": [
    0,
-   25,
-   5
+   45,
+   6
   ],
   "nexus hound": [
    0,
-   26,
-   5
+   46,
+   6
+  ],
+  "ogre mage": [
+   0,
+   47,
+   6
+  ],
+  "grendel": [
+   0,
+   48,
+   6
+  ],
+  "vampire": [
+   0,
+   49,
+   6
   ],
   "gorgimera": [
    0,
-   27,
-   5
+   50,
+   6
   ],
   "shantak": [
    0,
-   28,
-   5
+   51,
+   6
   ],
   "colbran": [
    0,
-   29,
-   5
+   52,
+   6
+  ],
+  "spirit naga": [
+   0,
+   53,
+   6
   ],
   "corpser": [
    0,
-   30,
-   5
+   54,
+   6
   ],
   "fiend of slaanesh": [
    0,
-   31,
-   5
+   55,
+   6
+  ],
+  "5-headed hydra": [
+   0,
+   56,
+   6
   ],
   "gachapin": [
    0,
-   32,
-   5
+   57,
+   6
   ],
   "black knight": [
    0,
-   33,
-   5
+   58,
+   6
   ],
   "seahorse": [
    0,
-   34,
-   5
+   59,
+   6
   ],
   "cyclops": [
    0,
-   35,
-   5
+   60,
+   6
   ],
   "clairvoyant": [
    0,
-   36,
-   5
+   61,
+   6
   ],
   "giant purple worm": [
    0,
-   37,
-   5
+   62,
+   6
   ],
   "catoblepas": [
    0,
-   38,
-   5
+   0,
+   7
   ],
   "lesser wall monster": [
    0,
-   39,
-   5
+   1,
+   7
   ],
   "mage": [
    0,
-   40,
-   5
+   2,
+   7
   ],
   "mind flayer": [
    0,
-   41,
-   5
+   3,
+   7
   ],
   "ultimate dungeon cleaner": [
    0,
-   42,
-   5
+   4,
+   7
   ],
   "deep one": [
    0,
-   43,
-   5
+   5,
+   7
   ],
   "basilisk": [
    0,
-   44,
-   5
+   6,
+   7
   ],
   "ice troll": [
    0,
-   45,
-   5
+   7,
+   7
   ],
   "dhole": [
    0,
-   46,
-   5
+   8,
+   7
   ],
   "archangel": [
    0,
-   47,
-   5
+   9,
+   7
+  ],
+  "ring mimic": [
+   0,
+   10,
+   7
+  ],
+  "chaos tile": [
+   0,
+   11,
+   7
   ],
   "young blue dragon": [
    0,
-   48,
-   5
+   12,
+   7
   ],
   "young white dragon": [
    0,
-   49,
-   5
+   13,
+   7
   ],
   "young green dragon": [
    0,
-   50,
-   5
+   14,
+   7
   ],
   "young bronze dragon": [
    0,
-   51,
-   5
+   15,
+   7
   ],
   "aklash": [
    0,
-   52,
-   5
+   16,
+   7
   ],
   "mithril golem": [
    0,
-   53,
-   5
+   17,
+   7
   ],
   "skeleton troll": [
    0,
-   54,
-   5
+   18,
+   7
   ],
   "skeletal tyrannosaurus": [
    0,
-   55,
-   5
+   19,
+   7
   ],
   "jaws": [
    0,
-   56,
-   5
+   20,
+   7
   ],
   "thorondor": [
    0,
-   57,
-   5
+   21,
+   7
+  ],
+  "giant blue ant": [
+   0,
+   22,
+   7
   ],
   "grave wight": [
    0,
-   58,
-   5
+   23,
+   7
   ],
   "shadow drake": [
    0,
-   59,
-   5
+   24,
+   7
   ],
   "manticore": [
    0,
-   60,
-   5
+   25,
+   7
+  ],
+  "giant army ant": [
+   0,
+   26,
+   7
+  ],
+  "killer slicer beetle": [
+   0,
+   27,
+   7
   ],
   "gorgon": [
    0,
-   61,
-   5
+   28,
+   7
   ],
   "gug": [
    0,
-   62,
-   5
+   29,
+   7
   ],
   "ghost": [
    0,
+   30,
+   7
+  ],
+  "death watch beetle": [
    0,
-   6
+   31,
+   7
+  ],
+  "ogre shaman": [
+   0,
+   32,
+   7
   ],
   "nexus quylthulg": [
    0,
-   1,
-   6
+   33,
+   7
   ],
   "shelob, spider of darkness": [
    0,
-   2,
-   6
+   34,
+   7
   ],
   "giant squid": [
    0,
-   3,
-   6
+   35,
+   7
   ],
   "ghoulking": [
    0,
-   4,
-   6
+   36,
+   7
+  ],
+  "doombat": [
+   0,
+   37,
+   7
   ],
   "ninja": [
    0,
-   5,
-   6
+   38,
+   7
   ],
   "memory moss": [
    0,
-   6,
-   6
+   39,
+   7
   ],
   "storm giant": [
    0,
-   7,
-   6
+   40,
+   7
   ],
   "spectator": [
    0,
-   8,
-   6
+   41,
+   7
   ],
   "bokrug": [
    0,
-   9,
-   6
+   42,
+   7
   ],
   "biclops": [
    0,
-   10,
-   6
+   43,
+   7
   ],
   "half-troll": [
    0,
-   11,
-   6
+   44,
+   7
   ],
   "ivory monk": [
    0,
-   12,
-   6
+   45,
+   7
   ],
   "bert the stone troll": [
    0,
-   13,
-   6
+   46,
+   7
   ],
   "bill the stone troll": [
    0,
-   14,
-   6
+   47,
+   7
   ],
   "tom the stone troll": [
    0,
-   15,
-   6
+   48,
+   7
   ],
   "cave troll": [
    0,
-   16,
-   6
+   49,
+   7
   ],
   "anti-paladin": [
    0,
-   17,
-   6
+   50,
+   7
   ],
   "logrus master": [
    0,
-   18,
-   6
+   51,
+   7
   ],
   "barrow wight": [
    0,
-   19,
-   6
+   52,
+   7
   ],
   "giant skeleton troll": [
    0,
-   20,
-   6
+   53,
+   7
   ],
   "chaos drake": [
    0,
-   21,
-   6
+   54,
+   7
   ],
   "law drake": [
    0,
-   22,
-   6
+   55,
+   7
   ],
   "balance drake": [
    0,
-   23,
-   6
+   56,
+   7
   ],
   "ethereal drake": [
    0,
-   24,
-   6
+   57,
+   7
   ],
   "ishikawa goemon": [
    0,
-   25,
-   6
+   58,
+   7
   ],
   "fasolt the giant": [
    0,
-   26,
-   6
+   59,
+   7
   ],
   "logrus ghost": [
    0,
-   27,
-   6
+   60,
+   7
   ],
   "spectre": [
    0,
-   28,
-   6
+   61,
+   7
   ],
   "water troll": [
    0,
-   29,
-   6
+   62,
+   7
   ],
   "fire elemental": [
    0,
-   30,
-   6
+   0,
+   8
   ],
   "cherub": [
    0,
-   31,
-   6
+   1,
+   8
   ],
   "water elemental": [
    0,
-   32,
-   6
+   2,
+   8
   ],
   "multi-hued hound": [
    0,
-   33,
-   6
+   3,
+   8
   ],
   "night stalker": [
    0,
-   34,
-   6
+   4,
+   8
   ],
   "velociraptor": [
    0,
-   35,
-   6
+   5,
+   8
   ],
   "master thief": [
    0,
-   36,
-   6
+   6,
+   8
   ],
   "jurt the living trump": [
    0,
-   37,
-   6
+   7,
+   8
+  ],
+  "lich": [
+   0,
+   8,
+   8
   ],
   "gas spore": [
    0,
-   38,
-   6
+   9,
+   8
+  ],
+  "master vampire": [
+   0,
+   10,
+   8
+  ],
+  "oriental vampire": [
+   0,
+   11,
+   8
   ],
   "greater mummy": [
    0,
-   39,
-   6
+   12,
+   8
   ],
   "bloodletter of khorne": [
    0,
-   40,
-   6
+   13,
+   8
   ],
   "giant grey scorpion": [
    0,
-   41,
-   6
+   14,
+   8
   ],
   "earth elemental": [
    0,
-   42,
-   6
+   15,
+   8
   ],
   "air elemental": [
    0,
-   43,
-   6
+   16,
+   8
   ],
   "doom drake": [
    0,
-   44,
-   6
+   17,
+   8
   ],
   "gargoyle": [
    0,
-   45,
-   6
+   18,
+   8
   ],
   "malicious leprechaun": [
    0,
-   46,
-   6
+   19,
+   8
   ],
   "eog golem": [
    0,
-   47,
-   6
+   20,
+   8
+  ],
+  "sheer heart attack, the bomb hand": [
+   0,
+   21,
+   8
   ],
   "dagashi": [
    0,
-   48,
-   6
+   22,
+   8
   ],
   "headless ghost": [
    0,
-   49,
-   6
+   23,
+   8
   ],
   "dread knight": [
    0,
-   50,
-   6
+   24,
+   8
   ],
   "leng spider": [
    0,
-   51,
-   6
+   25,
+   8
+  ],
+  "star vampire": [
+   0,
+   26,
+   8
   ],
   "smoke elemental": [
    0,
-   52,
-   6
+   27,
+   8
   ],
   "olog": [
    0,
-   53,
-   6
+   28,
+   8
   ],
   "halfling slinger": [
    0,
-   54,
-   6
+   29,
+   8
   ],
   "gravity hound": [
    0,
-   55,
-   6
+   30,
+   8
   ],
   "acidic cytoplasm": [
    0,
-   56,
-   6
+   31,
+   8
   ],
   "inertia hound": [
    0,
-   57,
-   6
+   32,
+   8
   ],
   "impact hound": [
    0,
-   58,
-   6
+   33,
+   8
   ],
   "sea troll": [
    0,
-   59,
-   6
+   34,
+   8
   ],
   "ooze elemental": [
    0,
-   60,
-   6
+   35,
+   8
   ],
   "young black dragon": [
    0,
-   61,
-   6
+   36,
+   8
   ],
   "wooly rhinoceros": [
    0,
-   62,
-   6
+   37,
+   8
+  ],
+  "giant fire ant": [
+   0,
+   38,
+   8
   ],
   "mature white dragon": [
    0,
+   39,
+   8
+  ],
+  "xorn": [
    0,
-   7
+   40,
+   8
   ],
   "rogrog the black troll": [
    0,
-   1,
-   7
+   41,
+   8
   ],
   "mist giant": [
    0,
-   2,
-   7
+   42,
+   8
   ],
   "pattern ghost": [
    0,
-   3,
-   7
+   43,
+   8
   ],
   "grey wraith": [
    0,
-   4,
-   7
+   44,
+   8
   ],
   "revenant": [
    0,
-   5,
-   7
+   45,
+   8
   ],
   "young multi-hued dragon": [
    0,
-   6,
-   7
+   46,
+   8
+  ],
+  "raal's tome of destruction": [
+   0,
+   47,
+   8
   ],
   "colossus": [
    0,
-   7,
-   7
+   48,
+   8
   ],
   "young gold dragon": [
    0,
-   8,
-   7
+   49,
+   8
   ],
   "mature blue dragon": [
    0,
-   9,
-   7
+   50,
+   8
   ],
   "mature green dragon": [
    0,
-   10,
-   7
+   51,
+   8
   ],
   "mature bronze dragon": [
    0,
-   11,
-   7
+   52,
+   8
   ],
   "young red dragon": [
    0,
-   12,
-   7
+   53,
+   8
   ],
   "nightblade": [
    0,
-   13,
-   7
+   54,
+   8
+  ],
+  "trapper": [
+   0,
+   55,
+   8
   ],
   "bodak": [
    0,
-   14,
-   7
+   56,
+   8
+  ],
+  "time bomb": [
+   0,
+   57,
+   8
   ],
   "mezzodaemon": [
    0,
-   15,
-   7
+   58,
+   8
   ],
   "elder thing": [
    0,
-   16,
-   7
+   59,
+   8
   ],
   "ice elemental": [
    0,
-   17,
-   7
+   60,
+   8
   ],
   "ipsissimus": [
    0,
-   18,
-   7
+   61,
+   8
   ],
   "greater hell magic mushroom were-quylthulg": [
    0,
-   19,
-   7
+   62,
+   8
   ],
   "lord borel of hendrake": [
    0,
-   20,
-   7
+   0,
+   9
   ],
   "chaos spawn": [
    0,
-   21,
-   7
+   1,
+   9
   ],
   "mummified troll": [
    0,
-   22,
-   7
+   2,
+   9
   ],
   "fire angel": [
    0,
-   23,
-   7
+   3,
+   9
+  ],
+  "crypt thing": [
+   0,
+   4,
+   9
   ],
   "chaos butterfly": [
    0,
-   24,
-   7
+   5,
+   9
   ],
   "time ghost": [
    0,
-   25,
-   7
+   6,
+   9
   ],
   "flying polyp": [
    0,
-   26,
-   7
+   7,
+   9
+  ],
+  "queen ant": [
+   0,
+   8,
+   9
   ],
   "will o' the wisp": [
    0,
-   27,
-   7
+   9,
+   9
   ],
   "shan": [
    0,
-   28,
-   7
+   10,
+   9
   ],
   "magma elemental": [
    0,
-   29,
-   7
+   11,
+   9
   ],
   "black pudding": [
    0,
-   30,
-   7
+   12,
+   9
+  ],
+  "killer iridescent beetle": [
+   0,
+   13,
+   9
   ],
   "nexus vortex": [
    0,
-   31,
-   7
+   14,
+   9
   ],
   "plasma vortex": [
    0,
-   32,
-   7
+   15,
+   9
   ],
   "mature red dragon": [
    0,
-   33,
-   7
+   16,
+   9
   ],
   "mature gold dragon": [
    0,
-   34,
-   7
+   17,
+   9
   ],
   "crystal drake": [
    0,
-   35,
-   7
+   18,
+   9
   ],
   "mature black dragon": [
    0,
-   36,
-   7
+   19,
+   9
   ],
   "mature multi-hued dragon": [
    0,
-   37,
-   7
+   20,
+   9
   ],
   "sky whale": [
    0,
-   38,
-   7
+   21,
+   9
   ],
   "father dagon": [
    0,
-   39,
-   7
+   22,
+   9
   ],
   "mother hydra": [
    0,
-   40,
-   7
+   23,
+   9
   ],
   "death knight": [
    0,
-   41,
-   7
+   24,
+   9
   ],
   "mandor, master of the logrus": [
    0,
-   42,
-   7
+   25,
+   9
   ],
   "time vortex": [
    0,
-   43,
-   7
+   26,
+   9
   ],
   "shimmering vortex": [
    0,
-   44,
-   7
+   27,
+   9
   ],
   "ancient blue dragon": [
    0,
-   45,
-   7
+   28,
+   9
   ],
   "ancient bronze dragon": [
    0,
-   46,
-   7
+   29,
+   9
   ],
   "beholder": [
    0,
-   47,
-   7
+   30,
+   9
   ],
   "emperor wight": [
    0,
-   48,
-   7
+   31,
+   9
   ],
   "seraph": [
    0,
-   49,
-   7
+   32,
+   9
   ],
   "loge, spirit of fire": [
    0,
-   50,
-   7
+   33,
+   9
   ],
   "black wraith": [
    0,
-   51,
-   7
+   34,
+   9
   ],
   "nightgaunt": [
    0,
-   52,
-   7
+   35,
+   9
   ],
   "baron of hell": [
    0,
-   53,
-   7
+   36,
+   9
+  ],
+  "scylla": [
+   0,
+   37,
+   9
+  ],
+  "monastic lich": [
+   0,
+   38,
+   9
   ],
   "nether wraith": [
    0,
-   54,
-   7
+   39,
+   9
+  ],
+  "fire vampire": [
+   0,
+   40,
+   9
+  ],
+  "7-headed hydra": [
+   0,
+   41,
+   9
   ],
   "moire, queen of rebma": [
    0,
-   55,
-   7
+   42,
+   9
   ],
   "kavlax the many-headed": [
    0,
-   56,
-   7
+   43,
+   9
   ],
   "ancient white dragon": [
    0,
-   57,
-   7
+   44,
+   9
   ],
   "ancient green dragon": [
    0,
-   58,
-   7
+   45,
+   9
   ],
   "chthonian": [
    0,
-   59,
-   7
+   46,
+   9
   ],
   "eldrak": [
    0,
-   60,
-   7
+   47,
+   9
   ],
   "ettin": [
    0,
-   61,
-   7
+   48,
+   9
   ],
   "night mare": [
    0,
-   62,
-   7
+   49,
+   9
+  ],
+  "vampire lord": [
+   0,
+   50,
+   9
   ],
   "ancient black dragon": [
    0,
-   0,
-   8
+   51,
+   9
   ],
   "weird fume": [
    0,
-   1,
-   8
+   52,
+   9
   ],
   "spawn of ubbo-sathla": [
    0,
-   2,
-   8
+   53,
+   9
   ],
   "malekith the accursed": [
    0,
-   3,
-   8
+   54,
+   9
   ],
   "morgenstern, julian's steed": [
    0,
-   4,
-   8
+   55,
+   9
   ],
   "spirit troll": [
    0,
-   5,
-   8
+   56,
+   9
   ],
   "war troll": [
    0,
-   6,
-   8
+   57,
+   9
   ],
   "disenchanter worm mass": [
    0,
-   7,
-   8
+   58,
+   9
   ],
   "rotting quylthulg": [
    0,
-   8,
-   8
+   59,
+   9
   ],
   "lesser titan": [
    0,
-   9,
-   8
+   60,
+   9
+  ],
+  "9-headed hydra": [
+   0,
+   61,
+   9
   ],
   "enchantress": [
    0,
-   10,
-   8
+   62,
+   9
   ],
   "archpriest": [
    0,
-   11,
-   8
+   0,
+   10
   ],
   "sorcerer": [
    0,
-   12,
-   8
+   1,
+   10
+  ],
+  "xaren": [
+   0,
+   2,
+   10
   ],
   "jubjub bird": [
    0,
-   13,
-   8
+   3,
+   10
   ],
   "minotaur": [
    0,
-   14,
-   8
+   4,
+   10
+  ],
+  "jasra, brand's mistress": [
+   0,
+   5,
+   10
   ],
   "death drake": [
    0,
-   15,
-   8
+   6,
+   10
   ],
   "ancient red dragon": [
    0,
-   16,
-   8
+   7,
+   10
   ],
   "ancient gold dragon": [
    0,
-   17,
-   8
+   8,
+   10
   ],
   "great crystal drake": [
    0,
-   18,
-   8
+   9,
+   10
   ],
   "wyrd sister": [
    0,
-   19,
-   8
+   10,
+   10
   ],
   "clubber demon": [
    0,
-   20,
-   8
+   11,
+   10
   ],
   "death quasit": [
    0,
-   21,
-   8
+   12,
+   10
   ],
   "giganto the gargantuan": [
    0,
-   22,
-   8
+   13,
+   10
   ],
   "strygalldwir": [
    0,
-   23,
-   8
+   14,
+   10
   ],
   "fallen angel": [
    0,
-   24,
-   8
+   15,
+   10
   ],
   "giant headless": [
    0,
-   25,
-   8
+   16,
+   10
   ],
   "judge fire": [
    0,
-   26,
-   8
+   17,
+   10
   ],
   "ubbo-sathla, the unbegotten source": [
    0,
-   27,
-   8
+   18,
+   10
   ],
   "judge mortis": [
    0,
-   28,
-   8
+   19,
+   10
   ],
   "dark elven sorcerer": [
    0,
-   29,
-   8
+   20,
+   10
+  ],
+  "master lich": [
+   0,
+   21,
+   10
   ],
   "byakhee": [
    0,
-   30,
-   8
+   22,
+   10
   ],
   "rinaldo, son of brand": [
    0,
-   31,
-   8
+   23,
+   10
   ],
   "archon": [
    0,
-   32,
-   8
+   24,
+   10
   ],
   "formless spawn of tsathoggua": [
    0,
-   33,
-   8
+   25,
+   10
   ],
   "hunting horror": [
    0,
-   34,
-   8
+   26,
+   10
   ],
   "undead beholder": [
    0,
-   35,
-   8
+   27,
+   10
   ],
   "shadow demon": [
    0,
-   36,
-   8
+   28,
+   10
+  ],
+  "iron lich": [
+   0,
+   29,
+   10
   ],
   "dread": [
    0,
-   37,
-   8
+   30,
+   10
   ],
   "greater basilisk": [
    0,
-   38,
-   8
+   31,
+   10
   ],
   "charybdis": [
    0,
-   39,
-   8
+   32,
+   10
   ],
   "jack of shadows": [
    0,
-   40,
-   8
+   33,
+   10
   ],
   "zephyr lord": [
    0,
-   41,
-   8
+   34,
+   10
   ],
   "juggernaut of khorne": [
    0,
-   42,
-   8
+   35,
+   10
   ],
   "mumak": [
    0,
-   43,
-   8
+   36,
+   10
   ],
   "judge fear": [
    0,
-   44,
-   8
+   37,
+   10
   ],
   "ancient multi-hued dragon": [
    0,
-   45,
-   8
+   38,
+   10
   ],
   "ethereal dragon": [
    0,
-   46,
-   8
+   39,
+   10
   ],
   "dark young of shub-niggurath": [
    0,
-   47,
-   8
+   40,
+   10
+  ],
+  "colour out of space": [
+   0,
+   41,
+   10
   ],
   "quaker, master of earth": [
    0,
-   48,
-   8
+   42,
+   10
   ],
   "death leprechaun": [
    0,
-   49,
-   8
+   43,
+   10
   ],
   "chaugnar faugn, horror from the hills": [
    0,
-   50,
-   8
+   44,
+   10
   ],
   "lloigor": [
    0,
-   51,
-   8
+   45,
+   10
   ],
   "utgard-loke": [
    0,
-   52,
-   8
+   46,
+   10
   ],
   "quachil uttaus, treader of the dust": [
    0,
-   53,
-   8
+   47,
+   10
   ],
   "shoggoth": [
    0,
-   54,
-   8
+   48,
+   10
   ],
   "judge death": [
    0,
-   55,
-   8
+   49,
+   10
   ],
   "ariel, queen of air": [
    0,
-   56,
-   8
+   50,
+   10
+  ],
+  "11-headed hydra": [
+   0,
+   51,
+   10
   ],
   "high priest": [
    0,
-   57,
-   8
+   52,
+   10
   ],
   "dreadmaster": [
    0,
-   58,
-   8
+   53,
+   10
   ],
   "drolem": [
    0,
-   59,
-   8
+   54,
+   10
   ],
   "scatha the worm": [
    0,
-   60,
-   8
+   55,
+   10
   ],
   "warrior of the dawn": [
    0,
-   61,
-   8
+   56,
+   10
+  ],
+  "legate of the damned": [
+   0,
+   57,
+   10
   ],
   "zoth-ommog": [
    0,
-   62,
-   8
+   58,
+   10
   ],
   "nazgul": [
    0,
-   0,
-   9
+   59,
+   10
   ],
   "smaug the golden": [
    0,
-   1,
-   9
+   60,
+   10
+  ],
+  "stormbringer": [
+   0,
+   61,
+   10
   ],
   "ultra-elite paladin": [
    0,
-   2,
-   9
+   62,
+   10
   ],
   "leprechaun fanatic": [
    0,
-   3,
-   9
+   0,
+   11
   ],
   "dracolich": [
    0,
-   4,
-   9
+   1,
+   11
   ],
   "greater titan": [
    0,
-   5,
-   9
+   2,
+   11
   ],
   "dracolisk": [
    0,
-   6,
-   9
+   3,
+   11
   ],
   "fastitocalon": [
    0,
-   7,
-   9
+   4,
+   11
   ],
   "spectral tyrannosaurus": [
    0,
-   8,
-   9
+   5,
+   11
   ],
   "yibb-tstll the patient one": [
    0,
-   9,
-   9
+   6,
+   11
   ],
   "ghatanothoa": [
    0,
-   10,
-   9
+   7,
+   11
   ],
   "ent": [
    0,
-   11,
-   9
+   8,
+   11
   ],
   "hru": [
    0,
-   12,
-   9
+   9,
+   11
   ],
   "itangast the fire drake": [
    0,
-   13,
-   9
+   10,
+   11
+  ],
+  "death mold": [
+   0,
+   11,
+   11
   ],
   "fafner the dragon": [
    0,
-   14,
-   9
+   12,
+   11
   ],
   "fangorn": [
    0,
-   15,
-   9
+   13,
+   11
   ],
   "zhar the twin obscenity": [
    0,
-   16,
-   9
+   14,
+   11
   ],
   "glaurung, father of the dragons": [
    0,
-   17,
-   9
+   15,
+   11
   ],
   "behemoth": [
    0,
-   18,
-   9
+   16,
+   11
   ],
   "garm, guardian of hel": [
    0,
-   19,
-   9
+   17,
+   11
   ],
   "greater wall monster": [
    0,
-   20,
-   9
+   18,
+   11
   ],
   "nycadaemon": [
    0,
-   21,
-   9
+   19,
+   11
   ],
   "greater balrog": [
    0,
-   22,
-   9
+   20,
+   11
   ],
   "goat of mendes": [
    0,
-   23,
-   9
+   21,
+   11
   ],
   "nightwing": [
    0,
-   24,
-   9
+   22,
+   11
   ],
   "maulotaur": [
    0,
-   25,
-   9
+   23,
+   11
   ],
   "nether hound": [
    0,
-   26,
-   9
+   24,
+   11
   ],
   "time hound": [
    0,
-   27,
-   9
+   25,
+   11
   ],
   "plasma hound": [
    0,
-   28,
-   9
+   26,
+   11
   ],
   "demonic quylthulg": [
    0,
-   29,
-   9
+   27,
+   11
   ],
   "great storm wyrm": [
    0,
-   30,
-   9
+   28,
+   11
   ],
   "ulik the troll": [
    0,
-   31,
-   9
+   29,
+   11
   ],
   "baphomet the minotaur lord": [
    0,
-   32,
-   9
+   30,
+   11
   ],
   "hell knight": [
    0,
-   33,
-   9
+   31,
+   11
   ],
   "bull gates": [
    0,
-   34,
-   9
+   32,
+   11
   ],
   "santa claus": [
    0,
-   35,
-   9
+   33,
+   11
   ],
   "eihort, the thing in the labyrinth": [
    0,
-   36,
-   9
+   34,
+   11
+  ],
+  "king in yellow": [
+   0,
+   35,
+   11
   ],
   "great unclean one": [
    0,
-   37,
-   9
+   36,
+   11
   ],
   "lord of chaos": [
    0,
-   38,
-   9
+   37,
+   11
   ],
   "khamul the easterling": [
    0,
-   39,
-   9
+   38,
+   11
   ],
   "hound of tindalos": [
    0,
-   40,
-   9
+   39,
+   11
   ],
   "lesser kraken": [
    0,
-   41,
-   9
+   40,
+   11
   ],
   "great ice wyrm": [
    0,
+   41,
+   11
+  ],
+  "demilich": [
+   0,
    42,
-   9
+   11
   ],
   "phoenix": [
    0,
    43,
-   9
+   11
   ],
   "nightcrawler": [
    0,
    44,
-   9
+   11
   ],
   "lord of change": [
    0,
    45,
-   9
+   11
   ],
   "keeper of secrets": [
    0,
    46,
-   9
+   11
   ],
   "shudde m'ell": [
    0,
    47,
-   9
+   11
   ],
   "hand druj": [
    0,
    48,
-   9
+   11
   ],
   "eye druj": [
    0,
    49,
-   9
+   11
   ],
   "skull druj": [
    0,
    50,
-   9
+   11
   ],
   "death vortex": [
    0,
    51,
-   9
+   11
   ],
   "aether vortex": [
    0,
    52,
-   9
+   11
   ],
   "nidhogg the hel-drake": [
    0,
    53,
-   9
+   11
+  ],
+  "lernean hydra": [
+   0,
+   54,
+   11
+  ],
+  "thuringwethil, the vampire messenger": [
+   0,
+   55,
+   11
   ],
   "great hell wyrm": [
    0,
-   54,
-   9
+   56,
+   11
   ],
   "hastur the unspeakable": [
    0,
-   55,
-   9
+   57,
+   11
   ],
   "bloodthirster": [
    0,
-   56,
-   9
+   58,
+   11
   ],
   "draconic quylthulg": [
    0,
-   57,
-   9
+   59,
+   11
   ],
   "nyogtha, the thing that should not be": [
    0,
-   58,
-   9
+   60,
+   11
   ],
   "ahtu, avatar of nyarlathotep": [
    0,
-   59,
-   9
+   61,
+   11
   ],
   "fundin bluecloak": [
    0,
-   60,
-   9
+   62,
+   11
   ],
   "dworkin barimen": [
    0,
-   61,
-   9
+   0,
+   12
   ],
   "uriel, angel of fire": [
    0,
-   62,
-   9
+   1,
+   12
   ],
   "azriel, angel of death": [
    0,
-   0,
-   10
+   2,
+   12
   ],
   "ancalagon the black": [
    0,
-   1,
-   10
+   3,
+   12
   ],
   "daoloth, the render of the veils": [
    0,
-   2,
-   10
+   4,
+   12
   ],
   "nightwalker": [
    0,
-   3,
-   10
+   5,
+   12
   ],
   "raphael, the messenger": [
    0,
-   4,
-   10
+   6,
+   12
   ],
   "habu the champion of chaos": [
    0,
-   5,
-   10
+   7,
+   12
   ],
   "saruman of many colours": [
    0,
-   6,
-   10
+   8,
+   12
   ],
   "gandalf the grey": [
    0,
-   7,
-   10
+   9,
+   12
   ],
   "brand, mad visionary of amber": [
    0,
-   8,
-   10
+   10,
+   12
   ],
   "shadowlord": [
    0,
-   9,
-   10
+   11,
+   12
   ],
   "greater kraken": [
    0,
-   10,
-   10
+   12,
+   12
+  ],
+  "archlich": [
+   0,
+   13,
+   12
   ],
   "bast, goddess of cats": [
    0,
-   11,
-   10
+   14,
+   12
   ],
   "jabberwock": [
    0,
-   12,
-   10
+   15,
+   12
   ],
   "chaos hound": [
    0,
-   13,
-   10
+   16,
+   12
+  ],
+  "vlad dracula, prince of darkness": [
+   0,
+   17,
+   12
   ],
   "ultimate beholder": [
    0,
-   14,
-   10
+   18,
+   12
   ],
   "leviathan": [
    0,
-   15,
-   10
+   19,
+   12
   ],
   "great wyrm of chaos": [
    0,
-   16,
-   10
+   20,
+   12
   ],
   "great wyrm of law": [
    0,
-   17,
-   10
+   21,
+   12
   ],
   "great wyrm of balance": [
    0,
-   18,
-   10
+   22,
+   12
   ],
   "shambler": [
    0,
-   19,
-   10
+   23,
+   12
   ],
   "hypnos, lord of sleep": [
    0,
-   20,
-   10
+   24,
+   12
   ],
   "glaaki": [
    0,
-   21,
-   10
+   25,
+   12
   ],
   "bleys, master of manipulation": [
    0,
-   22,
-   10
+   26,
+   12
   ],
   "great wyrm of many colours": [
    0,
-   23,
-   10
+   27,
+   12
   ],
   "fiona the sorceress": [
    0,
-   24,
-   10
+   28,
+   12
   ],
   "tselakus, the dreadlord": [
    0,
-   25,
-   10
+   29,
+   12
   ],
   "sky drake": [
    0,
-   26,
-   10
+   30,
+   12
   ],
   "julian, master of arden forest": [
    0,
-   27,
-   10
+   31,
+   12
   ],
   "tiamat, celestial dragon of evil": [
    0,
-   28,
-   10
+   32,
+   12
   ],
   "norsa": [
    0,
-   29,
-   10
+   33,
+   12
   ],
   "rhan-tegoth": [
    0,
-   30,
-   10
+   34,
+   12
+  ],
+  "black reaver": [
+   0,
+   35,
+   12
   ],
   "caine, the conspirator": [
    0,
-   31,
-   10
+   36,
+   12
   ],
   "master quylthulg": [
    0,
-   32,
-   10
+   37,
+   12
   ],
   "greater draconic quylthulg": [
    0,
-   33,
-   10
+   38,
+   12
   ],
   "greater rotting quylthulg": [
    0,
-   34,
-   10
+   39,
+   12
+  ],
+  "null the living void": [
+   0,
+   40,
+   12
+  ],
+  "vecna, the emperor lich": [
+   0,
+   41,
+   12
   ],
   "omarax the eye tyrant": [
    0,
-   35,
-   10
+   42,
+   12
   ],
   "tsathoggua, the sleeper of n'kai": [
    0,
-   36,
-   10
+   43,
+   12
   ],
   "gerard, strongman of amber": [
    0,
-   37,
-   10
+   44,
+   12
   ],
   "ungoliant, the unlight": [
    0,
-   38,
-   10
+   45,
+   12
   ],
   "atlach-nacha, the spider god": [
    0,
-   39,
-   10
+   46,
+   12
   ],
   "y'golonac": [
    0,
-   40,
-   10
+   47,
+   12
   ],
   "aether hound": [
    0,
-   41,
-   10
+   48,
+   12
   ],
   "warp demon": [
    0,
-   42,
-   10
+   49,
+   12
   ],
   "eric the usurper": [
    0,
-   43,
-   10
+   50,
+   12
   ],
   "yig, father of serpents": [
    0,
-   44,
-   10
+   51,
+   12
   ],
   "unmaker": [
    0,
-   45,
-   10
+   52,
+   12
   ],
   "cyberdemon": [
    0,
-   46,
-   10
+   53,
+   12
   ],
   "hela, queen of the dead": [
    0,
-   47,
-   10
+   54,
+   12
   ],
   "mouth of sauron": [
    0,
-   48,
-   10
+   55,
+   12
   ],
   "klingsor, evil master of magic": [
    0,
-   49,
-   10
+   56,
+   12
   ],
   "corwin, lord of avalon": [
    0,
-   50,
-   10
+   57,
+   12
   ],
   "emperor quylthulg": [
    0,
-   51,
-   10
+   58,
+   12
   ],
   "qlzqqlzuup, the lord of flesh": [
    0,
-   52,
-   10
+   59,
+   12
   ],
   "cthugha, the living flame": [
    0,
-   53,
-   10
+   60,
+   12
   ],
   "benedict, the ideal warrior": [
    0,
-   54,
-   10
+   61,
+   12
   ],
   "witch-king of angmar": [
    0,
-   55,
-   10
+   62,
+   12
   ],
   "cyaegha": [
    0,
-   56,
-   10
+   0,
+   13
   ],
   "pazuzu, lord of air": [
    0,
-   57,
-   10
+   1,
+   13
   ],
   "ithaqua the windwalker": [
    0,
-   58,
-   10
+   2,
+   13
   ],
   "hell hound of julian": [
    0,
-   59,
-   10
+   3,
+   13
   ],
   "cantoras, the skeletal lord": [
    0,
-   60,
-   10
+   4,
+   13
   ],
   "mephistopheles, lord of hell": [
    0,
-   61,
-   10
+   5,
+   13
   ],
   "godzilla": [
    0,
-   62,
-   10
+   6,
+   13
   ],
   "abhoth, source of uncleanness": [
    0,
-   0,
-   11
+   7,
+   13
   ],
   "ymir the ice giant": [
    0,
-   1,
-   11
+   8,
+   13
   ],
   "loki the trickster": [
    0,
-   2,
-   11
+   9,
+   13
   ],
   "star-spawn of cthulhu": [
    0,
-   3,
-   11
+   10,
+   13
   ],
   "surtur the giant fire demon": [
    0,
-   4,
-   11
+   11,
+   13
   ],
   "tarrasque": [
    0,
-   5,
-   11
+   12,
+   13
   ],
   "lungorthin, the balrog of white fire": [
    0,
-   6,
-   11
+   13,
+   13
   ],
   "draugluin, sire of all werewolves": [
    0,
-   7,
-   11
+   14,
+   13
   ],
   "shuma-gorath": [
    0,
-   8,
-   11
+   15,
+   13
   ],
   "tulzscha, the green flame": [
    0,
-   9,
-   11
+   16,
+   13
   ],
   "oremorj the cyberdemon lord": [
    0,
-   10,
-   11
+   17,
+   13
+  ],
+  "kaschei the immortal": [
+   0,
+   18,
+   13
   ],
   "yog-sothoth, the all-in-one": [
    0,
-   11,
-   11
+   19,
+   13
   ],
   "fenris wolf": [
    0,
-   12,
-   11
+   20,
+   13
   ],
   "great wyrm of power": [
    0,
-   13,
-   11
+   21,
+   13
   ],
   "shub-niggurath, black goat of the woods": [
    0,
-   14,
-   11
+   22,
+   13
   ],
   "nodens, lord of the great abyss": [
    0,
-   15,
-   11
+   23,
+   13
   ],
   "carcharoth, the jaws of thirst": [
    0,
-   16,
-   11
+   24,
+   13
   ],
   "nyarlathotep, the crawling chaos": [
    0,
-   17,
-   11
+   25,
+   13
   ],
   "azathoth, seething nuclear chaos": [
    0,
-   18,
-   11
+   26,
+   13
   ],
   "cerberus, guardian of hades": [
    0,
-   19,
-   11
+   27,
+   13
   ],
   "jormungand the midgard serpent": [
    0,
-   20,
-   11
+   28,
+   13
   ],
   "destroyer": [
    0,
-   21,
-   11
+   29,
+   13
   ],
   "gothmog, the high captain of balrogs": [
    0,
-   22,
-   11
+   30,
+   13
   ],
   "great cthulhu": [
    0,
-   23,
-   11
+   31,
+   13
   ],
   "sauron, the sorcerer": [
    0,
-   24,
-   11
+   32,
+   13
   ],
   "unicorn of order": [
    0,
-   25,
-   11
+   33,
+   13
   ],
   "oberon, king of amber": [
    0,
-   26,
-   11
+   34,
+   13
   ],
   "morgoth, lord of darkness": [
    0,
-   27,
-   11
+   35,
+   13
   ],
   "serpent of chaos": [
    0,
-   28,
-   11
+   36,
+   13
   ],
   "quantum dot": [
    0,
-   29,
-   11
+   37,
+   13
+  ],
+  "plain gold ring": [
+   0,
+   38,
+   13
   ],
   "lourph": [
    0,
-   30,
-   11
+   39,
+   13
   ],
   "caaws": [
    0,
-   31,
-   11
+   40,
+   13
   ],
   "culverin": [
    0,
-   32,
-   11
+   41,
+   13
+  ],
+  "behinder": [
+   0,
+   42,
+   13
   ],
   "boadile": [
    0,
-   33,
-   11
+   43,
+   13
   ],
   "ebony monk": [
    0,
-   34,
-   11
+   44,
+   13
   ],
   "metal babble": [
    0,
-   35,
-   11
+   45,
+   13
+  ],
+  "yamata-no-orochi": [
+   0,
+   46,
+   13
   ],
   "combat-echizen \"because it's time\"": [
    0,
-   36,
-   11
+   47,
+   13
   ],
   "spectral wyrm": [
    0,
-   37,
-   11
+   48,
+   13
   ],
   "storm troll": [
    0,
-   38,
-   11
+   49,
+   13
   ],
   "unstable worm mass": [
    0,
-   39,
-   11
+   50,
+   13
+  ],
+  "bat of gorgoroth": [
+   0,
+   51,
+   13
+  ],
+  "dio brando": [
+   0,
+   52,
+   13
   ],
   "ohmu": [
    0,
-   40,
-   11
+   53,
+   13
   ],
   "richard wong, master of time": [
    0,
-   41,
-   11
+   54,
+   13
   ],
   "locke, the superman": [
    0,
-   42,
-   11
+   55,
+   13
   ],
   "layzark, the emperor": [
    0,
-   43,
-   11
+   56,
+   13
   ],
   "zombified serpent of chaos": [
    0,
-   44,
-   11
+   57,
+   13
   ],
   "noxious fume": [
    0,
-   45,
-   11
+   58,
+   13
+  ],
+  "shallow puddle": [
+   0,
+   59,
+   13
   ],
   "dark elven shade": [
    0,
-   46,
-   11
+   60,
+   13
   ],
   "mana hound": [
    0,
-   47,
-   11
+   61,
+   13
   ],
   "vore": [
    0,
-   48,
-   11
+   62,
+   13
+  ],
+  "bouncing mine": [
+   0,
+   0,
+   14
   ],
   "great venom wyrm": [
    0,
-   49,
-   11
+   1,
+   14
   ],
   "gorlim, betrayer of barahir": [
    0,
-   50,
-   11
+   2,
+   14
   ],
   "djinni": [
    0,
-   51,
-   11
+   3,
+   14
   ],
   "efreeti": [
    0,
-   52,
-   11
+   4,
+   14
   ],
   "troll king": [
    0,
-   53,
-   11
+   5,
+   14
   ],
   "sky golem": [
    0,
-   54,
-   11
+   6,
+   14
   ],
   "bazooker": [
    0,
-   55,
-   11
+   7,
+   14
   ],
   "shard vortex": [
    0,
-   56,
-   11
+   8,
+   14
   ],
   "granite wall": [
    0,
-   57,
-   11
+   9,
+   14
   ],
   "fire troll": [
    0,
-   58,
-   11
+   10,
+   14
   ],
   "elf lord": [
    0,
-   59,
-   11
+   11,
+   14
   ],
   "samurai": [
    0,
-   60,
-   11
+   12,
+   14
+  ],
+  "magma intrusion": [
+   0,
+   13,
+   14
   ],
   "bonsai kraken": [
    0,
-   61,
-   11
+   14,
+   14
   ],
   "chaos mushroom": [
    0,
-   62,
-   11
+   15,
+   14
   ],
   "cloud golem": [
    0,
-   0,
-   12
+   16,
+   14
   ],
   "lava golem": [
    0,
-   1,
-   12
+   17,
+   14
+  ],
+  "ogre warrior": [
+   0,
+   18,
+   14
+  ],
+  "pole axe of animated attack": [
+   0,
+   19,
+   14
+  ],
+  "icky queen": [
+   0,
+   20,
+   14
   ],
   "aquatic golem": [
    0,
-   2,
-   12
+   21,
+   14
+  ],
+  "quartz vein": [
+   0,
+   22,
+   14
+  ],
+  "floating orb": [
+   0,
+   23,
+   14
   ],
   "undead devilfish": [
    0,
-   3,
-   12
+   24,
+   14
   ],
   "bullroarer the hobbit": [
    0,
-   4,
-   12
+   25,
+   14
   ],
   "mystic": [
    0,
-   5,
-   12
+   26,
+   14
   ],
   "master mystic": [
    0,
-   6,
-   12
+   27,
+   14
   ],
   "grand master mystic": [
    0,
-   7,
-   12
+   28,
+   14
   ],
   "devilfish": [
    0,
-   8,
-   12
+   29,
+   14
+  ],
+  "aquatic naga": [
+   0,
+   30,
+   14
   ],
   "demogorgon": [
    0,
-   9,
-   12
+   31,
+   14
   ],
   "internet exploder": [
    0,
-   10,
-   12
+   32,
+   14
   ],
   "electric rat": [
    0,
-   11,
-   12
+   33,
+   14
   ],
   "yukionna": [
    0,
-   12,
-   12
+   34,
+   14
   ],
   "goomba": [
    0,
-   13,
-   12
+   35,
+   14
   ],
   "monkey of nikko": [
    0,
-   14,
-   12
+   36,
+   14
   ],
   "tsuchinoko": [
    0,
-   15,
-   12
+   37,
+   14
   ],
   "mario": [
    0,
-   16,
-   12
+   38,
+   14
   ],
   "king koopa": [
    0,
-   17,
-   12
+   39,
+   14
   ],
   "aboleth": [
    0,
-   18,
-   12
+   40,
+   14
   ],
   "clone of locke the superman": [
    0,
-   19,
-   12
+   41,
+   14
   ],
   "caldarm the third": [
    0,
-   20,
-   12
+   42,
+   14
   ],
   "banor=rupart": [
    0,
-   21,
-   12
+   43,
+   14
   ],
   "banor the prince regent": [
    0,
-   22,
-   12
+   44,
+   14
   ],
   "rupart the general": [
    0,
-   23,
-   12
+   45,
+   14
   ],
   "druaga": [
    0,
-   24,
-   12
+   46,
+   14
   ],
   "kenshirou the fist of the north star": [
    0,
-   25,
-   12
+   47,
+   14
   ],
   "lems the cyborg": [
    0,
-   26,
-   12
+   48,
+   14
   ],
   "white knight": [
    0,
-   27,
-   12
+   49,
+   14
   ],
   "hoarmurath of dir": [
    0,
-   28,
-   12
+   50,
+   14
   ],
   "lesser balrog": [
    0,
-   29,
-   12
+   51,
+   14
   ],
   "bone dragon": [
    0,
-   30,
-   12
+   52,
+   14
   ],
   "planetar": [
    0,
-   31,
-   12
+   53,
+   14
   ],
   "solar": [
    0,
-   32,
-   12
+   54,
+   14
+  ],
+  "deep puddle": [
+   0,
+   55,
+   14
   ],
   "biketal of fire": [
    0,
-   33,
-   12
+   56,
+   14
   ],
   "jisisl of ice": [
    0,
-   34,
-   12
+   57,
+   14
   ],
   "poor, the thief": [
    0,
-   35,
-   12
+   58,
+   14
   ],
   "rich, the thief": [
    0,
-   36,
-   12
+   59,
+   14
   ],
   "iketa, the brave": [
    0,
-   37,
-   12
+   60,
+   14
   ],
   "hammer brother": [
    0,
-   38,
-   12
+   61,
+   14
   ],
   "buzzy beetle": [
    0,
-   39,
-   12
+   62,
+   14
   ],
   "kamikaze hound": [
    0,
-   40,
-   12
+   0,
+   15
+  ],
+  "broken death sword": [
+   0,
+   1,
+   15
   ],
   "orcish artillery": [
    0,
-   41,
-   12
+   2,
+   15
   ],
   "scrawny horse": [
    0,
-   42,
-   12
+   3,
+   15
   ],
   "horse": [
    0,
-   43,
-   12
+   4,
+   15
   ],
   "unruly horse": [
    0,
-   44,
-   12
+   5,
+   15
   ],
   "red puyo": [
    0,
-   45,
-   12
+   6,
+   15
   ],
   "blue puyo": [
    0,
-   46,
-   12
+   7,
+   15
   ],
   "yellow puyo": [
    0,
-   47,
-   12
+   8,
+   15
   ],
   "green puyo": [
    0,
-   48,
-   12
+   9,
+   15
   ],
   "slime mold": [
    0,
-   49,
-   12
+   10,
+   15
   ],
   "botei-building, the emperor": [
    0,
-   50,
-   12
+   11,
+   15
   ],
   "luigi": [
    0,
-   51,
-   12
+   12,
+   15
   ],
   "jaian, the boss of the kids": [
    0,
-   52,
-   12
+   13,
+   15
   ],
   "bramd the ice dragon": [
    0,
-   53,
-   12
+   14,
+   15
   ],
   "eibra the water dragon": [
    0,
-   54,
-   12
+   15,
+   15
   ],
   "narse the black dragon": [
    0,
-   55,
-   12
+   16,
+   15
   ],
   "mycen the gold dragon": [
    0,
-   56,
-   12
+   17,
+   15
   ],
   "shooting star the red dragon": [
    0,
-   57,
-   12
+   18,
+   15
   ],
   "beld, ruler of marmo": [
    0,
-   58,
-   12
+   19,
+   15
   ],
   "ashram, the ebony knight": [
    0,
-   59,
-   12
+   20,
+   15
+  ],
+  "that @$^% black bat": [
+   0,
+   21,
+   15
   ],
   "eol, the dark elven smith": [
    0,
-   60,
-   12
+   22,
+   15
   ],
   "maeglin, betrayer of gondolin": [
    0,
-   61,
-   12
+   23,
+   15
   ],
   "ar-pharazon the golden": [
    0,
-   62,
-   12
+   24,
+   15
+  ],
+  "shuten-douji, king ogre of ooe-mountain": [
+   0,
+   25,
+   15
   ],
   "coatl": [
    0,
-   0,
-   13
+   26,
+   15
   ],
   "thunder bird": [
    0,
-   1,
-   13
+   27,
+   15
   ],
   "durahan": [
    0,
-   2,
-   13
+   28,
+   15
   ],
   "hibagon": [
    0,
-   3,
-   13
+   29,
+   15
   ],
   "nue": [
    0,
-   4,
-   13
+   30,
+   15
   ],
   "unicorn": [
    0,
-   5,
-   13
+   31,
+   15
   ],
   "nekomata": [
    0,
-   6,
-   13
+   32,
+   15
   ],
   "nine-tailed fox": [
    0,
-   7,
-   13
+   33,
+   15
   ],
   "fenghuang": [
    0,
-   8,
-   13
+   34,
+   15
   ],
   "kirin": [
    0,
-   9,
-   13
+   35,
+   15
   ],
   "pegasus": [
    0,
-   10,
-   13
+   36,
+   15
   ],
   "sleipnir, the odin's steed": [
    0,
-   11,
-   13
+   37,
+   15
   ],
   "huan, the hound of valinor": [
    0,
-   12,
-   13
+   38,
+   15
   ],
   "dao": [
    0,
-   13,
-   13
+   39,
+   15
   ],
   "marid": [
    0,
-   14,
-   13
+   40,
+   15
   ],
   "wolf chieftain": [
    0,
-   15,
-   13
+   41,
+   15
   ],
   "nar, the dwarf": [
    0,
-   16,
-   13
+   42,
+   15
   ],
   "chiokovo": [
    0,
-   17,
-   13
+   43,
+   15
   ],
   "black chiokovo": [
    0,
-   18,
-   13
+   44,
+   15
   ],
   "devu chiokovo": [
    0,
-   19,
-   13
+   45,
+   15
   ],
   "bahamut, celestial dragon of good": [
    0,
-   20,
-   13
+   46,
+   15
   ],
   "suke-san, the mitsukuni's warder": [
    0,
-   21,
-   13
+   47,
+   15
   ],
   "kaku-san, the mitsukuni's warder": [
    0,
-   22,
-   13
+   48,
+   15
   ],
   "ghost 'q'": [
    0,
-   23,
-   13
+   49,
+   15
   ],
   "pip, the braver from another world": [
    0,
-   24,
-   13
+   50,
+   15
   ],
   "ansalom, the dark wizard": [
    0,
-   25,
-   13
+   51,
+   15
   ],
   "high-elven ranger": [
    0,
-   26,
-   13
+   52,
+   15
   ],
   "giant cockroach": [
    0,
-   27,
-   13
+   53,
+   15
   ],
   "demonologist": [
    0,
-   28,
-   13
+   54,
+   15
   ],
   "dwar, dog lord of waw": [
    0,
-   29,
-   13
+   55,
+   15
   ],
   "golden angel": [
    0,
-   30,
-   13
+   56,
+   15
   ],
   "silver angel": [
    0,
-   31,
-   13
+   57,
+   15
   ],
   "jibaku ghost": [
    0,
-   32,
-   13
+   58,
+   15
   ],
   "rolento": [
    0,
-   33,
-   13
+   59,
+   15
   ],
   "m. bison": [
    0,
-   34,
-   13
+   60,
+   15
+  ],
+  "taepodong": [
+   0,
+   61,
+   15
   ],
   "spider bomb": [
    0,
-   35,
-   13
+   62,
+   15
   ],
   "bomb mosquito": [
    0,
-   36,
-   13
+   0,
+   16
   ],
   "raou the conqueror": [
    0,
-   37,
-   13
+   1,
+   16
   ],
   "kokuo, raou's steed": [
    0,
-   38,
-   13
+   2,
+   16
   ],
   "kutar": [
    0,
-   39,
-   13
+   3,
+   16
   ],
   "nami, the mate": [
    0,
-   40,
-   13
+   4,
+   16
   ],
   "nappa the saiyan": [
    0,
-   41,
-   13
+   5,
+   16
+  ],
+  "hand grenade": [
+   0,
+   6,
+   16
   ],
   "grand master thief": [
    0,
-   42,
-   13
+   7,
+   16
   ],
   "charon, boatman of the styx": [
    0,
-   43,
-   13
+   8,
+   16
   ],
   "old sorcerer": [
    0,
-   44,
-   13
+   9,
+   16
   ],
   "red helm, the king of bear": [
    0,
-   45,
-   13
+   10,
+   16
   ],
   "mad bear": [
    0,
-   46,
-   13
+   11,
+   16
   ],
   "demonite": [
    0,
-   47,
-   13
+   12,
+   16
   ],
   "meng huo, the king of southerings": [
    0,
-   48,
-   13
+   13,
+   16
   ],
   "wahha-man the golden": [
    0,
-   49,
-   13
+   14,
+   16
+  ],
+  "madame debby": [
+   0,
+   15,
+   16
+  ],
+  "defiler": [
+   0,
+   16,
+   16
   ],
   "minotaur of the labyrinth": [
    0,
-   50,
-   13
+   17,
+   16
   ],
   "trap master": [
    0,
-   51,
-   13
+   18,
+   16
   ],
   "knight templar": [
    0,
-   52,
-   13
+   19,
+   16
   ],
   "paladin": [
    0,
-   53,
-   13
+   20,
+   16
   ],
   "ranger": [
    0,
-   54,
-   13
+   21,
+   16
   ],
   "chameleon": [
    0,
-   55,
-   13
+   22,
+   16
   ],
   "chameleon lord": [
    0,
-   56,
-   13
+   23,
+   16
   ],
   "narwhal": [
    0,
-   57,
-   13
+   24,
+   16
   ],
   "petshop": [
    0,
-   58,
-   13
+   25,
+   16
   ],
   "white crocodile": [
    0,
-   59,
-   13
+   26,
+   16
   ],
   "disintegrate vortex": [
    0,
-   60,
-   13
+   27,
+   16
   ],
   "ulfang the black": [
    0,
-   61,
-   13
+   28,
+   16
   ],
   "topaz monk": [
    0,
-   62,
-   13
+   29,
+   16
   ],
   "stone dragon": [
    0,
-   0,
-   14
+   30,
+   16
   ],
   "steel dragon": [
    0,
-   1,
-   14
+   31,
+   16
   ],
   "atlas, the titan": [
    0,
-   2,
-   14
+   32,
+   16
   ],
   "kronos, lord of the titans": [
    0,
-   3,
-   14
+   33,
+   16
   ],
   "dimensional shambler": [
    0,
-   4,
-   14
+   34,
+   16
   ],
   "novice mindcrafter": [
    0,
-   5,
-   14
+   35,
+   16
   ],
   "mindcrafter": [
    0,
-   6,
-   14
+   36,
+   16
   ],
   "master mindcrafter": [
    0,
-   7,
-   14
+   37,
+   16
+  ],
+  "ogrillon": [
+   0,
+   38,
+   16
+  ],
+  "elder vampire": [
+   0,
+   39,
+   16
+  ],
+  "noborta kesyta, the yeek president": [
+   0,
+   40,
+   16
   ],
   "mori troll": [
    0,
-   8,
-   14
+   41,
+   16
   ],
   "barney the dinosaur": [
    0,
-   9,
-   14
+   42,
+   16
   ],
   "groo the wanderer": [
    0,
-   10,
-   14
+   43,
+   16
   ],
   "lousy, the king of louses": [
    0,
-   11,
-   14
+   44,
+   16
   ],
   "great wyrm of space-time": [
    0,
-   12,
-   14
+   45,
+   16
   ],
   "octopus of kshitigarbha": [
    0,
-   13,
-   14
+   46,
+   16
   ],
   "great bile wyrm": [
    0,
-   14,
-   14
+   47,
+   16
   ],
   "tanuki": [
    0,
-   15,
-   14
+   48,
+   16
   ],
   "dionysus, the munchkin of chaos": [
    0,
-   16,
-   14
+   49,
+   16
   ],
   "walken": [
    0,
-   17,
-   14
+   50,
+   16
   ],
   "trench wurm": [
    0,
-   18,
-   14
+   51,
+   16
   ],
   "radiant kavu": [
    0,
-   19,
-   14
+   52,
+   16
   ],
   "mauhur, the orc captain": [
    0,
-   20,
-   14
+   53,
+   16
   ],
   "meng you, the brother of meng huo": [
    0,
-   21,
-   14
+   54,
+   16
   ],
   "lady zhurong, the avatar of flame spirit": [
    0,
-   22,
-   14
+   55,
+   16
   ],
   "dailai dongzhu, captain of southerings": [
    0,
-   23,
-   14
+   56,
+   16
   ],
   "king duosi, the chief of southerings": [
    0,
-   24,
-   14
+   57,
+   16
   ],
   "king mulu, the chief of southerings": [
    0,
-   25,
-   14
+   58,
+   16
   ],
   "wutugu, the chief of southerings": [
    0,
-   26,
-   14
+   59,
+   16
   ],
   "invisible pink unicorn": [
    0,
-   27,
-   14
+   60,
+   16
   ],
   "flying spaghetti monster": [
    0,
-   28,
-   14
+   61,
+   16
   ],
   "reindeer": [
    0,
-   29,
-   14
+   62,
+   16
   ],
   "death beast": [
    0,
-   30,
-   14
+   0,
+   17
   ],
   "ultimate magus": [
    0,
-   31,
-   14
+   1,
+   17
+  ],
+  "death scythe": [
+   0,
+   2,
+   17
   ],
   "spellwarp automaton": [
    0,
-   32,
-   14
+   3,
+   17
   ],
   "talos, masterwork spellwarp automaton": [
    0,
-   33,
-   14
+   4,
+   17
   ],
   "tonberry": [
    0,
-   34,
-   14
+   5,
+   17
   ],
   "ninja tonberry": [
    0,
-   35,
-   14
+   6,
+   17
   ],
   "master tonberry": [
    0,
-   36,
-   14
+   7,
+   17
+  ],
+  "hoard": [
+   0,
+   8,
+   17
   ],
   "time initiate": [
    0,
-   37,
-   14
+   9,
+   17
   ],
   "chronomage": [
    0,
-   38,
-   14
+   10,
+   17
   ],
   "temporal champion": [
    0,
-   39,
-   14
+   11,
+   17
   ],
   "variant maintainer": [
    0,
-   40,
-   14
+   12,
+   17
   ],
   "monkey clone": [
    0,
-   41,
-   14
+   13,
+   17
   ],
   "zeus, king of the olympians": [
    0,
-   42,
-   14
+   14,
+   17
   ],
   "poseidon, lord of seas and storm": [
    0,
-   43,
-   14
+   15,
+   17
   ],
   "hades, ruler of the underworld": [
    0,
-   44,
-   14
+   16,
+   17
   ],
   "athena, the goddess of wisdom": [
    0,
-   45,
-   14
+   17,
+   17
   ],
   "ares, the god of war": [
    0,
-   46,
-   14
+   18,
+   17
   ],
   "hermes, the messenger god": [
    0,
-   47,
-   14
+   19,
+   17
   ],
   "apollo, the sun god": [
    0,
-   48,
-   14
+   20,
+   17
   ],
   "artemis, the moon goddess": [
    0,
-   49,
-   14
+   21,
+   17
   ],
   "hephaestus, the smith god": [
    0,
-   50,
-   14
+   22,
+   17
   ],
   "hera, queen of the gods": [
    0,
-   51,
-   14
+   23,
+   17
   ],
   "demeter, the goddess of nature": [
    0,
-   52,
-   14
+   24,
+   17
   ],
   "aphrodite, the goddess of love": [
    0,
-   53,
-   14
+   25,
+   17
   ],
   "orc digger": [
    0,
-   54,
-   14
+   26,
+   17
+  ],
+  "exploding ant": [
+   0,
+   27,
+   17
   ],
   "arthur pendragon": [
    0,
-   55,
-   14
+   28,
+   17
   ],
   "sir lancelot": [
    0,
-   56,
-   14
+   29,
+   17
   ],
   "sir gawain": [
    0,
-   57,
-   14
+   30,
+   17
   ],
   "sir galahad": [
    0,
-   58,
-   14
+   31,
+   17
   ],
   "sir gareth": [
    0,
-   59,
-   14
+   32,
+   17
   ],
   "sir kay": [
    0,
-   60,
-   14
+   33,
+   17
   ],
   "camelot knight": [
    0,
-   61,
-   14
+   34,
+   17
   ],
   "morgana le fay": [
    0,
-   62,
-   14
+   35,
+   17
   ],
   "mordred": [
    0,
-   0,
-   15
+   36,
+   17
   ],
   "fearmaster": [
    0,
-   1,
-   15
+   37,
+   17
   ],
   "grand fearlord": [
    0,
-   2,
-   15
+   38,
+   17
   ],
   "questing beast": [
    0,
-   3,
-   15
+   39,
+   17
   ],
   "greater demonic quylthulg": [
    0,
-   4,
-   15
+   40,
+   17
   ],
   "rock giant": [
    0,
-   5,
-   15
+   41,
+   17
   ],
   "ice giant": [
    0,
-   6,
-   15
+   42,
+   17
   ],
   "elder fire giant": [
    0,
-   7,
-   15
+   43,
+   17
   ],
   "typhoeus, the storm giant": [
    0,
-   8,
-   15
+   44,
+   17
   ],
   "elder storm giant": [
    0,
-   9,
-   15
+   45,
+   17
   ],
   "soul": [
    0,
-   10,
-   15
+   46,
+   17
   ],
   "marilith": [
    0,
-   11,
-   15
+   47,
+   17
+  ],
+  "multi-hued centipede": [
+   0,
+   48,
+   17
   ],
   "takeminakata, drastic measures": [
    0,
-   12,
-   15
+   49,
+   17
   ],
   "kotoshiro, the oracle": [
    0,
-   13,
-   15
+   50,
+   17
   ],
   "okuninushi, the conqueror": [
    0,
-   14,
-   15
+   51,
+   17
   ],
   "omoikane, spirit of wisdom": [
    0,
-   15,
-   15
+   52,
+   17
   ],
   "takemikazuchi, the thunder": [
    0,
-   16,
-   15
+   53,
+   17
   ],
   "izanami, spirit of yomi": [
    0,
-   17,
-   15
+   54,
+   17
   ],
   "izanagi, the spirit": [
    0,
-   18,
-   15
+   55,
+   17
   ],
   "susanoo, the angry": [
    0,
-   19,
-   15
+   56,
+   17
   ],
   "tsukuyomi, spirit of moon": [
    0,
-   20,
-   15
+   57,
+   17
   ],
   "amaterasu, spirit of sun": [
    0,
-   21,
-   15
+   58,
+   17
   ],
   "rusalka": [
    0,
-   22,
-   15
+   59,
+   17
   ],
   "shadow fairy": [
    0,
-   23,
-   15
+   60,
+   17
   ],
   "fiendish donkey": [
    0,
-   24,
-   15
+   61,
+   17
   ],
   "pumpkin man": [
    0,
-   25,
-   15
+   62,
+   17
   ],
   "devil's huntsman": [
    0,
-   26,
-   15
+   0,
+   18
   ],
   "aude": [
    0,
-   27,
-   15
+   1,
+   18
   ],
   "helga": [
    0,
-   28,
-   15
+   2,
+   18
   ],
   "gertrude": [
    0,
-   29,
-   15
+   3,
+   18
   ],
   "osyluth": [
    0,
-   30,
-   15
+   4,
+   18
   ],
   "gelugon": [
    0,
-   31,
-   15
+   5,
+   18
   ],
   "hezrou": [
    0,
-   32,
-   15
+   6,
+   18
   ],
   "pit fiend": [
    0,
-   33,
-   15
+   7,
+   18
   ],
   "glabrezu": [
    0,
-   34,
-   15
+   8,
+   18
   ],
   "nalfeshnee": [
    0,
-   35,
-   15
+   9,
+   18
   ],
   "barbazu": [
    0,
-   36,
-   15
+   10,
+   18
   ],
   "vrock": [
    0,
-   37,
-   15
+   11,
+   18
   ],
   "cave gorm": [
    0,
-   38,
-   15
+   12,
+   18
   ],
   "nebiros, the marquis": [
    0,
-   39,
-   15
+   13,
+   18
   ],
   "atropos, the sister of fate": [
    0,
-   40,
-   15
+   14,
+   18
+  ],
+  "greater naga": [
+   0,
+   15,
+   18
+  ],
+  "nagaraja": [
+   0,
+   16,
+   18
   ],
   "mothra": [
    0,
-   41,
-   15
+   17,
+   18
   ],
   "king ghidora": [
    0,
-   42,
-   15
+   18,
+   18
   ],
   "thanatos, god of death": [
    0,
-   43,
-   15
+   19,
+   18
   ],
   "diamond dragon": [
    0,
-   44,
-   15
+   20,
+   18
   ],
   "cacodemon": [
    0,
-   45,
-   15
+   21,
+   18
   ],
   "chitauli": [
    0,
-   46,
-   15
+   22,
+   18
   ],
   "umbaba-samahongo": [
    0,
-   47,
-   15
+   23,
+   18
   ],
   "flame spider": [
    0,
-   48,
-   15
+   24,
+   18
   ],
   "nexus spider": [
    0,
-   49,
-   15
+   25,
+   18
   ],
   "ice spider": [
    0,
-   50,
-   15
+   26,
+   18
   ],
   "venom spider": [
    0,
-   51,
-   15
+   27,
+   18
   ],
   "disintegrate spider": [
    0,
-   52,
-   15
+   28,
+   18
   ],
   "undead spider": [
    0,
-   53,
-   15
+   29,
+   18
   ],
   "hell spider": [
    0,
-   54,
-   15
+   30,
+   18
   ],
   "star blade": [
    0,
-   55,
-   15
+   31,
+   18
   ],
   "michael, the guardian overlord": [
    0,
-   56,
-   15
+   32,
+   18
   ],
   "tik'srvzllat": [
    0,
-   57,
-   15
+   33,
+   18
   ],
   "dor": [
    0,
-   58,
-   15
+   34,
+   18
   ],
   "balcmeg, the relentless": [
    0,
-   59,
-   15
+   35,
+   18
   ],
   "lug, the grotesque": [
    0,
-   60,
-   15
+   36,
+   18
   ],
   "boldog, the merciless": [
    0,
-   61,
-   15
+   37,
+   18
   ],
   "othrod, lord of the orcs": [
    0,
-   62,
-   15
+   38,
+   18
   ],
   "orcogar, son of orcobal": [
    0,
-   0,
-   16
+   39,
+   18
   ],
   "orcobal the mighty": [
    0,
-   1,
-   16
+   40,
+   18
   ],
   "orc berserker": [
    0,
-   2,
-   16
+   41,
+   18
   ],
   "orc warlock": [
    0,
-   3,
-   16
+   42,
+   18
   ],
   "orc warlord": [
    0,
-   4,
-   16
+   43,
+   18
   ],
   "maw of hell": [
    0,
-   5,
-   16
+   44,
+   18
   ],
   "wiruin, the maelstrom": [
    0,
-   6,
-   16
+   45,
+   18
   ],
   "storm of unmagic": [
    0,
-   7,
-   16
+   46,
+   18
   ],
   "beelzebub, lord of the flies": [
    0,
-   8,
-   16
+   47,
+   18
   ],
   "lucifer, father of lies": [
    0,
-   9,
-   16
+   48,
+   18
   ],
   "lurking horror": [
    0,
-   10,
-   16
+   49,
+   18
   ],
   "shadow fiend": [
    0,
-   11,
-   16
+   50,
+   18
   ],
   "bronze golem": [
    0,
-   12,
-   16
+   51,
+   18
   ],
   "bone golem": [
    0,
-   13,
-   16
+   52,
+   18
   ],
   "pandemonium": [
    0,
-   14,
-   16
+   53,
+   18
+  ],
+  "countess bathory": [
+   0,
+   54,
+   18
   ],
   "steam-powered mechanical dragon": [
    0,
-   15,
-   16
+   55,
+   18
   ],
   "grand inquisitor": [
    0,
-   16,
-   16
+   56,
+   18
   ],
   "jack the ripper": [
    0,
-   17,
-   16
+   57,
+   18
   ],
   "babbage analytical engine": [
    0,
-   18,
-   16
+   58,
+   18
   ],
   "marquis de la tour": [
    0,
-   19,
-   16
+   59,
+   18
   ],
   "etheric dimensional phase automaton": [
    0,
-   20,
-   16
+   60,
+   18
   ],
   "young silver dragon": [
    0,
-   21,
-   16
+   61,
+   18
   ],
   "mature silver dragon": [
    0,
-   22,
-   16
+   62,
+   18
   ],
   "ancient silver dragon": [
    0,
-   23,
-   16
+   0,
+   19
   ],
   "ruby serpent": [
    0,
-   24,
-   16
+   1,
+   19
   ],
   "emerald serpent": [
    0,
-   25,
-   16
+   2,
+   19
   ],
   "amethyst serpent": [
    0,
-   26,
-   16
+   3,
+   19
   ],
   "midnight dragon": [
    0,
-   27,
-   16
+   4,
+   19
   ],
   "nightmare dragon": [
    0,
-   28,
-   16
+   5,
+   19
   ],
   "winged horror": [
    0,
-   29,
-   16
+   6,
+   19
   ],
   "triceratops": [
    0,
-   30,
-   16
+   7,
+   19
   ],
   "diplodocus": [
    0,
-   31,
-   16
+   8,
+   19
   ],
   "ankylosaur": [
    0,
-   32,
-   16
+   9,
+   19
   ],
   "pteranodon": [
    0,
-   33,
-   16
+   10,
+   19
   ],
   "giant land sloth": [
    0,
-   34,
-   16
+   11,
+   19
   ],
   "glyptodont": [
    0,
-   35,
-   16
+   12,
+   19
   ],
   "dimetrodon": [
    0,
-   36,
-   16
+   13,
+   19
   ],
   "crow of durthang": [
    0,
-   37,
-   16
+   14,
+   19
   ],
   "justshorn, sorcerer-king of the sheeple": [
    0,
-   38,
-   16
+   15,
+   19
   ],
   "sheep": [
    0,
-   39,
-   16
+   16,
+   19
   ],
   "basement cat": [
    0,
-   40,
-   16
+   17,
+   19
   ],
   "beer elemental": [
    0,
-   41,
-   16
+   18,
+   19
   ],
   "zoopi, the cube king": [
    0,
-   42,
-   16
+   19,
+   19
   ],
   "festivus, the teenage offscreen ninja drolem": [
    0,
-   43,
-   16
+   20,
+   19
   ],
   "implorington iii": [
    0,
-   44,
-   16
+   21,
+   19
   ],
   "lorgan, chief of the easterlings": [
    0,
-   45,
-   16
+   22,
+   19
   ],
   "muru-siloch, the spinning abomination": [
    0,
-   46,
-   16
+   23,
+   19
   ],
   "xylibbogaz, the disembodied mouth": [
    0,
-   47,
-   16
+   24,
+   19
   ],
   "cockatrice": [
    0,
-   48,
-   16
+   25,
+   19
   ],
   "moe, the cyclops": [
    0,
-   49,
-   16
+   26,
+   19
   ],
   "ice weasel": [
    0,
-   50,
-   16
+   27,
+   19
   ],
   "scrupiox, the nightcrawler": [
    0,
-   51,
-   16
+   28,
+   19
   ],
   "ancient roc of okeldad": [
    0,
-   52,
-   16
+   29,
+   19
   ],
   "nidaros the clairvoyant": [
    0,
-   53,
-   16
+   30,
+   19
   ],
   "duck": [
    0,
-   54,
-   16
+   31,
+   19
   ],
   "anubis, keeper of the balance": [
    0,
-   55,
-   16
+   32,
+   19
   ],
   "ammit, the devourer": [
    0,
-   56,
-   16
+   33,
+   19
   ],
   "horus, the ancient": [
    0,
-   57,
-   16
+   34,
+   19
   ],
   "apophis, the primordial chaos": [
    0,
-   58,
-   16
+   35,
+   19
   ],
   "thoth, the voice of ra": [
    0,
-   59,
-   16
+   36,
+   19
   ],
   "sekhmet the mistress of fury": [
    0,
-   60,
-   16
+   37,
+   19
   ],
   "huitzilonevada, the feathered boa": [
    0,
-   61,
-   16
+   38,
+   19
   ],
   "frost spirit": [
    0,
-   62,
-   16
+   39,
+   19
   ],
   "polyphemus, the blind cyclops": [
    0,
-   0,
-   17
+   40,
+   19
   ],
   "mathmag, the prince of whales": [
    0,
-   1,
-   17
+   41,
+   19
   ],
   "shrieking eel": [
    0,
-   2,
-   17
+   42,
+   19
   ],
   "metatron, the high angel": [
    0,
-   3,
-   17
+   43,
+   19
   ],
   "kundry, queen of the lost haven": [
    0,
-   4,
-   17
+   44,
+   19
+  ],
+  "gazhak, the ogre tyrant": [
+   0,
+   45,
+   19
+  ],
+  "baba yaga": [
+   0,
+   46,
+   19
   ],
   "wadjet the protector": [
    0,
-   5,
-   17
+   47,
+   19
   ],
   "nekhbet, the vulture mother": [
    0,
-   6,
-   17
+   48,
+   19
   ],
   "osiris, the reborn": [
    0,
-   7,
-   17
+   49,
+   19
   ],
   "seth, the disintegrator": [
    0,
-   8,
-   17
+   50,
+   19
   ],
   "lutogaida, the spellmistress of rarfus": [
    0,
-   9,
-   17
+   51,
+   19
   ],
   "eskimo": [
    0,
-   10,
-   17
+   52,
+   19
   ],
   "isis, the great goddess": [
    0,
-   11,
-   17
+   53,
+   19
   ],
   "nephthys, lady of the night": [
    0,
-   12,
-   17
+   54,
+   19
   ],
   "ptah, the divine craftsman": [
    0,
-   13,
-   17
+   55,
+   19
   ],
   "amun, the mysterious": [
    0,
-   14,
-   17
+   56,
+   19
   ],
   "mummy king": [
    0,
-   15,
-   17
+   57,
+   19
   ],
   "mummified sorcerer": [
    0,
-   16,
-   17
+   58,
+   19
   ],
   "serpopard": [
    0,
-   17,
-   17
+   59,
+   19
   ],
   "sha": [
    0,
-   18,
-   17
+   60,
+   19
   ],
   "hathor, the heavenly cow": [
    0,
-   19,
-   17
+   61,
+   19
   ],
   "flying fishrooster": [
    0,
-   20,
-   17
+   62,
+   19
   ],
   "giant moth": [
    0,
-   21,
-   17
+   0,
+   20
   ],
   "akuvalt the deceiver": [
    0,
-   22,
-   17
+   1,
+   20
   ],
   "untamo the cruel": [
    0,
-   23,
-   17
+   2,
+   20
   ],
   "sea giant": [
    0,
-   24,
-   17
+   3,
+   20
   ],
   "aegir, god-king of the sea giants": [
    0,
-   25,
-   17
+   4,
+   20
   ],
   "herringfolt, the great wild boar": [
    0,
-   26,
-   17
+   5,
+   20
+  ],
+  "blinking light": [
+   0,
+   6,
+   20
   ],
   "snow golem": [
    0,
-   27,
-   17
+   7,
+   20
   ],
   "aijem, the walrus": [
    0,
-   28,
-   17
+   8,
+   20
+  ],
+  "filthy rag": [
+   0,
+   9,
+   20
+  ],
+  "sexy swimsuit": [
+   0,
+   10,
+   20
   ],
   "hisser": [
    0,
-   29,
-   17
+   11,
+   20
   ],
   "gragomani, the leprechaun prophet": [
    0,
-   30,
-   17
+   12,
+   20
   ],
   "castamir the usurper": [
    0,
-   31,
-   17
+   13,
+   20
   ],
   "angelic quylthulg": [
    0,
-   32,
-   17
+   14,
+   20
   ],
   "iku-turso": [
    0,
-   33,
-   17
+   15,
+   20
   ],
   "lord bovin of the high tower": [
    0,
-   34,
-   17
+   16,
+   20
   ],
   "arachnotron": [
    0,
-   35,
-   17
+   17,
+   20
+  ],
+  "tracking pixel": [
+   0,
+   18,
+   20
+  ],
+  "gospel of mug": [
+   0,
+   19,
+   20
   ],
   "plague monk": [
    0,
-   36,
-   17
+   20,
+   20
   ],
   "skaven assassin": [
    0,
-   37,
-   17
+   21,
+   20
   ],
   "rat-ogre": [
    0,
-   38,
-   17
+   22,
+   20
   ],
   "grey seer": [
    0,
-   39,
-   17
+   23,
+   20
   ],
   "swamp rat": [
    0,
-   40,
-   17
+   24,
+   20
   ],
   "plague rat": [
    0,
-   41,
-   17
+   25,
+   20
   ],
   "nizukil, prince of rats": [
    0,
-   42,
-   17
+   26,
+   20
   ],
   "death pumpkin": [
    0,
-   43,
-   17
+   27,
+   20
   ],
   "hrulga": [
    0,
-   44,
-   17
+   28,
+   20
   ],
   "jack of lanterns": [
    0,
-   45,
-   17
+   29,
+   20
   ],
   "spulga, the troll priestess": [
    0,
-   46,
-   17
+   30,
+   20
   ],
   "pryftidustulyx, the communist dragon": [
    0,
-   47,
-   17
+   31,
+   20
   ],
   "wicked witch of the south-east": [
    0,
-   48,
-   17
+   32,
+   20
   ],
   "burning bush": [
    0,
-   49,
-   17
+   33,
+   20
   ],
   "blue-ringed octopus": [
    0,
-   50,
-   17
+   34,
+   20
   ],
   "box jellyfish": [
    0,
-   51,
-   17
+   35,
+   20
   ],
   "tiger snake": [
    0,
-   52,
-   17
+   36,
+   20
   ],
   "taipan": [
    0,
-   53,
-   17
+   37,
+   20
   ],
   "flaming crow": [
    0,
-   54,
-   17
+   38,
+   20
   ],
   "giant funnel-web spider": [
    0,
-   55,
-   17
+   39,
+   20
   ],
   "trapdoor spider": [
    0,
-   56,
-   17
+   40,
+   20
   ],
   "drop bear": [
    0,
-   57,
-   17
+   41,
+   20
   ],
   "wallaby": [
    0,
-   58,
-   17
+   42,
+   20
   ],
   "kangaroo": [
    0,
-   59,
-   17
+   43,
+   20
   ],
   "tin golem": [
    0,
-   60,
-   17
+   44,
+   20
   ],
   "adobe golem": [
    0,
-   61,
-   17
+   45,
+   20
   ],
   "dingo": [
    0,
-   62,
-   17
+   46,
+   20
   ],
   "lion": [
    0,
-   0,
-   18
+   47,
+   20
   ],
   "bunyip": [
    0,
-   1,
-   18
+   48,
+   20
+  ],
+  "hopper ant": [
+   0,
+   49,
+   20
+  ],
+  "giant mutant ant": [
+   0,
+   50,
+   20
   ],
   "duck-quacked platypus": [
    0,
-   2,
-   18
+   51,
+   20
   ],
   "bush ranger": [
    0,
-   3,
-   18
+   52,
+   20
   ],
   "cassowary": [
    0,
-   4,
-   18
+   53,
+   20
+  ],
+  "garkain": [
+   0,
+   54,
+   20
   ],
   "giant yellow toad": [
    0,
-   5,
-   18
+   55,
+   20
   ],
   "ozmanian devil": [
    0,
-   6,
-   18
+   56,
+   20
   ],
   "sadie the rainbow serpent": [
    0,
-   7,
-   18
+   57,
+   20
   ],
   "giant wombat": [
    0,
-   8,
-   18
+   58,
+   20
   ],
   "mutant manta ray": [
    0,
-   9,
-   18
+   59,
+   20
   ],
   "brumby": [
    0,
-   10,
-   18
+   60,
+   20
   ],
   "yowie": [
    0,
-   11,
-   18
+   61,
+   20
   ],
   "atomic elemental": [
    0,
-   12,
-   18
+   62,
+   20
   ],
   "snow leopard": [
    0,
-   13,
-   18
+   0,
+   21
   ],
   "ghost skier": [
    0,
-   14,
-   18
+   1,
+   21
   ],
   "polar bear": [
    0,
-   15,
-   18
+   2,
+   21
   ],
   "booze hound": [
    0,
-   16,
-   18
+   3,
+   21
   ],
   "freyr, lord of plenty": [
    0,
-   17,
-   18
+   4,
+   21
   ],
   "odin, the all-father": [
    0,
-   18,
-   18
+   5,
+   21
   ],
   "einheri berserker": [
    0,
-   19,
-   18
+   6,
+   21
   ],
   "valkyrie": [
    0,
-   20,
-   18
+   7,
+   21
   ],
   "hugin, the scheming raven": [
    0,
-   21,
-   18
+   8,
+   21
   ],
   "lynx": [
    0,
-   22,
-   18
+   9,
+   21
   ],
   "heimdall, guardian of bifrost": [
    0,
-   23,
-   18
+   10,
+   21
   ],
   "thor, the thunderer": [
    0,
-   24,
-   18
+   11,
+   21
   ],
   "tyr, the one-armed god": [
    0,
-   25,
-   18
+   12,
+   21
   ],
   "vidarr, the silent avenger": [
    0,
-   26,
-   18
+   13,
+   21
   ],
   "freyja, lady of the slain": [
    0,
-   27,
-   18
+   14,
+   21
   ],
   "njord, lord of the vanir": [
    0,
-   28,
-   18
+   15,
+   21
   ],
   "frigg, queen of asgard": [
    0,
-   29,
-   18
+   16,
+   21
   ],
   "skadi, the huntress": [
    0,
-   30,
-   18
+   17,
+   21
   ],
   "draugr": [
    0,
-   31,
-   18
+   18,
+   21
   ],
   "ratatosk, the world-tree squirrel": [
    0,
-   32,
-   18
+   19,
+   21
   ],
   "ullur, the archer-god": [
    0,
-   33,
-   18
+   20,
+   21
   ],
   "magni, son of thor": [
    0,
-   34,
-   18
+   21,
+   21
+  ],
+  "vasuki, the serpent king": [
+   0,
+   22,
+   21
+  ],
+  "shesha, the infinite": [
+   0,
+   23,
+   21
   ],
   "mahishasura, the buffalo demon": [
    0,
-   35,
-   18
+   24,
+   21
   ],
   "agni, the threefold fire": [
    0,
-   36,
-   18
+   25,
+   21
   ],
   "hanuman, the monkey god": [
    0,
-   37,
-   18
+   26,
+   21
   ],
   "vayu, the embodied wind": [
    0,
-   38,
-   18
+   27,
+   21
   ],
   "karthikeya, the six-headed warrior": [
    0,
-   39,
-   18
+   28,
+   21
   ],
   "vanara": [
    0,
-   40,
-   18
+   29,
+   21
   ],
   "sugriva, lord of kishkindha": [
    0,
-   41,
-   18
+   30,
+   21
   ],
   "vali, king of the vanaras": [
    0,
-   42,
-   18
+   31,
+   21
   ],
   "rama, the exiled prince": [
    0,
-   43,
-   18
+   32,
+   21
   ],
   "krishna, avatar of vishnu": [
    0,
-   44,
-   18
+   33,
+   21
   ],
   "vishnu, the preserver": [
    0,
-   45,
-   18
+   34,
+   21
   ],
   "lakshmi, the goddess of prosperity": [
    0,
-   46,
-   18
+   35,
+   21
   ],
   "asura": [
    0,
-   47,
-   18
+   36,
+   21
   ],
   "vanara sage": [
    0,
-   48,
-   18
+   37,
+   21
   ],
   "varuna, lord of water": [
    0,
-   49,
-   18
+   38,
+   21
   ],
   "makara": [
    0,
-   50,
-   18
+   39,
+   21
   ],
   "ganesha, the elephant god": [
    0,
-   51,
-   18
+   40,
+   21
   ],
   "yama, lord of the dead": [
    0,
-   52,
-   18
+   41,
+   21
   ],
   "shiva, the destroyer": [
    0,
-   53,
-   18
+   42,
+   21
   ],
   "nandi, the bull of shiva": [
    0,
-   54,
-   18
+   43,
+   21
   ],
   "parvati, the goddess of hidden power": [
    0,
-   55,
-   18
+   44,
+   21
   ],
   "durga, the goddess of war": [
    0,
-   56,
-   18
+   45,
+   21
   ],
   "kali, mother of rage": [
    0,
-   57,
-   18
+   46,
+   21
   ],
   "jambavan, king of the beasts": [
    0,
-   58,
-   18
+   47,
+   21
   ],
   "rakshasa": [
    0,
-   59,
-   18
+   48,
+   21
   ],
   "swamp rabbit": [
    0,
-   60,
-   18
+   49,
+   21
   ],
   "bloodfreezer": [
    0,
-   61,
-   18
+   50,
+   21
   ],
   "brahma, the creating spirit": [
    0,
-   62,
-   18
+   51,
+   21
   ],
   "saraswati, goddess of knowledge": [
    0,
-   0,
-   19
+   52,
+   21
   ],
   "indra, the heavenly king of meru": [
    0,
-   1,
-   19
+   53,
+   21
   ],
   "polar cat": [
    0,
-   2,
-   19
+   54,
+   21
   ],
   "dokkaebi": [
    0,
-   3,
-   19
+   55,
+   21
   ],
   "greater dokkaebi": [
    0,
-   4,
-   19
+   56,
+   21
   ]
  },
  "obj": {
@@ -8031,17 +8921,28 @@
  },
  "size": {
   "wild rabbit": "tiny",
+  "grey mold": "tiny",
   "blinking dot": "tiny",
   "newt": "tiny",
+  "giant white centipede": "large",
+  "white icky thing": "tiny",
+  "clear icky thing": "tiny",
   "giant white mouse": "large",
+  "small kobold": "tiny",
+  "kobold": "tiny",
   "green worm mass": "tiny",
   "floating eye": "tiny",
   "grid bug": "tiny",
+  "soldier ant": "tiny",
+  "fruit bat": "tiny",
   "insect swarm": "tiny",
   "greater hell-beast": "huge",
   "shrieker mushroom patch": "tiny",
+  "blubbering icky thing": "tiny",
+  "metallic green centipede": "tiny",
   "yellow mushroom patch": "tiny",
   "yellow jelly": "tiny",
+  "giant black ant": "large",
   "white harpy": "large",
   "grip, farmer maggot's dog": "tiny",
   "wolf, farmer maggot's dog": "tiny",
@@ -8051,10 +8952,15 @@
   "cave spider": "tiny",
   "slimy ooze": "tiny",
   "green jelly": "tiny",
+  "metallic blue centipede": "tiny",
   "giant white louse": "large",
   "piranha": "tiny",
+  "black naga": "large",
   "spotted mushroom patch": "tiny",
   "silver jelly": "tiny",
+  "giant white ant": "large",
+  "yellow mold": "tiny",
+  "metallic red centipede": "tiny",
   "yellow worm mass": "tiny",
   "clear worm mass": "tiny",
   "radiation eye": "tiny",
@@ -8063,22 +8969,32 @@
   "swordfish": "tiny",
   "white worm mass": "tiny",
   "skeleton kobold": "tiny",
+  "green naga": "large",
   "giant leech": "large",
   "barracuda": "tiny",
   "slush pile": "tiny",
   "slimy jelly": "tiny",
+  "large kobold": "tiny",
+  "grey icky thing": "tiny",
   "disenchanter eye": "tiny",
   "red worm mass": "tiny",
   "purple mushroom patch": "tiny",
+  "brown mold": "tiny",
+  "giant brown bat": "large",
   "rat-thing": "tiny",
   "giant slug": "large",
   "giant pink frog": "large",
   "zombified kobold": "tiny",
   "wood spider": "tiny",
   "bloodshot eye": "tiny",
+  "pink naga": "large",
   "pink jelly": "tiny",
+  "caustic icky thing": "tiny",
+  "mughash the kobold lord": "tiny",
   "giant salamander": "large",
   "carnivorous flying monkey": "large",
+  "green mold": "tiny",
+  "bloodshot icky thing": "tiny",
   "giant grey rat": "large",
   "black harpy": "large",
   "skaven": "tiny",
@@ -8090,6 +9006,7 @@
   "baby green dragon": "large",
   "baby black dragon": "large",
   "baby red dragon": "large",
+  "giant pink ant": "large",
   "war bear": "large",
   "killer bee": "tiny",
   "giant spider": "large",
@@ -8099,7 +9016,9 @@
   "quiver slot": "tiny",
   "giant piranha": "large",
   "owlbear": "large",
+  "hairy mold": "tiny",
   "grizzly bear": "large",
+  "disenchanter mold": "tiny",
   "pseudo dragon": "large",
   "giant fruit fly": "large",
   "undead mass": "tiny",
@@ -8115,30 +9034,41 @@
   "gazer": "tiny",
   "ixitxachitl": "tiny",
   "air spirit": "large",
+  "frumious bandersnatch": "tiny",
   "spotted jelly": "tiny",
   "drider": "tiny",
+  "ogre": "large",
   "ochre jelly": "tiny",
   "software bug": "tiny",
+  "giant white dragon fly": "large",
+  "blue icky thing": "tiny",
   "gibbering mouther": "tiny",
   "hill giant": "large",
   "flesh golem": "large",
   "giant flea": "large",
   "clay golem": "large",
+  "black ogre": "large",
+  "dark naga": "large",
   "giant octopus": "large",
   "magic mushroom patch": "tiny",
+  "guardian naga": "large",
   "wererat": "tiny",
   "mi-go": "tiny",
   "giant tarantula": "large",
+  "giant clear centipede": "large",
   "mirkwood spider": "tiny",
   "frost giant": "large",
   "griffon": "large",
+  "umber hulk": "large",
   "gelatinous cube": "tiny",
+  "giant green dragon fly": "large",
   "fire giant": "large",
   "hummerhorn": "tiny",
   "hammerhead": "tiny",
   "sphinx": "large",
   "imp": "tiny",
   "forest troll": "large",
+  "2-headed hydra": "large",
   "swamp thing": "large",
   "water spirit": "large",
   "giant pink scorpion": "large",
@@ -8147,8 +9077,12 @@
   "shambling mound": "tiny",
   "white shark": "tiny",
   "chaos beastman": "large",
+  "giant bronze dragon fly": "large",
   "stone giant": "large",
+  "giant black dragon fly": "large",
   "stone golem": "large",
+  "red mold": "tiny",
+  "giant gold dragon fly": "large",
   "ixitxachitl priest": "tiny",
   "phase spider": "tiny",
   "wyvern": "large",
@@ -8156,15 +9090,20 @@
   "quylthulg": "large",
   "whale": "tiny",
   "cloud giant": "large",
+  "blue dragon bat": "large",
   "globefish": "tiny",
   "killer whale": "tiny",
   "iron golem": "large",
   "auto-roller": "large",
   "giant yellow scorpion": "large",
   "black ooze": "tiny",
+  "red dragon bat": "large",
   "kouko": "large",
   "great white shark": "tiny",
+  "4-headed hydra": "large",
   "lesser hell-beast": "large",
+  "vampire bat": "tiny",
+  "carrion crawler": "tiny",
   "silent watcher": "large",
   "pukelman": "large",
   "stone troll": "large",
@@ -8172,15 +9111,21 @@
   "troll priest": "large",
   "wereworm": "tiny",
   "vampiric ixitxachitl": "tiny",
+  "giant grey ant": "large",
   "giant red tick": "large",
+  "cave ogre": "large",
   "white wraith": "large",
   "algroth": "large",
   "flamer of tzeentch": "tiny",
   "headless": "large",
+  "ogre mage": "large",
+  "grendel": "large",
   "gorgimera": "large",
   "colbran": "large",
+  "spirit naga": "large",
   "corpser": "tiny",
   "fiend of slaanesh": "tiny",
+  "5-headed hydra": "large",
   "seahorse": "tiny",
   "cyclops": "large",
   "giant purple worm": "large",
@@ -8195,11 +9140,14 @@
   "mithril golem": "large",
   "skeleton troll": "large",
   "jaws": "tiny",
+  "giant blue ant": "large",
   "grave wight": "large",
   "shadow drake": "large",
   "manticore": "large",
+  "giant army ant": "large",
   "gorgon": "large",
   "gug": "large",
+  "ogre shaman": "large",
   "nexus quylthulg": "large",
   "shelob, spider of darkness": "tiny",
   "giant squid": "large",
@@ -8223,6 +9171,7 @@
   "fire elemental": "large",
   "water elemental": "large",
   "night stalker": "large",
+  "lich": "large",
   "gas spore": "tiny",
   "bloodletter of khorne": "large",
   "giant grey scorpion": "large",
@@ -8237,7 +9186,9 @@
   "sea troll": "large",
   "ooze elemental": "large",
   "young black dragon": "large",
+  "giant fire ant": "large",
   "mature white dragon": "large",
+  "xorn": "large",
   "rogrog the black troll": "large",
   "mist giant": "large",
   "grey wraith": "large",
@@ -8254,8 +9205,10 @@
   "chaos spawn": "tiny",
   "mummified troll": "large",
   "fire angel": "large",
+  "crypt thing": "large",
   "chaos butterfly": "tiny",
   "flying polyp": "tiny",
+  "queen ant": "tiny",
   "will o' the wisp": "large",
   "shan": "tiny",
   "magma elemental": "large",
@@ -8275,7 +9228,10 @@
   "black wraith": "large",
   "nightgaunt": "large",
   "baron of hell": "large",
+  "scylla": "large",
+  "monastic lich": "large",
   "nether wraith": "large",
+  "7-headed hydra": "large",
   "moire, queen of rebma": "large",
   "kavlax the many-headed": "large",
   "ancient white dragon": "huge",
@@ -8290,7 +9246,10 @@
   "disenchanter worm mass": "tiny",
   "rotting quylthulg": "large",
   "lesser titan": "huge",
+  "9-headed hydra": "large",
+  "xaren": "large",
   "minotaur": "large",
+  "jasra, brand's mistress": "large",
   "death drake": "large",
   "ancient red dragon": "huge",
   "ancient gold dragon": "huge",
@@ -8300,11 +9259,13 @@
   "strygalldwir": "large",
   "giant headless": "large",
   "ubbo-sathla, the unbegotten source": "tiny",
+  "master lich": "large",
   "byakhee": "large",
   "formless spawn of tsathoggua": "large",
   "hunting horror": "large",
   "undead beholder": "large",
   "shadow demon": "large",
+  "iron lich": "large",
   "charybdis": "tiny",
   "zephyr lord": "large",
   "juggernaut of khorne": "large",
@@ -8316,8 +9277,10 @@
   "shoggoth": "tiny",
   "judge death": "large",
   "ariel, queen of air": "large",
+  "11-headed hydra": "large",
   "drolem": "large",
   "scatha the worm": "large",
+  "legate of the damned": "large",
   "nazgul": "large",
   "smaug the golden": "large",
   "dracolich": "huge",
@@ -8329,6 +9292,7 @@
   "ent": "large",
   "hru": "large",
   "itangast the fire drake": "large",
+  "death mold": "tiny",
   "fafner the dragon": "large",
   "glaurung, father of the dragons": "large",
   "behemoth": "huge",
@@ -8341,15 +9305,18 @@
   "ulik the troll": "large",
   "baphomet the minotaur lord": "large",
   "eihort, the thing in the labyrinth": "tiny",
+  "king in yellow": "large",
   "great unclean one": "huge",
   "khamul the easterling": "large",
   "lesser kraken": "tiny",
   "great ice wyrm": "huge",
+  "demilich": "large",
   "nightcrawler": "large",
   "keeper of secrets": "large",
   "shudde m'ell": "tiny",
   "eye druj": "tiny",
   "nidhogg the hel-drake": "large",
+  "lernean hydra": "large",
   "great hell wyrm": "huge",
   "hastur the unspeakable": "large",
   "bloodthirster": "large",
@@ -8359,6 +9326,7 @@
   "daoloth, the render of the veils": "large",
   "nightwalker": "large",
   "greater kraken": "tiny",
+  "archlich": "large",
   "jabberwock": "large",
   "ultimate beholder": "large",
   "leviathan": "huge",
@@ -8373,9 +9341,11 @@
   "tiamat, celestial dragon of evil": "large",
   "norsa": "large",
   "rhan-tegoth": "tiny",
+  "black reaver": "large",
   "master quylthulg": "large",
   "greater draconic quylthulg": "large",
   "greater rotting quylthulg": "large",
+  "vecna, the emperor lich": "large",
   "omarax the eye tyrant": "tiny",
   "tsathoggua, the sleeper of n'kai": "tiny",
   "ungoliant, the unlight": "tiny",
@@ -8398,6 +9368,7 @@
   "shuma-gorath": "tiny",
   "tulzscha, the green flame": "large",
   "oremorj the cyberdemon lord": "large",
+  "kaschei the immortal": "large",
   "yog-sothoth, the all-in-one": "tiny",
   "great wyrm of power": "huge",
   "shub-niggurath, black goat of the woods": "large",
@@ -8414,9 +9385,11 @@
   "culverin": "tiny",
   "boadile": "tiny",
   "metal babble": "tiny",
+  "yamata-no-orochi": "large",
   "spectral wyrm": "huge",
   "storm troll": "large",
   "unstable worm mass": "tiny",
+  "bat of gorgoroth": "tiny",
   "ohmu": "tiny",
   "vore": "tiny",
   "great venom wyrm": "huge",
@@ -8429,9 +9402,12 @@
   "chaos mushroom": "tiny",
   "cloud golem": "large",
   "lava golem": "large",
+  "ogre warrior": "large",
+  "icky queen": "tiny",
   "aquatic golem": "large",
   "undead devilfish": "tiny",
   "devilfish": "tiny",
+  "aquatic naga": "large",
   "demogorgon": "large",
   "internet exploder": "tiny",
   "electric rat": "tiny",
@@ -8456,6 +9432,8 @@
   "narse the black dragon": "large",
   "mycen the gold dragon": "large",
   "shooting star the red dragon": "large",
+  "that @$^% black bat": "tiny",
+  "shuten-douji, king ogre of ooe-mountain": "large",
   "nue": "large",
   "dao": "large",
   "marid": "large",
@@ -8474,6 +9452,7 @@
   "steel dragon": "large",
   "atlas, the titan": "huge",
   "kronos, lord of the titans": "huge",
+  "ogrillon": "large",
   "mori troll": "large",
   "lousy, the king of louses": "tiny",
   "great wyrm of space-time": "huge",
@@ -8497,6 +9476,7 @@
   "hera, queen of the gods": "large",
   "demeter, the goddess of nature": "large",
   "aphrodite, the goddess of love": "large",
+  "exploding ant": "tiny",
   "greater demonic quylthulg": "large",
   "rock giant": "large",
   "ice giant": "large",
@@ -8504,6 +9484,7 @@
   "typhoeus, the storm giant": "large",
   "elder storm giant": "huge",
   "marilith": "large",
+  "multi-hued centipede": "tiny",
   "pumpkin man": "large",
   "osyluth": "large",
   "gelugon": "large",
@@ -8513,6 +9494,8 @@
   "nalfeshnee": "large",
   "barbazu": "large",
   "vrock": "large",
+  "greater naga": "large",
+  "nagaraja": "large",
   "mothra": "tiny",
   "king ghidora": "large",
   "thanatos, god of death": "large",
@@ -8553,6 +9536,8 @@
   "polyphemus, the blind cyclops": "large",
   "mathmag, the prince of whales": "tiny",
   "shrieking eel": "tiny",
+  "gazhak, the ogre tyrant": "large",
+  "baba yaga": "large",
   "seth, the disintegrator": "large",
   "serpopard": "large",
   "sha": "large",
@@ -8582,6 +9567,8 @@
   "tin golem": "large",
   "adobe golem": "large",
   "bunyip": "large",
+  "hopper ant": "tiny",
+  "giant mutant ant": "large",
   "duck-quacked platypus": "large",
   "giant yellow toad": "large",
   "giant wombat": "large",
@@ -8601,6 +9588,8 @@
   "ratatosk, the world-tree squirrel": "tiny",
   "ullur, the archer-god": "large",
   "magni, son of thor": "large",
+  "vasuki, the serpent king": "large",
+  "shesha, the infinite": "large",
   "mahishasura, the buffalo demon": "large",
   "agni, the threefold fire": "large",
   "vayu, the embodied wind": "large",
