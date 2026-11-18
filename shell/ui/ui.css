@@ -71,6 +71,7 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .conds{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px}
 .chip{display:flex;align-items:center;gap:8px;padding:2px 8px 3px;font-size:15px;background:linear-gradient(90deg,#0b0c0d,#0b0c0d00);box-shadow:inset 2px 0 0 currentColor}
 .chip:before{content:"";width:7px;height:7px;flex:none;transform:rotate(45deg);background:currentColor;box-shadow:0 0 9px currentColor}
+.chip.go{cursor:pointer}.chip.go:hover{background:linear-gradient(90deg,#2a1c12,#0b0c0d00)}
 .chip small{margin-left:auto;font:500 11px Inter;color:#8a857b}
 .chip.good{color:#b9d6a0}.chip.bad{color:#ff7a66}.chip.warn{color:#ffc46a}.chip.info{color:#a8c6d8}
 

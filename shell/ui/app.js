@@ -222,10 +222,10 @@ function effectsHtml() {
     }
   }
   if (!out.length) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text); return `<div class="chip" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}>${esc(e.text)}</div>`; }).join('')}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}</div>`;
 }
 // what the common conditions mean, for their tooltips
-const COND_TIPS = [[/^Study/, 'You can learn a new spell: browse a book (b) and pick one. The number is how many you may learn.'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
+const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
   [/^Blind/, 'Blind: you cannot see, read scrolls or cast most spells.'], [/^Conf/, 'Confused: you stumble in random directions and cannot read.'], [/^Pois/, 'Poisoned: you lose life each turn until it wears off.'],
   [/^(Afraid|Scared|Fear|Terror|Panic)/, 'Afraid: you cannot attack in melee.'], [/^Paral/, 'Paralyzed: you cannot act.'], [/^Hungry/, 'Hungry: eat something soon (E).'], [/^Weak/, 'Weak from hunger: eat now (E) or you will faint.'],
   [/^(Faint|Starv)/, 'Starving: eat now (E)!'], [/^Full/, 'Well fed.'], [/^Gorged/, 'Gorged: you ate too much and are slowed.'], [/Stun|Knocked/, 'Stunned: you fight and cast worse. A heavy stun knocks you out.'],

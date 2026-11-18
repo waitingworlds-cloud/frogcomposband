@@ -253,7 +253,7 @@ document.addEventListener('mousemove', ev => {
   const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
   $('#tip').classList.toggle('wide', !!th);
   if (th) return showTip(th, ev);
-  if (tipEl) return showTip(esc(tipEl.dataset.tip), ev);
+  if (tipEl) { const [a, b] = tipEl.dataset.tip.split('\n'); return showTip(esc(a) + (b ? `<div class="hint">${esc(b)}</div>` : ''), ev); }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];
     const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
