@@ -150,6 +150,7 @@ function fxBurst(cx, cy, el, c, big, t) {
   }
   P(0, 0, big ? 300 : 220, big ? 9 : 6, el === 'dark' ? '#6a3aa0' : c, 'glow');
 }
+const SPELL_SND = { fire: 'fire', cold: 'cold', elec: 'elec', acid: 'acid', water: 'slime', poison: 'slime', dark: 'evil', light: 'shimmer', arcane: 'zap', shard: 'shoot', plain: 'zap' };
 function fxSpell(lx, ly, ch, c) {
   if (!FX.on) return;
   const t = now(), key = lx + ',' + ly + ch; if (t - (FX.seen[key] || 0) < 160) return; FX.seen[key] = t;
@@ -158,7 +159,12 @@ function fxSpell(lx, ly, ch, c) {
     const who = [[S.px, S.py]].concat(S.mons.map(m => [S.px + m.dx, S.py + m.dy])).map(([x, y]) => [x, y, Math.hypot(x - lx, y - ly)]).filter(w => w[2] <= 1.5).sort((a, b) => a[2] - b[2])[0];
     if (who) fxCast(who[0], who[1], c);
   }
+  const fresh = t - FX.lastProj > 260;
   FX.lastProj = t; FX.lastEl = (G && G.gf) || fxElem(c); FX.lastC = c;
+  // each volley sounds like its element once; a ball adds its blast when it bursts
+  if (fresh && typeof sndPlay === 'function') sndPlay(SPELL_SND[FX.lastEl] || 'zap');
+  if (fresh) FX.boomed = 0;
+  if (ch === '*' && !FX.boomed) { FX.boomed = 1; if (typeof sndPlay === 'function') sndPlay('boom'); }
   fxBurst(lx + .5, ly + .5, FX.lastEl, c, ch === '*', t);
   fxKick();
 }
