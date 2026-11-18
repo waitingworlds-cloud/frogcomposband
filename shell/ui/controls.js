@@ -38,7 +38,7 @@ function gmenuToggle(force) {
   if (el || !playing()) return;
   el = document.createElement('div'); el.id = 'gmenu'; el.className = 'ctlbg';
   el.innerHTML = `<div class="pane npanel gmp"><div class="tabs"><div class="on">Menu</div></div>
-    <div class="gml">${GMENU.map(([k, n, v], i) => `<div class="gmr" data-gm="${i}"><span class="key">${esc(k)}</span><span>${esc(n)}</span></div>`).join('')}</div>
+    <div class="gml">${GMENU.map(([k, n, v], i) => `<div class="mcard gmr" data-gm="${i}"><span class="key">${esc(k)}</span><span>${esc(n)}</span></div>`).join('')}</div>
     <div class="nfoot"><span class="grow"></span><span class="row" data-gmclose="1"><span class="key">Esc</span>back to the game</span></div></div>`;
   el.addEventListener('mousedown', e => {
     e.stopPropagation(); const r = e.target.closest('[data-gm]');

@@ -273,8 +273,8 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .ctlk{font:italic 400 15px Spectral;color:#ffcf9e}.ctlr .key{justify-self:start}
 @media (max-width:1100px){.ctlg{grid-template-columns:1fr}}
 .gmp{width:600px;max-width:calc(100vw - 40px);animation:panin .16s cubic-bezier(.2,.8,.3,1)}
-.gml{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;padding:8px 2px 12px}
-.gmr{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:10px;padding:8px 10px;border-radius:3px;font-size:17px;color:#e6dfd2;cursor:pointer}.gmr:hover{background:#ff8a3c1f;color:#fff}.gmr .key{justify-self:start}
+.gml{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:8px 0 14px}
+.gmr.mcard{display:grid;grid-template-columns:54px 1fr;gap:8px;padding:8px 12px;font-size:17px}.gmr .key{justify-self:start}
 
 .mcards{width:760px;max-width:calc(100vw - 60px)}.mcards .ctitle{font-size:28px;padding-bottom:10px;margin-bottom:14px;height:auto;line-height:1.2}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-bottom:16px}
