@@ -221,19 +221,30 @@ function effectsHtml() {
     }
   }
   if (!out.length) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => `<div class="chip" style="color:${col(e.a)}">${esc(e.text)}</div>`).join('')}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text); return `<div class="chip" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}>${esc(e.text)}</div>`; }).join('')}</div>`;
 }
+// what the common conditions mean, for their tooltips
+const COND_TIPS = [[/^Study/, 'You can learn a new spell: browse a book (b) and pick one. The number is how many you may learn.'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
+  [/^Blind/, 'Blind: you cannot see, read scrolls or cast most spells.'], [/^Conf/, 'Confused: you stumble in random directions and cannot read.'], [/^Pois/, 'Poisoned: you lose life each turn until it wears off.'],
+  [/^(Afraid|Scared|Fear|Terror|Panic)/, 'Afraid: you cannot attack in melee.'], [/^Paral/, 'Paralyzed: you cannot act.'], [/^Hungry/, 'Hungry: eat something soon (E).'], [/^Weak/, 'Weak from hunger: eat now (E) or you will faint.'],
+  [/^(Faint|Starv)/, 'Starving: eat now (E)!'], [/^Full/, 'Well fed.'], [/^Gorged/, 'Gorged: you ate too much and are slowed.'], [/Stun|Knocked/, 'Stunned: you fight and cast worse. A heavy stun knocks you out.'],
+  [/Cut|Graze|Wound|Gash|Bleed/, 'Bleeding: you lose life each turn until it closes.'], [/^Hallu|^Image/, 'Hallucinating: what you see cannot be trusted.'], [/^Hero/, 'Heroism: better to-hit and no fear.'],
+  [/^Bers|^Shero/, 'Berserk: big to-hit bonus and no fear, but worse armour.'], [/^Bless/, 'Blessed: better armour and to-hit.'], [/^(Res|R)(Fire|Cold|Elec|Acid|Pois)|^Rfire|^Rcold/i, 'A temporary resistance.'],
+  [/^S?Inv|^SeeInv/, 'You can see invisible things.'], [/^Lev|^Float/, 'Levitating: you float over traps and water.'], [/^Prot|^PrtEvl/, 'Protected from evil.'], [/^Recall|^Recl|^Deep/, 'Word of Recall is active: you will be pulled away soon.'],
+  [/^D?Trap/i, 'Traps nearby have been detected.'], [/^Slp|^Sleep/, 'Asleep.']];
+function condTip(t) { const m = COND_TIPS.find(([re]) => re.test(t)); return m ? m[1] : ''; }
+const STAT_TIPS = ['Strength: melee damage, how much you can carry, digging.', 'Intelligence: spell power and mana for book learners, magic devices.', 'Wisdom: saving throws, and spell power and mana for priests.', 'Dexterity: blows per round, armour, keeping thieves off your pack.', 'Constitution: hit points and how fast you heal.', 'Charisma: shop prices, and power for some classes.'];
 function leftHtml() {
   const p = S.p, st = ['str', 'int', 'wis', 'dex', 'con', 'chr'];
   return `<div class="rail l" style="grid-row:1/3;grid-column:1">
   <div class="who"><div style="position:relative;width:86px"><div class="portrait ch"><div class="in ch"><canvas id="port"></canvas></div></div><div class="lvl"><b>${p.lev}</b></div></div>
     <div style="min-width:0"><div class="name nowrap" style="font-size:${p.name.length > 9 ? 28 : p.name.length > 6 ? 34 : 42}px">${esc(p.name)}</div><div class="sub" style="margin-top:5px;line-height:1.25">${esc(p.race)} ${esc(p.cls)}<br>${esc([p.realm, p.pers].filter(Boolean).join(' · '))}</div></div></div>
-  ${vb('hp', 'Life', p.hp, p.mhp)}${p.msp > 0 ? vb('sp', 'Mana', p.sp, p.msp) : ''}
-  <div class="row" style="gap:10px;margin:1px 2px 0"><span class="lbl">level ${p.lev}</span><div class="xp grow"><i style="width:${Math.max(0, Math.min(100, p.exp / Math.max(1, p.expNext) * 100))}%"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${Math.max(0, p.expNext - p.exp).toLocaleString()} to go</span></div>
-  <div class="tiles">${[['armour', p.ac, ''], ['speed', (p.speed >= 0 ? '+' : '') + p.speed, p.speed > 0 ? 'color:#b9d6a0' : p.speed < 0 ? 'color:#ff7a66' : ''], ['gold', p.au.toLocaleString(), 'color:#ffcf6a']].map(([a, b, c]) => `<div class="tile ch"><div class="ch"><span class="num" style="${c}">${b}</span><span class="lbl">${a}</span></div></div>`).join('')}</div>
-  ${card('Attributes', `<div class="stats">${p.stats.map((b, i) => `<div class="row"><span class="lbl">${st[i]}</span><span class="num" style="font-size:15px">${esc(b.trim())}</span></div>`).join('')}</div>`)}
+  <div data-tip="Life ${p.hp} of ${p.mhp}. At zero you die.&#10;Resting (R) brings it back.">${vb('hp', 'Life', p.hp, p.mhp)}</div>${p.msp > 0 ? `<div data-tip="Mana ${p.sp} of ${p.msp}, spent on spells.&#10;It comes back as you rest.">${vb('sp', 'Mana', p.sp, p.msp)}</div>` : ''}
+  <div class="row" data-tip="Experience ${p.exp.toLocaleString()}. Level ${p.lev + 1} at ${p.expNext.toLocaleString()}." style="gap:10px;margin:1px 2px 0"><span class="lbl">level ${p.lev}</span><div class="xp grow"><i style="width:${Math.max(0, Math.min(100, p.exp / Math.max(1, p.expNext) * 100))}%"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${Math.max(0, p.expNext - p.exp).toLocaleString()} to go</span></div>
+  <div class="tiles">${[['armour', p.ac, '', 'Armour class. The higher it is, the less often blows land and the less they hurt.'], ['speed', (p.speed >= 0 ? '+' : '') + p.speed, p.speed > 0 ? 'color:#b9d6a0' : p.speed < 0 ? 'color:#ff7a66' : '', 'Speed. +10 is twice as many moves as a normal creature; below zero you are slowed.'], ['gold', p.au.toLocaleString(), 'color:#ffcf6a', 'Gold, for the shops in town.']].map(([a, b, c, tip]) => `<div class="tile ch" data-tip="${tip}"><div class="ch"><span class="num" style="${c}">${b}</span><span class="lbl">${a}</span></div></div>`).join('')}</div>
+  ${card('Attributes', `<div class="stats">${p.stats.map((b, i) => `<div class="row" data-tip="${STAT_TIPS[i]}"><span class="lbl">${st[i]}</span><span class="num" style="font-size:15px">${esc(b.trim())}</span></div>`).join('')}</div>`)}
   ${card('Conditions', effectsHtml())}
-  ${card('Worn', dollHtml() + `<div class="burden"><span class="lbl">burden</span><div class="xp grow"><i style="width:${Math.min(100, p.wgt / Math.max(1, p.wlim) * 100)}%;background:linear-gradient(90deg,#4f7a3a,#a9c98c);box-shadow:none"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${(p.wgt / 10).toFixed(1)} / ${(p.wlim / 10).toFixed(0)} lb</span></div>`, 'grow', '<span class="key">e</span>')}</div>`;
+  ${card('Worn', dollHtml() + `<div class="burden" data-tip="Carrying ${(p.wgt / 10).toFixed(1)} lb of ${(p.wlim / 10).toFixed(0)} lb.&#10;Past the limit you slow down."><span class="lbl">burden</span><div class="xp grow"><i style="width:${Math.min(100, p.wgt / Math.max(1, p.wlim) * 100)}%;background:linear-gradient(90deg,#4f7a3a,#a9c98c);box-shadow:none"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${(p.wgt / 10).toFixed(1)} / ${(p.wlim / 10).toFixed(0)} lb</span></div>`, 'grow', '<span class="key">e</span>')}</div>`;
 }
 function groupMons() {
   const g = [], by = {};
