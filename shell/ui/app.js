@@ -258,7 +258,7 @@ function groupMons() {
 }
 function mobsHtml(g) {
   if (!g.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing in view</div>';
-  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
   <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
@@ -274,7 +274,7 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}" style="gap:10px;height:27px"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}" data-tip="${o.dx || o.dy ? 'click: walk to it' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;

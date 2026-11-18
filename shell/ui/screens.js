@@ -228,6 +228,13 @@ document.addEventListener('mousemove', ev => {
 });
 document.addEventListener('mouseleave', () => { hover = null; showTip('', {}); });
 document.addEventListener('mousedown', ev => {
+  // the side lists: a creature row picks it as the target, an item row walks you to it
+  const sideAt = ev.button === 0 && playing() && !aimMode() && !lookMode() && ev.target.closest && ev.target.closest('.mob[data-at], .row[data-at]');
+  if (sideAt && !CTX) {
+    const [dx, dy] = sideAt.dataset.at.split(',').map(Number);
+    if (sideAt.classList.contains('mob')) sendRaw(`T ${dx} ${dy}`); else sendRaw(`M 1 ${dx} ${dy}`);
+    return;
+  }
   const go = ev.target.closest && ev.target.closest('[data-go]');
   if (go) { const [dx, dy] = go.dataset.go.split(','); sendRaw(`M 3 ${dx} ${dy}`); return; }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap' && !UI.wild) {
@@ -289,12 +296,19 @@ document.addEventListener('wheel', ev => {
     wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
     for (let i = 0; i < Math.min(12, Math.abs(n) * 3); i++) trigger(n > 0 ? KS.ArrowDown : KS.ArrowUp, {}); return;
   }
+  if (ev.ctrlKey) ev.preventDefault();   // never let the window itself zoom
   if (ev.target.id !== 'map') return;
+  // touchpads and free-spinning wheels send a stream of small steps: gather them, and change the zoom at most one notch
+  // every 140 ms, so the map never jumps through several sizes at once
+  const dy = ev.deltaMode === 1 ? ev.deltaY * 40 : ev.deltaMode === 2 ? ev.deltaY * 400 : ev.deltaY, t = performance.now();
+  if (t - zoomLast > 300) zoomAcc = 0; zoomLast = t; zoomAcc += dy; if (Math.abs(zoomAcc) < 60 || t - zoomT < 140) return;
   const steps = [20, 24, 28, 32, 40, 48, 56, 64]; let i = steps.indexOf(TILE); if (i < 0) i = 3;
-  i = Math.max(0, Math.min(steps.length - 1, i + (ev.deltaY < 0 ? 1 : -1))); TILE = steps[i];
+  i = Math.max(0, Math.min(steps.length - 1, i + (zoomAcc < 0 ? 1 : -1))); zoomAcc = 0; zoomT = t;
+  if (steps[i] === TILE) return; TILE = steps[i];
   try { localStorage.setItem('tile', TILE); } catch (e) {}
   askView(); schedule();
-}, { passive: true });
+}, { passive: false });
+let zoomAcc = 0, zoomT = 0, zoomLast = 0;
 try { const t = +localStorage.getItem('tile'); if (t >= 20 && t <= 64) TILE = t; } catch (e) {}
 // tell the game how much map we can show
 let lastView = '';
