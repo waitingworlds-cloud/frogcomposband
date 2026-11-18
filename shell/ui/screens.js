@@ -241,8 +241,9 @@ document.addEventListener('mousemove', ev => {
     if (!hover || !cell || hover.dx !== cell.dx || hover.dy !== cell.dy) {
       hover = cell; requestAnimationFrame(drawMap); clearTimeout(loreT); loreKey = '';
       // resting the pointer on a creature for a moment opens what you know of it
-      const m = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
-      if (m && !aimMode() && !lookMode()) loreT = setTimeout(() => { loreKey = 'm:' + m.r; descHover = loreKey; if (DESC[loreKey]) { $('#tip').classList.add('wide'); showTip(cellTip(cell) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', descEv); } else if (!DESC_ASKED[loreKey]) { DESC_ASKED[loreKey] = 1; sendRaw('D m ' + m.r); } }, 650);
+      const m = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy), fo = cell && !m && S.floor.find(o => o.dx === cell.dx && o.dy === cell.dy && o.oi);
+      const key = m ? 'm:' + m.r : fo ? 'o:' + fo.oi : '';
+      if (key && !aimMode() && !lookMode()) loreT = setTimeout(() => { loreKey = key; descHover = loreKey; if (DESC[loreKey]) { $('#tip').classList.add('wide'); showTip(cellTip(cell) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', descEv); } else if (!DESC_ASKED[loreKey]) { DESC_ASKED[loreKey] = 1; sendRaw('D ' + key.replace(':', ' ')); } }, 650);
     }
     if (loreKey && DESC[loreKey]) { descHover = loreKey; $('#tip').classList.add('wide'); return showTip((cell ? cellTip(cell) : '') + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', ev); }
     if (loreKey) descHover = loreKey;

@@ -184,6 +184,14 @@ static void shell_command(char *line)
         if (line[2] == 'p') { for (i = 1; i <= pack_max() && !o; i++) if (slot_label(i) == line[4]) o = pack_obj(i); }
         else if (line[2] == 'e') { for (i = 1; i <= equip_max() && !o; i++) if (slot_label(i) == line[4]) o = equip_obj(i); }
         else if (line[2] == 'm') { i = atoi(line + 4); if (i <= 0 || i >= max_r_idx) return; }
+        else if (line[2] == 'o')
+        {
+            /* an object lying on the floor that the player has seen */
+            i = atoi(line + 4);
+            if (i <= 0 || i >= o_max) return;
+            o = &o_list[i];
+            if (!o->k_idx || !(o->marked & OM_FOUND) || o->held_m_idx || o->loc.where != INV_FLOOR) return;
+        }
         if (o || line[2] == 'm')
         {
             doc_ptr doc = doc_alloc(64);
@@ -674,6 +682,7 @@ static void send_state(void)
         o_kint("tv", o->tval);
         o_kint("ki", o->k_idx);
         o_kint("dx", o->loc.x - px); o_kint("dy", o->loc.y - py);
+        o_kint("oi", i);
         o_kint("col", tval_to_attr[o->tval % 128]);
         o_close('}');
         o_raw(",");
