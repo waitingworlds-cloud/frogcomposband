@@ -513,6 +513,8 @@ function drawMap() {
   for (const m of S.mons) {
     const mo = fxMon(m.i), mx = ox + (pcx + m.dx + mo[0]) * T, my = oy + (pcy + m.dy + mo[1]) * T;
     if (m.hp < 100 || m.target) { g.fillStyle = '#000a'; g.fillRect(mx + 2, my - 5, T - 4, 3); g.fillStyle = m.hp > 75 ? '#a9c98c' : m.hp > 45 ? '#ffc46a' : TH.danger; g.fillRect(mx + 2, my - 5, (T - 4) * m.hp / 100, 3); }
+    if (m.afraid && !m.asleep) { const r = Math.max(3.5, T * .12), cx = mx + T * .16, cy = my + T * .26; g.save(); g.fillStyle = '#9fd6ff'; g.strokeStyle = '#000c'; g.lineWidth = 1.5;   // afraid: a bead of sweat at its brow
+      g.beginPath(); g.moveTo(cx, cy - r * 2); g.quadraticCurveTo(cx + r * 1.1, cy - r * .2, cx, cy + r); g.quadraticCurveTo(cx - r * 1.1, cy - r * .2, cx, cy - r * 2); g.stroke(); g.fill(); g.restore(); }
     if (m.asleep) { g.save(); g.font = `italic 700 ${Math.max(9, Math.round(T * .26))}px Spectral, serif`; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.lineWidth = 3; g.strokeStyle = '#000c';
       [[.04, .36, 1], [.24, .16, .75]].forEach(([fx, fy, k]) => { g.font = `italic 700 ${Math.max(11, Math.round(T * .38 * k))}px Spectral, serif`; g.strokeText('z', mx + T * fx, my + T * fy); g.fillStyle = '#bfe6f7'; g.fillText('z', mx + T * fx, my + T * fy); }); g.restore(); }   // asleep: a quiet zz at its brow
     { const th = threat(m); if (th) { const r = Math.max(5, T * .17), cx = mx + T - r * .9, cy = my + r * .9; g.fillStyle = th === 'deadly' ? '#5a1410e6' : '#4a3410e6'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill(); g.strokeStyle = th === 'deadly' ? '#ff5a3c' : '#c8902a'; g.lineWidth = 1.2; g.stroke();
