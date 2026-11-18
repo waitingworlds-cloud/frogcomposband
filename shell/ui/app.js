@@ -71,7 +71,7 @@ function onMsg(m) {
   }
   else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
-    if (m.kind) { if (UI && UI.kind === 'shop' && m.kind !== 'shop') UIback = UI; UI = m; }
+    if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
     uiSel = ''; schedule(); ctxOnUi(m);
   }
@@ -133,7 +133,7 @@ function liveHtml() {
 }
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
 function qtyKeys() {
-  const m = /Quantity \((\d+)-(\d+)\)/.exec((G.s[0] || '').replace(/\x01/g, ' ')); if (!m) return '';
+  const m = /Quantity \((\d+)(?:-| to )(\d+)\)/.exec((G.s[0] || '').replace(/\x01/g, ' ')); if (!m) return '';
   const lo = +m[1], hi = +m[2], opts = [[lo, 'one'], [Math.max(lo, Math.floor(hi / 2)), 'half'], [hi, 'all']].filter((o, i, a) => a.findIndex(p => p[0] === o[0]) === i);
   return '<span class="lkeys">' + opts.map(([n, w]) => `<span class="lk" data-qty="${n}"><span class="key">${n}</span>${w}</span>`).join('') + '<span class="lk" data-key="\r"><span class="key">Enter</span>ok</span><span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span></span>';
 }

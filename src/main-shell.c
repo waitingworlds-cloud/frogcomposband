@@ -198,6 +198,13 @@ static void shell_command(char *line)
             o = shell_shop_obj(atoi(line + 4));
             if (!o) return;
         }
+        else if (line[2] == 'h')
+        {
+            /* an item kept at home, or shown in the museum */
+            extern obj_ptr shell_home_obj(int slot);
+            o = shell_home_obj(atoi(line + 4));
+            if (!o) return;
+        }
         if (o || line[2] == 'm')
         {
             doc_ptr doc = doc_alloc(64);

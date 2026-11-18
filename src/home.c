@@ -137,6 +137,7 @@ static void _remove(_ui_context_ptr context);
 static void _examine(_ui_context_ptr context);
 static void _get(_ui_context_ptr context);
 static void _ui(_ui_context_ptr context);
+extern inv_ptr shell_home_inv;
 
 void home_ui(void)
 {
@@ -258,6 +259,7 @@ static void _ui(_ui_context_ptr context)
     do_cmd_redraw();
 
     doc_free(context->doc);
+    shell_home_inv = NULL;
 }
 
 static void _display(_ui_context_ptr context)
@@ -306,7 +308,43 @@ static void _display(_ui_context_ptr context)
     doc_sync_term(doc,
         doc_range_top_lines(context->doc, r.cy),
         doc_pos_create(r.x, r.y));
+
+    /* the same screen as data, for the interface's own layout */
+    {
+        slot_t slot, max = inv_last(context->inv, obj_exists);
+        shell_home_inv = context->inv;
+        shell_ui_open("home");
+        shell_ui_str("name", inv_name(context->inv));
+        shell_ui_int("museum", inv_loc(context->inv) == INV_MUSEUM ? 1 : 0);
+        shell_ui_int("count", inv_count_slots(context->inv, obj_exists));
+        shell_ui_int("page", (context->top - 1) / context->page_size + 1);
+        shell_ui_int("pages", max > 0 ? (max - 1) / context->page_size + 1 : 1);
+        for (slot = context->top; slot < context->top + context->page_size; slot++)
+        {
+            obj_ptr obj = inv_obj(context->inv, slot);
+            char    name[MAX_NLEN], lab[2];
+            if (!obj) continue;
+            object_desc(name, obj, 0);
+            lab[0] = slot_label(slot - context->top + 1); lab[1] = 0;
+            shell_ui_row();
+            shell_ui_str("k", lab);
+            shell_ui_int("sl", slot);
+            shell_ui_str("n", name);
+            shell_ui_int("tv", obj->tval);
+            shell_ui_int("ki", obj->k_idx);
+            shell_ui_int("num", obj->number);
+            shell_ui_int("w", obj->weight);
+            shell_ui_int("score", obj_value(obj));
+            if (object_is_artifact(obj)) shell_ui_int("art", 1);
+            else if (obj->name2) shell_ui_int("ego", 1);
+        }
+        shell_ui_close();
+    }
 }
+
+/* the home or museum the player is looking at, so the interface can ask for an item's description */
+inv_ptr shell_home_inv = NULL;
+obj_ptr shell_home_obj(int slot) { return shell_home_inv && slot > 0 ? inv_obj(shell_home_inv, slot) : NULL; }
 
 static void _get_aux(obj_ptr obj)
 {

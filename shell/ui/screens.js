@@ -11,7 +11,7 @@ const lb = w => (w / 10).toFixed(1);
 function uiOnTop() {
   if (!UI) return false;
   if (UI.kind === 'items') { const last = plain(UI.prompt).trim().split('\n').pop().trim(); return (G.s[G.cy] || '').replace(/\x01/g, ' ').includes(last.slice(0, 14)); }
-  if (UI.kind === 'shop') return !G.ov;
+  if (UI.kind === 'shop' || UI.kind === 'home') return !G.ov;
   if (UI.kind === 'char') return gridHas(/\[Character Sheet/);
   if (UI.kind === 'lmap') return G.icky && !gridHas(/-more-/);
   if (UI.kind === 'spells') return gridHas(/Lvl\s+(SP|HP|Cost)/);
@@ -81,7 +81,29 @@ function shopHtml() {
       <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(u.name)}</div><div class="sub">${esc(u.owner)}, ${/^[aeiou]/i.test(u.race) ? 'an' : 'a'} ${esc(u.race.toLowerCase())}, keeps this shop · pays up to ${u.purse.toLocaleString()} for one item</div></div>
       <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${u.gold.toLocaleString()}</div></div></div>
     <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
-    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}</div>
+    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}${qtyKeys()}</div>
+    <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
+}
+
+/* the home and the museum: the same shelves look as a shop, with weights and the game's score instead of prices */
+function homeHtml() {
+  const u = UI, rows = u.rows, two = rows.length > 13, mus = !!u.museum;
+  const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
+  const asking = /which item|\(Inven|\(Equip|quantity/i.test(msg);
+  const tot = rows.reduce((a, r) => a + r.w * r.num, 0);
+  const list = rows.map(r => { const ic = tvIcon(r.tv); const act = asking ? 'click: choose this' : mus ? 'click: examine' : 'click: take it with you';
+    return `<div class="srow ${r.art || r.ego ? 'ego' : ''}" data-key="${asking ? '' : mus ? 'x' : 'g'}${esc(r.k)}" data-desc="h:${r.sl}" data-tip="${esc(r.n)}\n${act}">
+    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
+    <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w * r.num)} lb</div></div>
+    <span class="price num" style="color:#c9b28a" title="score">${r.score.toLocaleString()}</span></div>`; }).join('') || `<div class="sub" style="padding:20px">${mus ? 'Nothing has been donated yet.' : 'Your home is empty. Press d to leave something here.'}</div>`;
+  const cmds = mus ? [['d', 'donate'], ['x', 'examine'], ['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']]
+    : [['g', 'take'], ['d', 'leave here'], ['x', 'examine'], ['r', 'destroy'], ['?', 'help'], ['\x1b', 'leave']];
+  return `<div class="pane npanel shopp" style="width:${two ? 1400 : 860}px">
+    <div class="row" style="gap:18px;align-items:flex-end;border-bottom:1px solid #000;box-shadow:0 1px 0 #4a4e54;padding-bottom:10px">
+      <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(mus ? 'The Museum' : 'Your Home')}</div><div class="sub">${mus ? 'Donations are final, and shown here for good' : 'Safe storage. Nothing here is ever lost or stolen'} · ${u.count} ${u.count === 1 ? 'item' : 'items'}${rows.length ? ` · ${lb(tot)} lb on this page` : ''}</div></div>
+      <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${S && S.p ? S.p.au.toLocaleString() : ''}</div></div></div>
+    <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
+    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}${qtyKeys()}</div>
     <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
 }
 
@@ -141,6 +163,7 @@ function nativeHtml() {
   if (UI.kind === 'items') return itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
+  if (UI.kind === 'home') return homeHtml();
   if (UI.kind === 'lmap') return lmapHtml();
   if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
   return UI.kind === 'char' ? '' : menuHtml();
