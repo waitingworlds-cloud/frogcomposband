@@ -29,7 +29,7 @@ body{cursor:default;user-select:none}
 .npanel .tr small{font:italic 400 14px Spectral;color:#8f8a80;margin-left:10px}
 .npanel .nfoot{display:flex;gap:18px;align-items:center;padding-top:12px;font-size:15px;color:#b3ac9f}.npanel .nfoot .live{font-size:19px}.npanel .nfoot .row{gap:7px;cursor:pointer}
 .npanel .tabs div{font-size:25px}
-#tip{position:absolute;display:none;z-index:40;max-width:340px;padding:8px 13px 9px;font:500 16px/1.35 Spectral,serif;color:#e9e3d6;background:linear-gradient(#1c1e21,#101113);border:1px solid #000;box-shadow:0 0 0 1px #4a4e54,0 10px 30px #000c;pointer-events:none}
+#tip{position:absolute;display:none;white-space:pre-line;z-index:40;max-width:340px;padding:8px 13px 9px;font:500 16px/1.35 Spectral,serif;color:#e9e3d6;background:linear-gradient(#1c1e21,#101113);border:1px solid #000;box-shadow:0 0 0 1px #4a4e54,0 10px 30px #000c;pointer-events:none}
 #tip .hint{margin-top:5px;font:500 12px Inter;color:#8f8a80;letter-spacing:.02em}#tip .sub{font-size:14px}
 [data-key]{cursor:pointer}
 #hurt{position:absolute;inset:0;pointer-events:none;z-index:15;opacity:0;--a:.4;background:radial-gradient(ellipse at center,transparent 45%,#b01808 130%)}
@@ -88,8 +88,17 @@ body.lowhp .vb.hp{animation:hpb 1.3s ease-in-out infinite}@keyframes hpb{50%{fil
 .mkc{display:inline-flex;justify-content:flex-start;align-items:center;height:var(--lh);vertical-align:top}
 .mkc .key{min-width:1.25em!important;height:1.25em!important;font-size:.72em!important;padding:0 .2em!important}
 .mcaret{position:absolute;width:1ch;height:2px;background:#ffb070d9;animation:bl 1s steps(2) infinite}
+#ctx{position:absolute;display:none;z-index:45;min-width:230px;padding:6px 0 4px;font:500 17px/1 Spectral,serif;color:#e9e3d6;background:linear-gradient(#1f2124,#111214);box-shadow:0 0 0 1px #000,0 0 0 2px #4a4e54,0 0 0 3px #000,0 14px 40px #000d}
+#ctx .ctt{font:400 19px Fell,serif;letter-spacing:.06em;color:#f4efe4;padding:4px 14px 8px;border-bottom:1px solid #2e3135;margin-bottom:4px;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctx .cti{display:flex;gap:10px;align-items:center;padding:6px 14px;cursor:pointer;white-space:nowrap}
+#ctx .cti.sel{background:linear-gradient(90deg,#ff8a3c33,#ff8a3c08);box-shadow:inset 3px 0 0 var(--em)}
+#ctx .cti.hot{color:#ffcfa8}#ctx .cti.dim{opacity:.45}
+#ctx .cth{font:italic 400 13px Spectral;color:#7f7b72;padding:6px 14px 2px;border-top:1px solid #2e3135;margin-top:4px}
+#drag{position:absolute;display:none;z-index:46;pointer-events:none;padding:6px 12px;font:500 16px Spectral,serif;color:#e9e3d6;background:#111214e6;box-shadow:0 0 0 1px #000,0 0 0 2px #4a4e54,0 8px 24px #000c;white-space:nowrap}
+#drag.ok{box-shadow:0 0 0 1px #000,0 0 0 2px var(--em),0 8px 24px #000c}#drag b{color:#ffcfa8;font-weight:600}
+body.dragging,body.dragging *{cursor:grabbing!important}
 </style></head>
 <body class="main">
-<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="birth.js"></script><script src="menu.js"></script>
+<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="ctx.js"></script>
 </body></html>

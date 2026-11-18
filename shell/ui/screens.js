@@ -25,7 +25,7 @@ function itemsHtml() {
     const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${icon(ic)}</div>
+    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${icon(ic)}</div>
       <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
       <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
@@ -163,7 +163,7 @@ function cellTip(cell) {
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[c[0]] || [''])[0])}</span>`);
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
-  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'}${m || S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) ? ' · right-click: details' : ''}</div>`;
+  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'}' · right-click: actions'</div>`;
 }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
@@ -175,6 +175,7 @@ function showTip(html, ev) {
 }
 let hover = null;
 document.addEventListener('mousemove', ev => {
+  if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
   if (tipEl) return showTip(esc(tipEl.dataset.tip), ev);

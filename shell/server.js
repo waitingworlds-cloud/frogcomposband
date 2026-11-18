@@ -50,7 +50,7 @@ function start(opts = {}) {
       return;
     }
     if (u.pathname === '/in' && req.method === 'POST') {
-      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVM] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
+      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVMT] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
       return;
     }
     let f = path.normalize(path.join(uiDir, u.pathname === '/' ? 'index.html' : u.pathname));

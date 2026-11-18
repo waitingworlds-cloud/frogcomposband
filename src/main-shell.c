@@ -216,6 +216,25 @@ static void shell_command(char *line)
             Term_keypress('\\'); Term_keypress('`');
         }
     }
+    else if (line[0] == 'T' && line[1] == ' ')
+    {
+        /* right-click menu: aim at this square (a monster you can see there, else the square itself).
+         * Only while the game waits for a command; the next "fire/cast/throw" can then use it with 't'. */
+        int dx = 0, dy = 0, y, x;
+        if (sscanf(line + 2, "%d %d", &dx, &dy) != 2) return;
+        if (!inkey_flag || character_icky || !character_generated || p_ptr->wild_mode) return;
+        y = py + dy; x = px + dx;
+        if (!in_bounds(y, x)) return;
+        if (cave[y][x].m_idx && target_able(cave[y][x].m_idx))
+        {
+            health_track(cave[y][x].m_idx);
+            target_who = cave[y][x].m_idx;
+        }
+        else target_who = -1;
+        target_row = y; target_col = x;
+        p_ptr->redraw |= PR_HEALTH_BARS;
+        want_state = TRUE;
+    }
     else if (line[0] == 'V' && line[1] == ' ')
     {
         int w = 0, h = 0;

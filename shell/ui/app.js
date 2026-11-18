@@ -29,7 +29,7 @@ function trigger(ks, e) {
   sendText(String.fromCharCode(31) + m + '_' + ks.toString(16).toUpperCase() + '\r');
 }
 addEventListener('keydown', e => {
-  if (postKey(e) || sndKey(e)) { e.preventDefault(); return; }
+  if (ctxKey(e) || postKey(e) || sndKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -59,12 +59,13 @@ function onMsg(m) {
     for (const r of m.rows) { G.s[r.y] = r.s; const a = G.a[r.y]; for (let x = 0; x < m.w; x++) a[x] = parseInt(r.a.substr(x * 2, 2), 16); }
     G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.icky = m.icky; G.ov = m.ov;
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
+    ctxOnFrame();
   }
   else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && UI.kind === 'shop' && m.kind !== 'shop') UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
-    uiSel = ''; schedule();
+    uiSel = ''; schedule(); ctxOnUi(m);
   }
   else if (m.t === 'snd') sndEvent(m.v);
   else if (m.t === 'uisel') { uiSel = m.name; schedule(); }
@@ -163,7 +164,7 @@ function dollHtml() {
   for (const e of S.equip) {
     const list = DOLLPOS[e.type] || [], n = used[e.type] = (used[e.type] || 0) + 1, p = list[n - 1];
     const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring';
-    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}">${icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
+    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}"` : ''}>${icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
   }
   return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
@@ -210,7 +211,7 @@ function groupMons() {
 }
 function mobsHtml(g) {
   if (!g.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing in view</div>';
-  return g.slice(0, 9).map(m => `<div class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
   <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
@@ -226,7 +227,7 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" style="gap:10px;height:27px"><span class="t-${ic}" style="font-size:19px">${icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}" style="gap:10px;height:27px"><span class="t-${ic}" style="font-size:19px">${icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
