@@ -13,26 +13,28 @@ function flame(t, ph) { return LIGHT.flick ? .975 + .015 * Math.sin(t * .0061 + 
 function lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy) {
   const ss = LIGHT.ss, w = mw * ss, h = mh * ss, t = now();
   if (LIGHT.w !== w || LIGHT.h !== h) {
-    LIGHT.w = w; LIGHT.h = h; LIGHT.buf = new Float32Array(w * h * 3); LIGHT.lum = new Float32Array(mw * mh);
+    LIGHT.w = w; LIGHT.h = h; LIGHT.buf = new Float32Array(w * h * 3); LIGHT.amb = new Float32Array(w * h * 3); LIGHT.lum = new Float32Array(mw * mh);
     LIGHT.mul = document.createElement('canvas'); LIGHT.add = document.createElement('canvas'); LIGHT.mul.width = LIGHT.add.width = w; LIGHT.mul.height = LIGHT.add.height = h;
     LIGHT.mi = LIGHT.mul.getContext('2d').createImageData(w, h); LIGHT.ai = LIGHT.add.getContext('2d').createImageData(w, h);
   }
-  const L = LIGHT.buf, opq = new Uint8Array(mw * mh), src = [];
+  // drawn tiles are dark by design (black ground, lit wall tops), so they keep most of their own brightness and light is laid on top
+  const art = !!(TS && TS.feat), cool = art ? [.96, .97, 1] : COOL, mem = art ? [.74, .77, .9] : MEMORY, dim = art ? [.8, .8, .86] : [.2, .2, .22], seen = art ? [.86, .88, .95] : [.4, .42, .5];
+  const L = LIGHT.buf, AM = LIGHT.amb, opq = new Uint8Array(mw * mh), src = [];
   // base light per square, and which squares stop light
   for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
     const c = cells[y * mw + x]; let a = null;
     if (c && (c[0] || (c[1] & 4))) {
       const fl = c[1], cls = c[0] ? featClass(c[0]) : 'floor';
       if (cls === 'wall' || cls === 'door' || cls === 'rubble' || cls === 'tree') opq[y * mw + x] = 1;
-      if (fl & 1) a = (fl & 2) ? COOL : (fl & 8) ? [.2, .2, .22] : [.4, .42, .5];
-      else a = MEMORY;
+      if (fl & 1) a = (fl & 2) ? cool : (fl & 8) ? dim : seen;
+      else a = mem;
       if (cls === 'lava') { const edge = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const n = cells[(y + dy) * mw + x + dx]; return !n || !n[0] || featClass(n[0]) !== 'lava'; });
         if (edge && src.length < 60) src.push([x + .5, y + .5, 2.6, [1, .40, .10], .75 * (.9 + .1 * Math.sin(t * .002 + x * 1.7 + y * 2.3))]); a = [.9, .5, .3]; }
       else if (cls === 'shop' && src.length < 60) src.push([x + .5, y + .7, 2.4, WARM, .55 * flame(t, x * 3.1 + y)]);
       else if ((cls === 'up' || cls === 'down') && (fl & 1)) src.push([x + .5, y + .5, 1.6, cls === 'down' ? [.5, .8, 1] : [1, .8, .55], .3]);
     } else opq[y * mw + x] = c ? 0 : 2;   // 2: nothing known there, light dies in it
     const r = a ? a[0] : 0, gg = a ? a[1] : 0, b = a ? a[2] : 0;
-    for (let j = 0; j < ss; j++) for (let i = 0; i < ss; i++) { const k = ((y * ss + j) * w + x * ss + i) * 3; L[k] = r; L[k + 1] = gg; L[k + 2] = b; }
+    for (let j = 0; j < ss; j++) for (let i = 0; i < ss; i++) { const k = ((y * ss + j) * w + x * ss + i) * 3; L[k] = AM[k] = r; L[k + 1] = AM[k + 1] = gg; L[k + 2] = AM[k + 2] = b; }
   }
   // the lights themselves
   const lite = S.p.lite == null ? 2 : S.p.lite, f0 = flame(t, 0);
@@ -64,7 +66,7 @@ function lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy) {
   for (let k = 0, o = 0, n = w * h; k < n; k++, o += 4) {
     const r = L[k * 3], gg = L[k * 3 + 1], b = L[k * 3 + 2];
     M[o] = r >= 1 ? 255 : r * 255; M[o + 1] = gg >= 1 ? 255 : gg * 255; M[o + 2] = b >= 1 ? 255 : b * 255; M[o + 3] = 255;
-    const e = .24; A[o] = Math.min(255, Math.max(0, r - .55) * 255 * e); A[o + 1] = Math.min(255, Math.max(0, gg - .55) * 255 * e); A[o + 2] = Math.min(255, Math.max(0, b - .55) * 255 * e); A[o + 3] = 255;
+    const e = art ? .3 : .16, i3 = k * 3; A[o] = Math.min(255, (r - AM[i3]) * 255 * e); A[o + 1] = Math.min(255, (gg - AM[i3 + 1]) * 255 * e); A[o + 2] = Math.min(255, (b - AM[i3 + 2]) * 255 * e); A[o + 3] = 255;
   }
   for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) { const k = ((y * ss + (ss >> 1)) * w + x * ss + (ss >> 1)) * 3; LIGHT.lum[y * mw + x] = Math.min(1, (L[k] + L[k + 1] + L[k + 2]) / 3); }
   LIGHT.mul.getContext('2d').putImageData(LIGHT.mi, 0, 0); LIGHT.add.getContext('2d').putImageData(LIGHT.ai, 0, 0);
