@@ -328,7 +328,7 @@ document.addEventListener('mousedown', ev => {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);
     const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); return;
   }
-  if (ev.target.id === 'map' && S && /-more-/.test(G.s[0] || '') && ev.button === 0) { ev.preventDefault(); sendText(' '); return; }   // more to read: a click reads on
+  if (ev.target.id === 'map' && S && /-more-|Press Space to continue/.test((G.s[0] || '') + (G.s[1] || '')) && ev.button === 0) { ev.preventDefault(); sendText(' '); return; }   // more to read: a click reads on
   if (ev.target.id === 'map' && playing() && lookMode() && G.lk && ev.button === 0) {
     // looking: walk the look cursor to the clicked square (free look first, then a step at a time)
     const cell = mapCellAt(ev); if (!cell) return; ev.preventDefault();

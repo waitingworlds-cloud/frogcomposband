@@ -149,6 +149,7 @@ function qtyKeys() {
 const LOOK_WORDS = { r: 'recall', x: 'items here', q: 'done', t: 'target', p: 'you', o: 'free look', m: 'creatures', j: 'travel here', '(': 'travel here', '+': 'next', '-': 'previous', '?': 'help' };
 function lookKeys(h) {
   h = h.replace(/-more-/, '<span class="lk more" data-key=" "><span class="key">Space</span>more</span>');
+  h = h.replace(/Press (<\/span><span[^>]*>)?Space ?(<\/span><span[^>]*>)?to continue\.?(<\/span>)?/, m => (m.endsWith('</span>') ? '</span>' : '') + '<span class="lk more" data-key=" "><span class="key">Space</span>continue</span>');
   // a yes or no question still waiting (no answer after it yet) gets two buttons
   if (/\[y\/n\]\s*(<\/span>)?\s*$/.test(h)) h += '<span class="lkeys"><span class="lk" data-key="y"><span class="key">y</span>yes</span><span class="lk" data-key="n"><span class="key">n</span>no</span></span>';
   return h.replace(/\[((?:[a-z?+\-(]|&lt;dir&gt;)(?:,(?:[a-z?+\-(]|&lt;dir&gt;))+)\]/, (all, list) => {
