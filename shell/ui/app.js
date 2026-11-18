@@ -124,7 +124,7 @@ function readable(c) {
 }
 // live text on the game's message line (prompts, -more-), as coloured runs
 // the whole message area as one line of text (a long message wraps onto the rows below the top one)
-function msgTop() { const r = (S && S.rmsg) || [0, 0, 0, 1]; return G.s.slice(r[1], r[1] + Math.max(1, Math.min(4, r[3]))).map(l => r[2] ? (l || '').substr(r[0], r[2]) : l).join(' ').replace(/\x01/g, ' ').replace(/\s+/g, ' ').trim(); }
+function msgTop() { const r = (S && S.rmsg) || [0, 0, 0, 1]; return G.s.slice(r[1], r[1] + Math.max(1, Math.min(8, r[3]))).map(l => r[2] ? (l || '').substr(r[0], r[2]) : l).join(' ').replace(/\x01/g, ' ').replace(/\s+/g, ' ').trim(); }
 function liveHtml() {
   const r = S.rmsg; let out = '', any = false;
   for (let y = r[1]; y < r[1] + r[3] && y < G.h; y++) {
