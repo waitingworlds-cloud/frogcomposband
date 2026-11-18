@@ -282,6 +282,7 @@ function rightHtml() {
   ${card('Area map', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', '<span class="key">M</span>')}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
+const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what lies here' };
 const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'], ['M', 'map'], ['Esc', 'menu']];
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
 function consoleHtml() {
@@ -289,7 +290,7 @@ function consoleHtml() {
   const msgs = S.msgs.slice(-8);
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act" data-key="${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
+  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 ? ' none' : ''}" data-key="${k}" data-tip="${ACT_TIPS[k]}${cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" data-key="${k === 'Esc' ? '\x1b' : k}"><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
