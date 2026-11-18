@@ -236,8 +236,9 @@ function cellTip(cell) {
   if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : 'click: aim here'}</div>`;
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
+  const bow = m && (cell.dx || cell.dy) && (S.equip || []).some(e => e.slot === 'Shooting' && e.o) ? ' · shift-click: fire' : '';
   const stair = !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && c[0] ? featClass(c[0]) : '';
-  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'} · right-click: actions</div>`;
+  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
 }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
@@ -354,6 +355,8 @@ document.addEventListener('mousedown', ev => {
     const cell = mapCellAt(ev); if (!cell) return;
     // nowhere known to go: say so here instead of a "cannot travel" line in the log
     if (!(cell.c && cell.c[0]) && (cell.dx || cell.dy) && !S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy) && !S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy)) { showTip('<span class="sub">unexplored</span>', ev); ev.preventDefault(); return; }
+    // shift-click a creature: fire your launcher at it
+    if (ev.button === 0 && ev.shiftKey && (cell.dx || cell.dy) && S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy) && (S.equip || []).some(e => e.slot === 'Shooting' && e.o)) { cmdAim('f', cell.dx, cell.dy); ev.preventDefault(); return; }
     // standing on stairs with nothing to pick up: a click on yourself takes them
     const sc = ev.button === 0 && !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && cell.c && cell.c[0] ? featClass(cell.c[0]) : '';
     if (sc === 'down' || sc === 'up') { sendText(cmd(sc === 'down' ? '>' : '<')); ev.preventDefault(); return; }
