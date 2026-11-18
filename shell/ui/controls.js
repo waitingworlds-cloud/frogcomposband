@@ -9,7 +9,7 @@ const CONTROLS = [
   ]],
   ['Keys', [
     ['x', 'explore until something turns up (original keys)'], ['F1', 'this card'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'],
-    ['F8', 'retro moments'], ['F9', 'screen style (Shift+F9 back)'], ['Ctrl + / Ctrl −', 'interface size'], ['?', "the game's own help"],
+    ['F8', 'retro moments'], ['F9', 'screen style (Shift+F9 back)'], ['Ctrl + / Ctrl −', 'interface size'], ['F11', 'full screen'], ['?', "the game's own help"],
   ]],
 ];
 function controlsToggle(force) {
