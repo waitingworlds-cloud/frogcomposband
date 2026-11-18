@@ -69,7 +69,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
+  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
@@ -566,9 +566,11 @@ function drawMini(pcx, pcy, vw, vh) {
   const W = cv.clientWidth, H = cv.clientHeight, d = SCALE * (devicePixelRatio || 1) * 2; cv.width = W * d; cv.height = H * d;
   const g = cv.getContext('2d'); g.scale(d, d); g.fillStyle = '#0c0d0e'; g.fillRect(0, 0, W, H);
   const mw = S.map.w, mh = S.map.h, s = Math.min(W / mw, H / mh), ox = (W - mw * s) / 2, oy = (H - mh * s) / 2, cells = S.map.c;
-  for (let i = 0; i < cells.length; i++) { const c = cells[i]; if (!c || !c[0]) continue; const x = i % mw, y = (i / mw) | 0, cls = featClass(c[0]);
-    g.fillStyle = cls === 'wall' ? '#5a5e64' : cls === 'door' || cls === 'dooropen' ? '#8a5a2c' : cls === 'up' || cls === 'down' ? '#7fd0f0' : cls === 'water' ? '#2f5f86' : cls === 'tree' || cls === 'grass' ? '#33492a' : '#26292d';
-    g.fillRect(ox + x * s, oy + y * s, s + .3, s + .3);
+  for (let i = 0; i < cells.length; i++) { const c = cells[i], x = i % mw, y = (i / mw) | 0;
+    if (!c || !c[0]) { if (typeof EXP_MEM !== 'undefined' && EXP_MEM.m.get((S.px + x - pcx) + ',' + (S.py + y - pcy)) === 1) { g.fillStyle = '#1c1f22'; g.fillRect(ox + x * s, oy + y * s, s + .3, s + .3); } if (!c || !c[3] && !c[2]) continue; }
+    const cls = c[0] ? featClass(c[0]) : 'floor';
+    if (c[0]) { g.fillStyle = cls === 'wall' ? '#5a5e64' : cls === 'door' || cls === 'dooropen' ? '#8a5a2c' : cls === 'up' || cls === 'down' ? '#7fd0f0' : cls === 'water' ? '#2f5f86' : cls === 'tree' || cls === 'grass' ? '#33492a' : '#26292d';
+    g.fillRect(ox + x * s, oy + y * s, s + .3, s + .3); }
     if (c[3]) { g.fillStyle = '#ffcf6a'; g.fillRect(ox + x * s, oy + y * s, s, s); }
     if (c[2]) { g.fillStyle = '#ff5a3c'; g.fillRect(ox + x * s - .5, oy + y * s - .5, s + 1, s + 1); } }
   g.fillStyle = '#ffb070'; g.fillRect(ox + pcx * s - 1, oy + pcy * s - 1, s + 2, s + 2);
