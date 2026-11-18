@@ -235,7 +235,7 @@ function cellTip(cell) {
   if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : 'click: aim here'}</div>`;
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
-  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'} · right-click: actions</div>`;
+  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'} · right-click: actions</div>`;
 }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }

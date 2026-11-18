@@ -397,6 +397,26 @@ function featClass(f) {
   else if (/floor|road|path|dirt|sand/.test(n) || ch === '.') c = 'floor';
   return fclass[f] = c;
 }
+// the way a click would walk you: shortest path over squares you know, round walls and chasms
+const NOWALK = { wall: 1, rubble: 1, pit: 1, lava: 1 };
+let pathMemo = { k: '', p: null };
+function walkPath(tx, ty) {
+  if (!S || !S.map) return null;
+  const k = tx + ',' + ty + ',' + S.px + ',' + S.py + ',' + S.map.c.length + ',' + (S.turn || S.map.c);
+  if (pathMemo.k === k && pathMemo.m === S.map) return pathMemo.p;
+  const mw = S.map.w, mh = S.map.h, cells = S.map.c, sx = mw >> 1, sy = mh >> 1, gx = sx + tx, gy = sy + ty;
+  let out = null;
+  const ok = (x, y) => { if (x < 0 || y < 0 || x >= mw || y >= mh) return false; const c = cells[y * mw + x]; return !!(c && c[0]) && !NOWALK[featClass(c[0])]; };
+  if (ok(gx, gy)) {
+    const prev = new Int32Array(mw * mh).fill(-1), q = [sy * mw + sx]; prev[q[0]] = q[0];
+    for (let h = 0; h < q.length && prev[gy * mw + gx] < 0; h++) {
+      const i = q[h], x = i % mw, y = (i / mw) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy, j = ny * mw + nx; if (ok(nx, ny) && prev[j] < 0) { prev[j] = i; q.push(j); } }
+    }
+    if (prev[gy * mw + gx] >= 0) { out = []; for (let i = gy * mw + gx; i !== sy * mw + sx; i = prev[i]) out.push([i % mw - sx, ((i / mw) | 0) - sy]); out.reverse(); }
+  }
+  pathMemo = { k, m: S.map, p: out }; return out;
+}
 const rnd = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
 function shade(hexc, k) { const n = parseInt(hexc.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * k))); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; }
 let TILE = 32;
@@ -507,7 +527,12 @@ function drawMap() {
     const r = T * .42; g.strokeStyle = TH.danger; g.lineWidth = 2; g.beginPath(); g.arc(x1, y1, r, 0, 7); g.stroke();
     for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { g.beginPath(); g.moveTo(x1 + a * r * .55, y1 + b * r * .55); g.lineTo(x1 + a * r * 1.3, y1 + b * r * 1.3); g.stroke(); }
     g.restore();
-  } else if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
+  } else if (hover && playing()) {
+    const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1);
+    // a walk longer than a step: dots along the way the click would take you
+    const wp = !am && !lm && !G.icky && (Math.abs(hover.dx) > 1 || Math.abs(hover.dy) > 1) && !monAt[hover.dx + ',' + hover.dy] ? walkPath(hover.dx, hover.dy) : null;
+    if (wp) { g.save(); for (let i = 0; i < wp.length - 1; i++) { const [wx, wy] = wp[i]; g.fillStyle = `rgba(255,207,158,${.75 - .35 * i / wp.length})`; g.beginPath(); g.arc(ox + (pcx + wx + .5) * T, oy + (pcy + wy + .5) * T, Math.max(2, T * .08), 0, 7); g.fill(); } g.restore(); }
+  }
   if (atHover) {   // the side list row under the mouse: mark its square and draw the line to it
     const [adx, ady] = atHover.split(',').map(Number), ax = ox + (pcx + adx) * T, ay = oy + (pcy + ady) * T, k = T * .3;
     g.save(); g.strokeStyle = 'rgba(255,207,158,.55)'; g.lineWidth = 1.5; g.setLineDash([T * .16, T * .14]); g.beginPath(); g.moveTo(ox + (pcx + .5) * T, oy + (pcy + .5) * T); g.lineTo(ax + T / 2, ay + T / 2); g.stroke(); g.setLineDash([]);
