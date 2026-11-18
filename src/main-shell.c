@@ -174,6 +174,43 @@ static void shell_command(char *line)
             p += 2;
         }
     }
+    else if (line[0] == 'D' && line[1] == ' ' && line[2] && line[3] == ' ' && line[4])
+    {
+        /* the interface wants an item's full description for a tooltip: "D p a" (pack slot a) or "D e a" (worn).
+           Read only: the game's own describe page, sent as coloured rows */
+        obj_ptr o = NULL;
+        int i;
+        if (!character_generated) return;
+        if (line[2] == 'p') { for (i = 1; i <= pack_max() && !o; i++) if (slot_label(i) == line[4]) o = pack_obj(i); }
+        else if (line[2] == 'e') { for (i = 1; i <= equip_max() && !o; i++) if (slot_label(i) == line[4]) o = equip_obj(i); }
+        if (o)
+        {
+            doc_ptr doc = doc_alloc(64);
+            int y, x, n;
+            obj_display_doc(o, doc);
+            n = doc_line_count(doc);
+            if (n > 40) n = 40;
+            o_raw("{\"t\":\"desc\",");
+            { char k[4]; k[0] = line[2]; k[1] = ':'; k[2] = line[4]; k[3] = 0; o_kstr("key", k); }
+            o_raw("\"rows\":[");
+            for (y = 0; y < n; y++)
+            {
+                char rs[65]; char ra[64 * 2 + 1];
+                for (x = 0; x < 64; x++)
+                {
+                    doc_char_ptr c = doc_char(doc, doc_pos_create(x, y));
+                    rs[x] = (c && c->c) ? c->c : ' ';
+                    sprintf(ra + x * 2, "%02x", c ? c->a : 1);
+                }
+                rs[64] = 0;
+                o_raw("{"); o_kstr("s", rs); o_kstr("a", ra); o_close('}'); o_raw(",");
+            }
+            o_close(']');
+            o_raw("}");
+            o_send();
+            doc_free(doc);
+        }
+    }
     else if (line[0] == 'Q')
     {
         /* the window is closing: save and leave, as the game's own Exit menu does */

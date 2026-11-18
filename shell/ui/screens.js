@@ -25,7 +25,8 @@ function itemsHtml() {
     const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
+    const dk = o && it.k.trim() && (tab.loc === 1 || tab.loc === 2) ? ` data-desc="${tab.loc === 1 ? 'e' : 'p'}:${esc(it.k)}"` : '';
+    rows += `<div class="tr ${oq(o)}"${dk} ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
       <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
       <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
@@ -206,12 +207,24 @@ function showTip(html, ev) {
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
   t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
 }
-let hover = null, atHover = '';
+let hover = null, atHover = '', DESC = {}, DESC_ASKED = {}, descHover = '', descEv = null;
+function descIn(m) {
+  const rows = m.rows.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
+    const s = r.s.replace(/\s+$/, ''); for (let x = 0; x < s.length; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h; });
+  while (rows.length && !rows[rows.length - 1]) rows.pop();
+  DESC[m.key] = `<div class="dsc">${rows.join('\n')}</div>`;
+  if (descHover === m.key && descEv) { const de = descEv.target.closest && descEv.target.closest('[data-desc]'); $('#tip').classList.add('wide'); showTip(DESC[m.key] + (de ? descHint(de) : ''), descEv); }
+}
+function descHint(de) { const t = (de.dataset.tip || '').split('\n')[1] || (de.dataset.worn ? 'right-click: actions · drag onto the map to drop' : ''); return t ? `<div class="hint">${esc(t)}</div>` : ''; }
 document.addEventListener('mousemove', ev => {
   const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
   if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }   // a creature or item in the side lists: show where it is
   if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
+  // an item: its full description from the game, fetched once and kept until the next turn
+  const de = ev.target.closest && ev.target.closest('[data-desc]');
+  descHover = de ? de.dataset.desc : ''; descEv = ev;
+  if (de) { const d = DESC[descHover]; if (d) { $('#tip').classList.add('wide'); return showTip(d + descHint(de), ev); } if (!DESC_ASKED[descHover]) { DESC_ASKED[descHover] = 1; sendRaw('D ' + descHover.replace(':', ' ')); } }
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
   const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
   $('#tip').classList.toggle('wide', !!th);

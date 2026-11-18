@@ -69,13 +69,14 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
+  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && UI.kind === 'shop' && m.kind !== 'shop') UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
     uiSel = ''; schedule(); ctxOnUi(m);
   }
   else if (m.t === 'snd') sndEvent(m.v);
+  else if (m.t === 'desc') descIn(m);
   else if (m.t === 'uisel') { uiSel = m.name; schedule(); }
   else if (m.t === 'bye') {
     if (GONE) return; GONE = true;   // the game and the server may both say goodbye
@@ -200,7 +201,7 @@ function dollHtml() {
   for (const e of S.equip) {
     const list = DOLLPOS[e.type] || [], n = used[e.type] = (used[e.type] || 0) + 1, p = list[n - 1];
     const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring';
-    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
+    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
   }
   return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
