@@ -74,7 +74,9 @@ function titleHtml() {
 function titleAfter() {
   document.querySelectorAll('.tmob').forEach(c => { const S2 = 96, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(S2 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; sprite(g, 'mon', c.dataset.n, 0, 0, S2); sprite.flat = false; });
 }
+let naming = false;
 function birthHtml() {
+  naming = false;
   topicsLoad();
   if (G.ov) return '';
   const b = birthParse(); if (!b || (!b.nchoice && !b.fields.length)) return '';
@@ -85,7 +87,14 @@ function birthHtml() {
     const tone = v => /^-/.test(v) ? 'neg' : /^\+0$|^100%$|^$/.test(v) ? 'zero' : 'pos';
     const table = b.cols.length ? `<div class="btab ${b.words ? 'words' : ''}" style="grid-template-columns:62px repeat(${b.cols.length},${b.words ? "auto" : "1fr"})"><span></span>${b.cols.map(c => `<span class="bh">${esc(c)}</span>`).join('')}
       ${main.filter(f => f.vals).map(f => { const tot = f.vals === b.total; return `<span class="bl ${tot ? 'tot' : ''}">${tot ? 'Total' : esc(f.label)}</span>${f.vals.map((v, i) => `<span class="bv ${tot ? 'tot' : ''} ${b.words ? '' : tone(v)}"${f.cols ? ` style="color:${f.cols[i]}"` : ''}>${esc(v)}</span>`).join('')}`; }).join('')}</div>` : '';
-    left = `<div class="bsheet"><div class="bname">${esc(val('Name')) || 'Unnamed'}</div>
+    // the game is taking a new name (n): show it as a field being typed in, and let nothing else be clicked meanwhile,
+    // since every click would type its letter into the name
+    const nameY = G.s.findIndex(r => /^Name\s*:/.test((r || '').replace(/\x01/g, ' ')));
+    naming = nameY >= 0 && !!G.cv && G.cy === nameY && G.cx >= 7 && G.cx < 40;
+    const canName = b.blocks.some(k => k.items && k.items.some(i => i.key === 'n'));
+    const nm = esc(val('Name'));
+    left = `<div class="bsheet">${naming ? `<div class="bname bnaming">${nm}<i class="bcaret"></i></div><div class="bnhint">Type a name · <span class="key kb" data-key="\r">Enter</span> keep it · <span class="key kb" data-key="\x1b">Esc</span> cancel</div>`
+      : `<div class="bname"${canName ? ` data-key="n" data-tip="Your name&#10;click or press n to change it" style="cursor:text"` : ''}>${nm || 'Unnamed'}</div>`}
       <div class="bsub">${esc([val('Sex'), val('Race'), val('Class')].filter(Boolean).join(' · '))}</div>
       <div class="bfields">${main.concat(side).map(f => `<div class="bf"><span class="lbl">${esc(f.label)}</span><b>${esc(f.value) || '<i>none</i>'}</b></div>`).join('')}</div>
       <div class="sect" style="margin-top:14px">${b.words ? 'Skills' : 'Bonuses'}</div>${table}</div>`;
@@ -104,6 +113,6 @@ function birthHtml() {
       const ordered = k.cols > 1 ? k.items.filter(i => i.col === 0).concat(k.items.filter(i => i.col > 0)) : k.items, per = Math.ceil(ordered.length / cols);
       right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-topic="${esc(i.html.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, '').trim())}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
   }
-  return `<div class="pane npanel birth" style="width:${left ? 1320 : 900}px"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
+  return `<div class="pane npanel birth${naming ? ' naming' : ''}" style="width:${left ? 1320 : 900}px"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
     <div class="bbody">${left}<div class="bright">${right}</div></div></div>`;
 }

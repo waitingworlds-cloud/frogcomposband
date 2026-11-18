@@ -297,11 +297,50 @@ const THREAT_TIP = { tough: 'Tougher than you are used to: level {L}.', deadly: 
 function threatPip(m) { const t = threat(m); return t ? `<span class="thr ${t}" data-tip="${THREAT_TIP[t].replace('{L}', (DICT.r[m.r] || [])[3])}">${t === 'deadly' ? '☠' : '!'}</span>` : ''; }
 function mobsHtml(g) {
   if (!g.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing in view</div>';
-  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-desc="m:${m.r}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
   <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${threatPip(m)}${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+// Recall: the creature under the pointer (on the map or in the list above), else your target, else the nearest.
+// It stays on the last one pointed at, so you can move over to read it.
+let RC_HOVER = null; const LORE = {}, LORE_ASKED = {};
+function recallSubject() {
+  return (RC_HOVER != null && S.mons.find(m => m.i === RC_HOVER)) || S.mons.find(m => m.target) || [...S.mons].sort((a, b) => a.dist - b.dist)[0] || null;
+}
+function recallSet(m) { const i = m ? m.i : null; if (i == null || i === RC_HOVER) return; RC_HOVER = i; schedule(); }
+function loreAsk(key) { const t = Date.now(); if (LORE_ASKED[key] && t - LORE_ASKED[key] < 4000) return; LORE_ASKED[key] = t; setTimeout(() => sendRaw('D ' + key.replace(':', ' ')), 0); }
+function loreIn(m) { if (/^m:/.test(m.key)) { LORE[m.key] = { h: loreRows(m.rows), t: Date.now() }; if (S && S.mons.some(x => 'm:' + x.r === m.key)) schedule(); } }
+// the game's recall page, its lines joined back into paragraphs to fit the side panel; "Label : value" lines stay lines
+function loreRows(list) {
+  const out = []; let para = null, grid = null;
+  list.forEach((r, n) => {
+    const s = r.s.replace(/\s+$/, ''); if (n === 0 && /^Name\s*:/.test(s)) return;
+    if (!s.trim()) { para = null; grid = null; return; }
+    const seg = (x0, x1) => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
+      for (let x = x0; x < x1; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h.replace(/ {2,}/g, ' ').trim(); };
+    if (/^[A-Z][A-Za-z ]{0,10}:\s/.test(s)) {   // "Level : 9    Speed: 1.0x": short facts, two to a row
+      if (!grid) { grid = []; out.push(grid); } para = null;
+      const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) grid.push(seg(m.index, m.index + m[0].length));
+    } else { grid = null; const h = seg(0, s.length); if (para) para.h += ' ' + h; else { para = { h }; out.push(para); } }
+  });
+  return out.map(p => Array.isArray(p) ? `<div class="rcfs">${p.map(f => `<span>${f}</span>`).join('')}</div>` : `<p>${p.h}</p>`).join('');
+}
+function recallHtml() {
+  if (!S.mons.length) return '';
+  const m = recallSubject(); if (!m) return '';
+  const r = DICT.r[m.r] || [], key = 'm:' + m.r, lore = LORE[key];
+  if (!lore || Date.now() - lore.t > 20000) loreAsk(key);
+  const th = threat(m);
+  return card('<span data-tip="What you know of the creature you last pointed at (or your target)&#10;rest the pointer on a creature, on the map or in the list above">Recall</span>', `<div class="rc">
+    <div class="rchd"><div class="rcart"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+    <div class="grow" style="min-width:0"><div class="rcn">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</div>
+      <div class="st">${m.uniq ? 'unique · ' : ''}level ${r[3] ?? '?'}${th ? ` · <b style="color:${th === 'deadly' ? '#ff8a70' : '#ffc46a'}">${th}</b>` : ''}</div>
+      <div class="st">${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${dirOf(m.dx, m.dy)}${m.target ? ' · <b style="color:var(--em3)">your target</b>' : ''}</div>
+      <div class="row" style="gap:8px;margin-top:6px"><div class="hpb ${hpc(m.hp)} grow" style="height:8px"><i style="width:${m.hp}%"></i></div><span class="num" style="font-size:12px">${esc(m.health || '')}</span></div></div></div>
+    <div class="rclore">${lore ? lore.h : '<p class="sub">recalling…</p>'}</div>
+    <div class="row rckeys">${m.target ? '' : `<span class="row" style="gap:6px;cursor:pointer" data-tgt="${m.dx},${m.dy}"><span class="key">t</span>target it</span>`}<span class="row" style="gap:6px;cursor:pointer" data-key="${esc(cmd('l'))}"><span class="key">l</span>look around</span></div></div>`, 'rcard');
+}
 function targetHtml() {
   const m = S.mons.find(x => x.target); if (!m) return '';
   const r = DICT.r[m.r] || [];
@@ -317,7 +356,7 @@ function floorHtml() {
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
-  return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${targetHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
+  return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${recallHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
   ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
@@ -748,6 +787,7 @@ function draw() {
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
   if (e.target.closest('[data-gmenu]')) { gmenuToggle(true); return; }
+  const tg = e.target.closest('[data-tgt]'); if (tg) { sendRaw('T ' + tg.dataset.tgt.replace(',', ' ')); return; }
   if (e.target.closest('[data-explore]')) { if (EXP.on) exploreStop(); else exploreStart(); return; }
   const q = e.target.closest('[data-qty]'); if (q) { sendText('\b'.repeat(8) + '\x7f'.repeat(8) + q.dataset.qty + '\r'); return; }
   const k = e.target.closest('[data-key]'); if (k) { const v = k.dataset.key; if (v === 'Esc' || v === '\x1b') sendBytes([27]); else sendText(v.replace(/\n/g, '\r')); }   // HTML turns a stored Return into a newline: give the game its Return back
