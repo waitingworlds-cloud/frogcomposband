@@ -22,7 +22,7 @@ function exploreStep() {
   }
   return null;
 }
-const expAsk = () => /Press Space to continue/.test((G.s[1] || '')) || /-more-|\?\s*$|\[y\/n\]|:\s*$/.test((G.s[0] || '').replace(/\x01/g, ' ').trim());
+const expAsk = () => /-more-|Press Space to continue|\?\s*$|\[y\/n\]|:\s*$/.test(msgTop());
 const expFoes = () => S.mons.filter(m => !m.pet && !m.friendly);
 const expItems = () => new Set(S.floor.map(o => (S.px + o.dx) + ',' + (S.py + o.dy) + ',' + o.n));
 function exploreStart() {
