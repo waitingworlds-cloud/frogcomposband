@@ -692,4 +692,5 @@ document.addEventListener('click', e => {
   const q = e.target.closest('[data-qty]'); if (q) { sendText('\b'.repeat(8) + '\x7f'.repeat(8) + q.dataset.qty + '\r'); return; }
   const k = e.target.closest('[data-key]'); if (k) { const v = k.dataset.key; if (v === 'Esc' || v === '\x1b') sendBytes([27]); else sendText(v.replace(/\n/g, '\r')); }   // HTML turns a stored Return into a newline: give the game its Return back
 });
-document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
+// start once every script has loaded (a message arriving between two script files would find half the interface missing)
+Promise.all([document.fonts.ready, new Promise(r => document.readyState === 'complete' ? r() : addEventListener('load', r))]).then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
