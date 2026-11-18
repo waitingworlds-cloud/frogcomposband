@@ -1665,6 +1665,7 @@ static void _display(_ui_context_ptr context)
             shell_ui_str("k", lab);
             shell_ui_str("n", name);
             shell_ui_int("tv", obj->tval);
+            shell_ui_int("ki", obj->k_idx);
             shell_ui_int("num", obj->number);
             shell_ui_int("w", obj->weight);
             shell_ui_int("price", price);

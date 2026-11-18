@@ -66,6 +66,7 @@ bool shell_take_click(int *kind, int *x, int *y)
 }
 static int view_w = 61, view_h = 41;   /* squares of map sent around the player */
 static bool dict_sent = FALSE;
+static u32b dict_seed = 0;   /* flavours are shuffled per game: send the list again when they change */
 static int  want_w = 0, want_h = 0;
 
 /* ---------------------------------------------------------------- output */
@@ -322,12 +323,13 @@ static void send_dict(void)
     for (i = 0; i < max_k_idx; i++)
     {
         object_kind *k = &k_info[i];
-        o_raw("["); o_str(k->name ? k_name + k->name : ""); o_fmt(",%d,%d,%d,%d],", k->tval, k->sval, k->d_char, k->d_attr);
+        o_raw("["); o_str(k->name ? k_name + k->name : ""); o_fmt(",%d,%d,%d,%d,%d],", k->tval, k->sval, k->d_char, k->d_attr, k->flavor);
     }
     o_close(']');
     o_raw("}");
     o_send();
     dict_sent = TRUE;
+    dict_seed = seed_flavor;
 }
 
 static void o_obj(obj_ptr o, char label)
@@ -504,7 +506,7 @@ static void send_state(void)
     rect_t mr = ui_map_rect();
 
     if (!character_generated) return;
-    if (!dict_sent) send_dict();
+    if (!dict_sent || (character_generated && dict_seed != seed_flavor)) send_dict();
 
     o_raw("{\"t\":\"s\",");
     o_kint("icky", character_icky ? 1 : 0);

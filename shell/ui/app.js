@@ -164,7 +164,7 @@ function dollHtml() {
   for (const e of S.equip) {
     const list = DOLLPOS[e.type] || [], n = used[e.type] = (used[e.type] || 0) + 1, p = list[n - 1];
     const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring';
-    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}"` : ''}>${icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
+    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
   }
   return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
@@ -227,7 +227,7 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}" style="gap:10px;height:27px"><span class="t-${ic}" style="font-size:19px">${icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}" style="gap:10px;height:27px"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
@@ -312,6 +312,15 @@ function sprite(g, kind, name, x, y, T, alt) {
   const sz = kind === 'mon' && TS.size && !sprite.flat ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' && sz > 0 ? sz : SIZE_MUL[sz] || 1;
   const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t * mul;   // sprites may be taller or wider than one square; they stand on the bottom middle
   g.drawImage(im, e[1] * t, e[2] * t, w, h, x + (T - w * k) / 2, y + T - h * k, w * k, h * k); return true;
+}
+// the art for an item kind. Flavoured kinds (potions, scrolls, rings...) get their looks shuffled each game,
+// so they use the art of the kind whose look they have now: the picture never gives away what an unknown item is.
+function objArt(ki) { const k = DICT && DICT.k[ki]; if (!k) return ''; const f = k[5]; return f && DICT.k[f] ? DICT.k[f][0] : k[0]; }
+// a slot picture as HTML (a piece of the sheet as a background), or '' when the set has no art for it
+function artHtml(ki, S) {
+  if (!TS || !TS.obj || ki == null) return ''; const e = TS.obj[tkey(objArt(ki))]; if (!e) return '';
+  const im = TS.img[e[0]]; if (!im || !im.naturalWidth) return ''; const t = TS.tile, k = S / t;
+  return `<i class="oart" style="width:${S}px;height:${S}px;background:url('tiles/${TS.images[e[0]]}') -${e[1] * t * k}px -${e[2] * t * k}px / ${im.naturalWidth * k}px ${im.naturalHeight * k}px no-repeat"></i>`;
 }
 function fclassClear() { for (const k in fclass) delete fclass[k]; }
 
@@ -401,7 +410,7 @@ function drawMap() {
       else if (cls === 'tree') { g.fillStyle = lit ? '#2f5a2a' : '#1c3219'; g.beginPath(); g.arc(sx + T / 2, sy + T * .42, T * .34, 0, 7); g.fill(); g.fillStyle = '#3a2a1a'; g.fillRect(sx + T / 2 - 2, sy + T * .68, 4, T * .24); }
       else if (f && cls === 'other' && String.fromCharCode(fd[1]) !== '.' && String.fromCharCode(fd[1]) !== ' ') later.push([sx, sy, String.fromCharCode(fd[1]), readable(col(fd[2])), lit ? 1 : .6, 4]);
     }
-    if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, k[0]]); }
+    if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, objArt(c[3])]); }
     if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
     else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
     if (fx) later.push([sx, sy, ch, col(at), 1, 0]);
@@ -416,7 +425,7 @@ function drawMap() {
     if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
     if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
       const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2 && spriteFlash(g, DICT.r[what], mx2, my2, T, fl2)) { /* drawn */ } else if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
-    else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls)) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
+    else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls).replace(/ /g, '-')) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
     else if (kind === 0 && drawSpell(g, sx, sy, T, what, c)) { /* drawn as light */ }
     else { g.font = `700 ${Math.round(T * (kind ? .62 : .66))}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 3; g.strokeStyle = '#0b0a09'; g.lineJoin = 'round'; g.strokeText(what, sx + T / 2, sy + T / 2 + 1); g.fillStyle = c; g.fillText(what, sx + T / 2, sy + T / 2 + 1); }
     g.globalAlpha = 1;

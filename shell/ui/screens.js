@@ -25,7 +25,7 @@ function itemsHtml() {
     const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${icon(ic)}</div>
+    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
       <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
       <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
@@ -71,7 +71,7 @@ function shopHtml() {
   const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
   const asking = /which item/i.test(msg);
   const list = rows.map(r => { const ic = tvIcon(r.tv); return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${r.ok ? '' : 'cant'}" data-key="${asking ? '' : 'b'}${esc(r.k)}" data-tip="${asking ? 'choose' : 'buy'} this">
-    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${icon(ic)}</div>
+    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
     <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
     <span class="price num">${r.price.toLocaleString()}</span></div>`; }).join('') || '<div class="sub" style="padding:20px">The shelves are empty.</div>';
   const cmds = [['b', 'buy'], ['s', u.nosell ? 'give' : 'sell'], ['x', 'examine'], ['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
