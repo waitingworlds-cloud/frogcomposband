@@ -39,6 +39,19 @@ function fxOnState(prev, cur) {
       FX.flash[m.i] = at; FX.floats.push({ x: ax, y: ay, s: o.rh != null ? '-' + lost : '-' + (o.hp - m.hp) + '%', c: '#ffd9a8', t: at, small: 1, px: Math.sign(m.dx) * .28 });
     }
   }
+  // swings that found nothing, and spells shrugged off, say so where they happened
+  { const bare = n => String(n || '').replace(/^(an?|the|some) /i, '').toLowerCase(), hurt = {};
+    for (const m of cur.mons) { const o = old[m.i]; if (o && ((o.rh != null && m.rh != null) ? o.rh - m.rh : o.hp - m.hp) > 0) hurt[m.i] = 1; }
+    const xn = s => { const r = /\(x(\d+)\)\s*$/.exec(s); return r ? +r[1] : 1; }, misses = fresh.filter(s => /^You miss( |\.)/.test(s)).reduce((a, s) => a + xn(s), 0);
+    if (misses) { const adj = cur.mons.filter(m => m.los && Math.abs(m.dx) <= 1 && Math.abs(m.dy) <= 1 && (m.dx || m.dy) && !hurt[m.i] && !m.pet && !m.friendly);
+      const m = adj[0];
+      if (m && !mx && !my) { if (!FX.lunge.p) FX.lunge.p = { dx: m.dx, dy: m.dy, t }; FX.floats.push({ x: cur.px + m.dx, y: cur.py + m.dy, s: misses > 1 ? 'miss ×' + misses : 'miss', c: '#b9b2a6', t: t + HIT_MS, small: 1, px: Math.sign(m.dx) * .28 }); } }
+    const theyMiss = fresh.filter(s => / misses( you)?[.!]?( \(x\d+\))?$/.test(s) && !/^A small dart/.test(s)).reduce((a, s) => a + xn(s), 0);
+    if (theyMiss && cur.p.hp >= prev.p.hp) FX.floats.push({ x: cur.px, y: cur.py, s: theyMiss > 1 ? 'miss ×' + theyMiss : 'miss', c: '#b9b2a6', t: t + HIT_MS, small: 1, up: .45, px: .45 });
+    const shrug = {};
+    for (const s of fresh) { const r = /^(.+?) (resists( a lot| somewhat)?|is unaffected|is immune)[.!]/.exec(s); if (!r) continue; const who = bare(r[1]);
+      const m = cur.mons.filter(m => m.los && bare(m.n) === who).sort((a, b) => a.dist - b.dist)[0]; if (!m || shrug[m.i]) continue; shrug[m.i] = 1;
+      FX.floats.push({ x: cur.px + m.dx, y: cur.py + m.dy, s: /unaffected|immune/.test(r[2]) ? 'immune' : 'resists', c: '#d7c9a0', t: t + 120, small: 1, up: .7, px: -.3 }); } }
   for (const o of prev.mons) if (!seen[o.i] && o.los && o.dist <= 12 && cur.p.hp > 0) {
     // gone from sight right after being hurt or while next to us: most likely slain
     if (o.hp < 100 || o.dist <= 1) {
