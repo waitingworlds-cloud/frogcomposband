@@ -249,3 +249,7 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .poi{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
 .poi>div{display:flex;align-items:center;gap:12px;height:52px;padding:0 14px;font-size:18px;background:linear-gradient(#1b1d20,#131517);box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135}
 .poi .slot{width:34px;font-size:20px}
+
+.vb b{position:absolute;left:0;top:0;bottom:0;width:var(--to);background:linear-gradient(#fff3d6,#ffc98a);animation:vbghost .55s both cubic-bezier(.3,0,.2,1)}
+@keyframes vbghost{from{width:var(--from)}to{width:var(--to)}}
+.vb i.grow{animation:vbgrow .45s both ease-out}@keyframes vbgrow{from{width:var(--from)}to{width:var(--to)}}

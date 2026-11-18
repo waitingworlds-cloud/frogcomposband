@@ -61,6 +61,8 @@ function fxOnState(prev, cur) {
   } else if (d > 0 && d >= Math.max(2, cur.p.mhp * .03)) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + d, c: '#a9e08c', t, big: 1, up: .55 }), (d >= cur.p.mhp * .15 && postBeat('heal', cur.px, cur.py, t));
   const ds = cur.p.sp - prev.p.sp; if (ds < 0 && cur.p.msp > 0) FX.floats.push({ x: cur.px, y: cur.py, s: String(ds), c: '#7fd0f0', t: t + 60, small: 1, px: -.75, up: -.35 });
   if (cur.p.lev > prev.p.lev) postBeat('level', cur.px, cur.py, t + 120);
+  if (cur.p.lev > prev.p.lev) fxBanner('Level ' + cur.p.lev, 'You grow stronger');
+  for (const o of prev.mons) if (o.uniq && !seen[o.i] && o.los && (o.hp < 100 || o.dist <= 1) && cur.p.hp > 0 && /slain|destroyed/i.test(said)) fxBanner(String(o.n).replace(/^(an?|the) /i, ''), 'has fallen');
   document.body.classList.toggle('lowhp', cur.p.mhp > 0 && cur.p.hp / cur.p.mhp < .25 && cur.p.hp >= 0);
   fxKick();
 }
@@ -89,10 +91,17 @@ function fxShake() { const s = FX.shake; if (!s) return [0, 0]; const k = (now()
 function fxDraw(g, toXY, T) {
   const t = now();
   for (const p of FX.puffs) { const k = (t - p.t) / 380; if (k < 0 || k >= 1) continue; const [x, y] = toXY(p.x, p.y);
+    if (typeof spriteFlash === 'function' && DICT.r[p.r]) spriteFlash(g, DICT.r[p.r], x, y - k * T * .15, T, (1 - k) * .8);   // the fallen creature's shape fades out
     g.globalAlpha = 1 - k; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.beginPath(); g.arc(x + T / 2, y + T / 2, T * (.25 + k * .55), 0, 7); g.stroke();
     g.fillStyle = '#ff8a3c'; for (let i = 0; i < 6; i++) { const a = i * 1.047 + p.x, r = T * (.2 + k * .7); g.fillRect(x + T / 2 + Math.cos(a) * r - 1.5, y + T / 2 + Math.sin(a) * r - 1.5, 3, 3); } g.globalAlpha = 1; }
   for (const f of FX.floats) { const k = (t - f.t) / 900; if (k < 0 || k >= 1 || !f.s) continue; const [x, y] = toXY(f.x, f.y);
     const size = Math.round(T * (f.big ? .62 : .44)), pop = k < .12 ? .7 + k / .12 * .5 : 1.2 - Math.min(1, (k - .12) / .15) * .2;
     g.save(); g.translate(x + T / 2 + (f.px || 0) * T, y - k * T * 1.1 + (f.small ? T * .1 : 0) - (f.up || 0) * T); g.scale(pop, pop); g.globalAlpha = k > .7 ? (1 - k) / .3 : 1;
     g.font = `800 ${size}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = Math.max(3, size * .22); g.lineJoin = 'round'; g.strokeStyle = '#0b0a09'; g.strokeText(f.s, 0, 0); g.fillStyle = f.c; g.fillText(f.s, 0, 0); g.restore(); }
+}
+
+// a large line across the map for the rare big moments (a new level, a unique slain); never blocks input
+function fxBanner(title, sub) {
+  let el = document.getElementById('bigmsg'); if (!el) { el = document.createElement('div'); el.id = 'bigmsg'; document.getElementById('stage').appendChild(el); }
+  el.innerHTML = `<b>${esc(title)}</b><span>${esc(sub || '')}</span>`; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
 }

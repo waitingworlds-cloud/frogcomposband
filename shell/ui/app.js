@@ -139,7 +139,16 @@ function tvIcon(tv) {
 const SLOT_ICON = { 1: 'gloves', 2: 'sword', 3: 'ring', 4: 'bow', 5: 'amulet', 6: 'torch', 7: 'armor', 8: 'cloak', 9: 'boots', 10: 'helm', 11: 'ring', 12: 'sword', 13: 'potion', 14: 'quiver' };
 const oq = o => o ? (o.art || o.ego ? 'ego' : o.unk ? 'unknown' : '') : '';
 const card = (title, body, cls = '', extra = '') => `<div class="card ch ${cls}"><div class="in ch">${title ? `<h3>${title}${extra ? `<em>${extra}</em>` : ''}</h3>` : ''}${body}</div></div>`;
-const vb = (cls, lab, v, m) => `<div class="vb ch ${cls}"><div class="tr ch"><i style="width:${m > 0 ? Math.max(0, Math.min(100, v / m * 100)) : 0}%"></i><u></u></div><span class="l">${lab}</span><span class="v">${v}<small>/ ${m}</small></span></div>`;
+// life and mana bars: when the value drops, a pale slice lingers and drains away; when it rises, the bar grows into place
+const VBAR = {};
+const vb = (cls, lab, v, m) => {
+  const pct = m > 0 ? Math.max(0, Math.min(100, v / m * 100)) : 0, r = VBAR[cls] || (VBAR[cls] = { cur: pct, from: pct, t: 0 });
+  if (pct !== r.cur) { r.from = r.cur; r.cur = pct; r.t = performance.now(); }
+  const el = performance.now() - r.t, live = el < 1100 && r.from !== pct, d = `animation-delay:${Math.round((r.from > pct ? 260 : 0) - el)}ms`;
+  const ghost = live && r.from > pct ? `<b style="--from:${r.from}%;--to:${pct}%;${d}"></b>` : '';
+  const grow = live && r.from < pct ? ` class="grow" style="width:${pct}%;--from:${r.from}%;--to:${pct}%;${d}"` : ` style="width:${pct}%"`;
+  return `<div class="vb ch ${cls}"><div class="tr ch">${ghost}<i${grow}></i><u></u></div><span class="l">${lab}</span><span class="v">${v}<small>/ ${m}</small></span></div>`;
+};
 const hpc = h => h > 75 ? 'ok' : h > 45 ? 'mid' : '';
 
 /* ---------- the main screen ---------- */
@@ -268,6 +277,29 @@ function loadTiles() {
   }).catch(() => {});
 }
 const tkey = s => String(s || '').toLowerCase().replace(/[&~#]/g, '').replace(/\s+/g, ' ').trim().replace(/^(an?|the) /, '');
+// magic and missiles in flight: the game shows them as * | - / \ in a colour; here they are bolts and bursts of light
+function drawSpell(g, x, y, T, ch, c) {
+  const dir = { '|': [0, 1], '-': [1, 0], '/': [1, -1], '\\': [1, 1] }[ch], cx = x + T / 2, cy = y + T / 2;
+  if (!dir && ch !== '*') return false;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const halo = g.createRadialGradient(cx, cy, 0, cx, cy, T * (dir ? .8 : .95)); halo.addColorStop(0, c); halo.addColorStop(1, 'rgba(0,0,0,0)');
+  g.globalAlpha = dir ? .5 : .75; g.fillStyle = halo; g.fillRect(x - T, y - T, T * 3, T * 3); g.globalAlpha = 1;
+  if (dir) { const n = Math.hypot(dir[0], dir[1]), ux = dir[0] / n * T * .62, uy = dir[1] / n * T * .62; g.lineCap = 'round';
+    g.strokeStyle = c; g.lineWidth = T * .26; g.beginPath(); g.moveTo(cx - ux, cy - uy); g.lineTo(cx + ux, cy + uy); g.stroke();
+    g.strokeStyle = '#fff'; g.lineWidth = T * .09; g.beginPath(); g.moveTo(cx - ux * .8, cy - uy * .8); g.lineTo(cx + ux * .8, cy + uy * .8); g.stroke(); }
+  else { g.fillStyle = c; g.beginPath(); g.arc(cx, cy, T * .3, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(cx, cy, T * .15, 0, 7); g.fill();
+    for (let i = 0; i < 5; i++) { const a = rnd(x + i * 7, y) * 6.283, r = T * (.32 + rnd(y, x + i) * .3); g.fillStyle = i % 2 ? '#fff' : c; g.fillRect(cx + Math.cos(a) * r - 1.5, cy + Math.sin(a) * r - 1.5, 3, 3); } }
+  g.restore(); return true;
+}
+// a hurt creature blinks white in its own shape
+let flashCv = null;
+function spriteFlash(g, r, x, y, T, k) {
+  if (!r || !TS || !TS.mon || !TS.mon[tkey(r[0])]) return false;
+  const pad = T, n = Math.ceil(T * 3); if (!flashCv) flashCv = document.createElement('canvas'); if (flashCv.width !== n) flashCv.width = flashCv.height = n;
+  const f = flashCv.getContext('2d'); f.globalCompositeOperation = 'source-over'; f.clearRect(0, 0, n, n); sprite(f, 'mon', r[0], pad, pad * 1.6, T);
+  f.globalCompositeOperation = 'source-in'; f.fillStyle = '#fff'; f.fillRect(0, 0, n, n);
+  g.globalAlpha = Math.min(1, k * 1.1); g.drawImage(flashCv, x - pad, y - pad * 1.6); g.globalAlpha = 1; return true;
+}
 // how much bigger or smaller a creature is drawn than one square, by the size class the tileset gives it
 const SIZE_MUL = { tiny: .8, medium: 1, large: 1.2, huge: 1.5 };
 // draw a named sprite into a T-sized square; false when the set has none
@@ -381,8 +413,9 @@ function drawMap() {
     g.globalAlpha = al;
     if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
     if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
-      const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
+      const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2 && spriteFlash(g, DICT.r[what], mx2, my2, T, fl2)) { /* drawn */ } else if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
     else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls)) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
+    else if (kind === 0 && drawSpell(g, sx, sy, T, what, c)) { /* drawn as light */ }
     else { g.font = `700 ${Math.round(T * (kind ? .62 : .66))}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 3; g.strokeStyle = '#0b0a09'; g.lineJoin = 'round'; g.strokeText(what, sx + T / 2, sy + T / 2 + 1); g.fillStyle = c; g.fillText(what, sx + T / 2, sy + T / 2 + 1); }
     g.globalAlpha = 1;
   }

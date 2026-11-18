@@ -45,7 +45,7 @@ function lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy) {
     const fl = fxFlash(m.i); if (fl) src.push([mx, my, 2.2, [1, .95, .85], fl * .9]);
   }
   for (const p of FX.puffs) { const k = (t - p.t) / 380; if (k >= 0 && k < 1) src.push([pcx + p.x - S.px + .5, pcy + p.y - S.py + .5, 2.6, [1, .55, .2], (1 - k) * .8]); }
-  if (fxl) for (const [x, y, at] of fxl) if (src.length < 140) { const c = hexRgb(col(at)); src.push([x + .5, y + .5, 2.8, c, .8]); }
+  if (fxl) for (const [x, y, at] of fxl) if (src.length < 140) { const c = hexRgb(col(at)); src.push([x + .5, y + .5, 2.6, c, .45]); }
   for (const [lx, ly, rad, c, pow] of src) {
     const cx0 = Math.floor(lx), cy0 = Math.floor(ly);
     const i0 = Math.max(0, Math.floor((lx - rad) * ss)), i1 = Math.min(w - 1, Math.ceil((lx + rad) * ss)), j0 = Math.max(0, Math.floor((ly - rad) * ss)), j1 = Math.min(h - 1, Math.ceil((ly + rad) * ss));
@@ -76,4 +76,4 @@ function lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy) {
 // how bright a square is (0..1), for things standing on it
 function lightAt(x, y, mw) { return LIGHT.lum ? LIGHT.lum[y * mw + x] || 0 : 1; }
 // keep the flames alive while you stand still
-setInterval(() => { if (LIGHT.on && LIGHT.flick && S && S.map && !document.hidden && typeof playing === 'function' && playing() && !fxRun) drawMap(); }, 90);
+setInterval(() => { if (LIGHT.on && LIGHT.flick && S && S.map && !document.hidden && typeof playing === 'function' && playing() && !fxRun) drawMap(); }, 120);

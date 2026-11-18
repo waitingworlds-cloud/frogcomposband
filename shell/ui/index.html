@@ -70,6 +70,10 @@ body.lowhp .vb.hp{animation:hpb 1.3s ease-in-out infinite}@keyframes hpb{50%{fil
 .bch{display:grid;grid-auto-flow:column;gap:7px 12px;margin:0 0 16px}
 .bc{display:flex;align-items:center;gap:12px;padding:6px 12px;font:500 18px Spectral;color:#f1ebe0;cursor:pointer;background:linear-gradient(#1b1d20,#121315);box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135}
 .bc:hover{box-shadow:0 0 0 1px #000,0 0 0 2px var(--em),0 0 14px #ff8a3c44;background:linear-gradient(#2a211a,#15110e)}.bc.dim{opacity:.5}
+#bigmsg{position:absolute;left:var(--mapx,50%);top:27%;transform:translateX(-50%);z-index:14;pointer-events:none;opacity:0;text-align:center;white-space:nowrap}
+#bigmsg b{display:block;font:400 76px Fell;letter-spacing:.16em;color:#ffe2b8;text-shadow:0 0 28px #ff8a3ccc,0 3px 0 #000,0 0 3px #000}
+#bigmsg span{display:block;font:italic 400 25px Spectral;color:#f1ebe0;letter-spacing:.08em;text-shadow:0 2px 4px #000,0 0 3px #000;margin-top:-4px}
+#bigmsg.go{animation:bigmsg 2.4s ease-out both}@keyframes bigmsg{0%{opacity:0;letter-spacing:.5em;transform:translateX(-50%) scale(1.15)}9%{opacity:1;transform:translateX(-50%) scale(1)}72%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-14px)}}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div></div>
