@@ -555,6 +555,15 @@ function drawMap() {
   } else if (G.cv && !G.icky && !G.ov && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
+  // creatures in sight but beyond the edge of the map view: a small pointer at the edge, towards them
+  for (const m of S.mons) {
+    if (m.pet || m.friendly) continue;
+    const mx = ox + (pcx + m.dx + .5) * T, my = oy + (pcy + m.dy + .5) * T; if (mx >= 0 && my >= 0 && mx <= W && my <= H) continue;
+    const cx = W / 2, cy = H / 2, vx = mx - cx, vy = my - cy, pad = 16, k = Math.min((W / 2 - pad) / Math.abs(vx || 1e-6), (H / 2 - pad) / Math.abs(vy || 1e-6));
+    const ex = cx + vx * k, ey = cy + vy * k, a = Math.atan2(vy, vx), r = Math.max(11, T * .36);
+    g.save(); g.translate(ex, ey); g.fillStyle = 'rgba(8,9,10,.75)'; g.beginPath(); g.arc(0, 0, r * 1.15, 0, 7); g.fill(); g.rotate(a); g.fillStyle = m.asleep ? '#ecc983' : TH.danger; g.strokeStyle = '#0b0c0e'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(r, 0); g.lineTo(-r * .7, r * .7); g.lineTo(-r * .35, 0); g.lineTo(-r * .7, -r * .7); g.closePath(); g.fill(); g.stroke(); g.restore();
+  }
   const am = aimMode();
   if (am === 'dir') {   // a direction is wanted: show the eight squares you can pick
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const hx = ox + (pcx + dx) * T, hy = oy + (pcy + dy) * T, on = hover && hover.dx === dx && hover.dy === dy;
