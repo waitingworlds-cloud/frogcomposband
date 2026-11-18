@@ -513,7 +513,7 @@ static void send_state(void)
     o_kint("hp", p_ptr->chp); o_kint("mhp", p_ptr->mhp);
     o_kint("sp", p_ptr->csp); o_kint("msp", p_ptr->msp);
     o_kint("ac", p_ptr->dis_ac + p_ptr->dis_to_a);
-    o_kint("speed", p_ptr->pspeed - 110);
+    o_kint("speed", p_ptr->pspeed - 110); o_kint("lite", p_ptr->cur_lite);
     o_kint("wgt", py_total_weight()); o_kint("wlim", weight_limit());
     o_kstr("place", map_name());
     o_kint("dlvl", dun_level);
@@ -553,6 +553,7 @@ static void send_state(void)
                     if (c->info & CAVE_MARK) f = c->mimic ? c->mimic : c->feat;
                     if (player_can_see_bold(y, x)) { fl |= 1; f = c->mimic ? c->mimic : c->feat; }
                     if (c->info & CAVE_GLOW) fl |= 2;
+                    if (c->info & (CAVE_LITE | CAVE_MNLT)) fl |= 8;
                     if (c->m_idx && m_list[c->m_idx].ml) m = m_list[c->m_idx].ap_r_idx;
                     if (c->o_idx && (o_list[c->o_idx].marked & OM_FOUND)) o = o_list[c->o_idx].k_idx;
                     if (y == py && x == px) { fl |= 5; f = c->mimic ? c->mimic : c->feat; }
@@ -581,6 +582,7 @@ static void send_state(void)
         o_kstr("n", buf);
         o_kint("hp", m->maxhp > 0 ? (long)m->hp * 100 / m->maxhp : 100);
         o_kint("rh", m->hp);
+        { int lt = ((r->flags7 & (RF7_HAS_LITE_1 | RF7_SELF_LITE_1)) ? 1 : 0) + ((r->flags7 & (RF7_HAS_LITE_2 | RF7_SELF_LITE_2)) ? 2 : 0); if (lt) o_kint("lt", lt); }
         o_kstr("health", mon_health_desc(m));
         o_kint("dx", m->fx - px); o_kint("dy", m->fy - py);
         o_kint("dist", m->cdis);

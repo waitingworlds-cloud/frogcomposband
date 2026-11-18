@@ -29,6 +29,7 @@ function trigger(ks, e) {
   sendText(String.fromCharCode(31) + m + '_' + ks.toString(16).toUpperCase() + '\r');
 }
 addEventListener('keydown', e => {
+  if (postKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -267,12 +268,15 @@ function loadTiles() {
   }).catch(() => {});
 }
 const tkey = s => String(s || '').toLowerCase().replace(/[&~#]/g, '').replace(/\s+/g, ' ').trim().replace(/^(an?|the) /, '');
+// how much bigger or smaller a creature is drawn than one square, by the size class the tileset gives it
+const SIZE_MUL = { tiny: .8, medium: 1, large: 1.2, huge: 1.5 };
 // draw a named sprite into a T-sized square; false when the set has none
 function sprite(g, kind, name, x, y, T, alt) {
   if (!TS || !TS[kind]) return false;
   const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
   const im = TS.img[e[0]], t = TS.tile; if (!im || !im.naturalWidth) return false;
-  const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t;   // sprites may be taller or wider than one square; they stand on the bottom middle
+  const sz = kind === 'mon' && TS.size ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' ? sz : SIZE_MUL[sz] || 1;
+  const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t * mul;   // sprites may be taller or wider than one square; they stand on the bottom middle
   g.drawImage(im, e[1] * t, e[2] * t, w, h, x + (T - w * k) / 2, y + T - h * k, w * k, h * k); return true;
 }
 function fclassClear() { for (const k in fclass) delete fclass[k]; }
@@ -317,7 +321,7 @@ function drawMap() {
   const cellAt = (x, y) => (x < 0 || y < 0 || x >= mw || y >= mh) ? 0 : cells[y * mw + x];
   const isWall = c => c && c[0] && featClass(c[0]) === 'wall';
   const x0 = Math.max(0, Math.floor(-ox / T)), x1 = Math.min(mw - 1, Math.ceil((W - ox) / T)), y0 = Math.max(0, Math.floor(-oy / T)), y1 = Math.min(mh - 1, Math.ceil((H - oy) / T));
-  const later = [], gridOk = !S.stale && !G.icky && !G.ov && BASE, ml = S.rmsg;
+  const later = [], fxl = [], lon = LIGHT.on, gridOk = !S.stale && !G.icky && !G.ov && BASE, ml = S.rmsg;
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = cells[y * mw + x], gy = S.gy + y - pcy, gx = S.gx + x - pcx;
     // what the game's own grid shows here: at rest (base) and right now (spell effects in flight)
@@ -327,8 +331,9 @@ function drawMap() {
     }
     const fx = ch !== ' ' && (ch !== bch || at !== bat);
     const sx = ox + x * T, sy = oy + y * T;
+    if (fx) fxl.push([x, y, at]);
     if (!c) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
-    const f = c[0], fl = c[1], lit = !!(fl & 1), cls = f ? featClass(f) : 'floor';
+    const f = c[0], fl = c[1], lit = lon || !!(fl & 1), cls = f ? featClass(f) : 'floor';
     const fd = DICT.f[f] || ['', 46, 1], fcol = col(fd[2]), v = rnd(x + S.px, y + S.py);
     if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
     if (!f) { /* something seen on ground we have not mapped */ }
@@ -370,7 +375,9 @@ function drawMap() {
   // player light
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
+  if (lon) lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy);
   for (let [sx, sy, what, c, al, kind, nm] of later) {
+    if (lon && kind !== 0 && kind !== 2 && kind !== 3) { const lx = Math.round((sx - ox) / T), ly = Math.round((sy - oy) / T); if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) al *= .45 + .55 * Math.min(1, lightAt(lx, ly, mw) * 1.5); }
     g.globalAlpha = al;
     if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
     if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
@@ -393,6 +400,8 @@ function drawMap() {
   fxDraw(g, (x, y) => [ox + (pcx + x - S.px) * T, oy + (pcy + y - S.py) * T], T);
   const vg = g.createRadialGradient(px, py, T * 6, px, py, Math.max(W, H) * .8); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,5,6,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
   drawMini(pcx, pcy, Math.ceil(W / T), Math.ceil(H / T));
+  const hpf = S.p.mhp > 0 ? S.p.hp / S.p.mhp : 1;
+  postRender(cv, (x, y) => [(ox + (pcx + x - S.px + .5) * T) * d, (oy + (pcy + y - S.py + .5) * T) * d], Math.max(2, Math.round(T * d / 24)), hpf < .25 ? Math.min(1, 1 - Math.max(0, hpf) / .25) : 0);
 }
 function drawMini(pcx, pcy, vw, vh) {
   const cv = $('#mini'); if (!cv) return;

@@ -14,6 +14,11 @@ function fxOnState(prev, cur) {
   if (mx || my) FX.scroll = { dx: mx, dy: my, t };
   // creatures: slide to their new square, flash when hurt, puff when gone
   const old = {}; for (const m of prev.mons) old[m.i] = m;
+  // what the game just said: a telling blow earns the crit look
+  const seenTurn = prev.msgs && prev.msgs.length ? prev.msgs[prev.msgs.length - 1] : null, fresh = [];
+  for (let i = (cur.msgs || []).length - 1; i >= 0 && fresh.length < 6; i--) { const m = cur.msgs[i]; if (seenTurn && m.turn === seenTurn.turn && m.s === seenTurn.s) break; fresh.push(m.s); }
+  const said = fresh.join(' '), crit = /(good|great|superb|\*GREAT\*|\*SUPERB\*) hit|backstab|cruelly attack|ruthlessly sneak|critical/i.test(said);
+  let beats = 0;
   const seen = {};
   for (const m of cur.mons) {
     seen[m.i] = 1; const o = old[m.i]; if (!o || o.r !== m.r) continue;
@@ -24,6 +29,7 @@ function fxOnState(prev, cur) {
       // we strike: lean into the blow when it is next to us, then the flash and number land on the hit
       const melee = Math.abs(m.dx) <= 1 && Math.abs(m.dy) <= 1 && !mx && !my, at = melee ? t + HIT_MS : t;
       if (melee) FX.lunge.p = { dx: m.dx, dy: m.dy, t };
+      POST.hit = { x: ax, y: ay, t: at, w: crit ? 1.3 : .7 }; if (crit && !beats) { beats++; postBeat('crit', ax, ay, at); }
       FX.flash[m.i] = at; FX.floats.push({ x: ax, y: ay, s: o.rh != null ? '-' + lost : '-' + (o.hp - m.hp) + '%', c: '#ffd9a8', t: at, small: 1, px: Math.sign(m.dx) * .28 });
     }
   }
@@ -34,6 +40,10 @@ function fxOnState(prev, cur) {
       if (melee) FX.lunge.p = { dx: o.dx, dy: o.dy, t };
       FX.puffs.push({ x: prev.px + o.dx, y: prev.py + o.dy, t: at, r: o.r });
       if (!FX.shake) FX.shake = { t: at, amp: 3, ms: 130 };
+      // a unique falling, or a kill that brings a new level, gets the big finish; other kills keep the pace
+      const lvl = cur.p.lev > prev.p.lev;
+      if (o.uniq || lvl) { postBeat('kill', prev.px + o.dx, prev.py + o.dy, at); postClimax(prev.px + o.dx, prev.py + o.dy, at); }
+      else if (crit) POST.hit = { x: prev.px + o.dx, y: prev.py + o.dy, t: at, w: 1.3 };
     }
   }
   // the player: numbers for damage and healing, shake and a red pulse when hit
@@ -46,9 +56,11 @@ function fxOnState(prev, cur) {
     FX.floats.push({ x: cur.px, y: cur.py, s: String(d), c: '#ff6a55', t: hit, big: 1, up: .55 });
     const frac = Math.min(1, -d / Math.max(1, cur.p.mhp));
     FX.shake = { t: hit, amp: 2 + frac * 16, ms: 150 + frac * 250 };
+    if (-d >= cur.p.mhp * .25) postBeat('hurt', cur.px, cur.py, hit); else POST.hit = POST.hit || { x: cur.px, y: cur.py, t: hit, w: .5 + frac * 2 };
     const h = document.getElementById('hurt'); if (h) { h.style.setProperty('--a', (.25 + frac * .6).toFixed(2)); h.classList.remove('go'); void h.offsetWidth; h.classList.add('go'); }
-  } else if (d > 0 && d >= Math.max(2, cur.p.mhp * .03)) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + d, c: '#a9e08c', t, big: 1, up: .55 });
+  } else if (d > 0 && d >= Math.max(2, cur.p.mhp * .03)) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + d, c: '#a9e08c', t, big: 1, up: .55 }), (d >= cur.p.mhp * .15 && postBeat('heal', cur.px, cur.py, t));
   const ds = cur.p.sp - prev.p.sp; if (ds < 0 && cur.p.msp > 0) FX.floats.push({ x: cur.px, y: cur.py, s: String(ds), c: '#7fd0f0', t: t + 60, small: 1, px: -.75, up: -.35 });
+  if (cur.p.lev > prev.p.lev) postBeat('level', cur.px, cur.py, t + 120);
   document.body.classList.toggle('lowhp', cur.p.mhp > 0 && cur.p.hp / cur.p.mhp < .25 && cur.p.hp >= 0);
   fxKick();
 }
@@ -60,6 +72,7 @@ function fxActive() {
   FX.floats = FX.floats.filter(f => t - f.t < 900); FX.puffs = FX.puffs.filter(f => t - f.t < 380);
   for (const k in FX.flash) if (t - FX.flash[k] > 220) delete FX.flash[k];
   if (FX.shake && t - FX.shake.t > FX.shake.ms) FX.shake = null;
+  if (postActive()) return true;
   return FX.floats.length > 0 || FX.puffs.length > 0 || Object.keys(FX.flash).length > 0 || !!FX.shake;
 }
 let fxRun = false;
