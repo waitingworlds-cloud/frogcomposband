@@ -2825,7 +2825,7 @@ void py_display(void)
         shell_ui_int("uniques", ct_uniques(CTU_INCLUDE_SUPPRESSED | CTU_INCLUDE_RARE | CTU_COUNT_DEAD));
         shell_ui_int("arts", no_artifacts ? -1 : ct_artifacts() + stats_rand_art_counts.found);
         shell_ui_int("play", playtime);
-        shell_ui_int("maxdepth", max_dlv[DUNGEON_ANGBAND]);
+        { int d, deep = 0; for (d = 1; d < max_d_idx; d++) if (max_dlv[d] > deep) deep = max_dlv[d]; shell_ui_int("maxdepth", deep); }   /* deepest in any dungeon */
         for (i = 0; i < 8; i++)
         {
             skill_desc_t desc = skills_describe(sk[i].amt, sk[i].div);
