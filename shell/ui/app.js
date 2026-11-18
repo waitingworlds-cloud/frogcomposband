@@ -305,8 +305,8 @@ function floorHtml() {
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
-  return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('In sight', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${targetHtml()}${card('On the floor', floorHtml(), 'grow')}
-  ${card('Area map', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
+  return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${targetHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
+  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
 const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what you stand on' };
