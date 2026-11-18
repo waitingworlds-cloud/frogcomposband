@@ -60,7 +60,7 @@ function onMsg(m) {
   else if (m.t === 'f') {
     if (m.w !== G.w || m.h !== G.h) { G.w = m.w; G.h = m.h; G.s = Array(m.h).fill(' '.repeat(m.w)); G.a = Array(m.h).fill(null).map(() => new Uint8Array(m.w)); }
     for (const r of m.rows) { G.s[r.y] = r.s; const a = G.a[r.y]; for (let x = 0; x < m.w; x++) a[x] = parseInt(r.a.substr(x * 2, 2), 16); }
-    G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.icky = m.icky; G.ov = m.ov;
+    G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.lk = m.lk || null; G.icky = m.icky; G.ov = m.ov;
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
@@ -114,8 +114,18 @@ function liveHtml() {
     flush();
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
-  return out;
+  return lookKeys(out);
 }
+// the look and target prompts end in a bare key list, [r,x,q,p,o,j,+,-,?,<dir>]: give each key a cap and a word, and make it a button
+const LOOK_WORDS = { r: 'recall', x: 'items here', q: 'done', t: 'target', p: 'you', o: 'free look', m: 'creatures', j: 'travel here', '(': 'travel here', '+': 'next', '-': 'previous', '?': 'help' };
+function lookKeys(h) {
+  return h.replace(/\[((?:[a-z?+\-(]|&lt;dir&gt;)(?:,(?:[a-z?+\-(]|&lt;dir&gt;))+)\]/, (all, list) => {
+    const ks = [...new Set(list.split(','))]; if (!ks.includes('q') && !ks.includes('r')) return all;
+    return '<span class="lkeys">' + ks.map(k => k === '&lt;dir&gt;' ? '<span class="lk dirk"><span class="key">⇆</span>move</span>' : `<span class="lk" data-key="${k}"><span class="key">${k === 'q' ? 'Esc' : k}</span>${LOOK_WORDS[k] || ''}</span>`).join('') + '</span>';
+  });
+}
+let lookTimer = 0;
+function fxKickLook() { if (!lookTimer) lookTimer = setTimeout(() => { lookTimer = 0; if (lookMode()) drawMap(); }, 50); }
 const col = a => PAL[a & 31] || '#fff';
 function rectText(r) {   // r = [x,y,w,h]; rows of {text, attr of first ink}
   const out = [];
@@ -439,8 +449,16 @@ function drawMap() {
     if (m.hp < 100 || m.target) { g.fillStyle = '#000a'; g.fillRect(mx + 2, my - 5, T - 4, 3); g.fillStyle = m.hp > 75 ? '#a9c98c' : m.hp > 45 ? '#ffc46a' : TH.danger; g.fillRect(mx + 2, my - 5, (T - 4) * m.hp / 100, 3); }
     if (m.target) { g.strokeStyle = TH.danger; g.lineWidth = 2; const k = 8; [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([ax, ay, dx, dy]) => { g.beginPath(); g.moveTo(mx + ax + dx * k, my + ay); g.lineTo(mx + ax, my + ay); g.lineTo(mx + ax, my + ay + dy * k); g.stroke(); }); }
   }
-  // the game's cursor (looking, targeting)
-  if (G.cv && !G.icky && !G.ov && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
+  // the game's cursor (looking, targeting): corner brackets that breathe, and a sight line when a target is being picked
+  const lm = lookMode();
+  if (lm && G.lk) {
+    const lx = ox + (pcx + G.lk[0]) * T, ly = oy + (pcy + G.lk[1]) * T, k = T * .3, pulse = (Math.sin(performance.now() / 180) + 1) / 2, o = 1 + pulse * T * .06;
+    if (lm === 'target' && (G.lk[0] || G.lk[1])) { g.save(); g.strokeStyle = 'rgba(255,120,90,.7)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(ox + (pcx + .5) * T, oy + (pcy + .5) * T); g.lineTo(lx + T / 2, ly + T / 2); g.stroke(); g.restore(); }
+    g.fillStyle = lm === 'target' ? 'rgba(255,90,60,.16)' : 'rgba(255,207,158,.14)'; g.fillRect(lx, ly, T, T);
+    g.strokeStyle = lm === 'target' ? TH.danger : '#ffcf9e'; g.lineWidth = 2.5;
+    [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([ax, ay, dx, dy]) => { const x = lx + ax - dx * o, y = ly + ay - dy * o; g.beginPath(); g.moveTo(x + dx * k, y); g.lineTo(x, y); g.lineTo(x, y + dy * k); g.stroke(); });
+    fxKickLook();
+  } else if (G.cv && !G.icky && !G.ov && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
   const am = aimMode();

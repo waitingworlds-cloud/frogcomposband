@@ -715,6 +715,12 @@ static void send_frame(void)
         o_fmt("{\"t\":\"f\",\"w\":%d,\"h\":%d,\"icky\":%d,\"ov\":%d,", w, h, character_icky ? 1 : 0, ov ? 1 : 0);
         Term_locate(&cx, &cy);
         o_fmt("\"cx\":%d,\"cy\":%d,\"cv\":%d,", cx, cy, t->scr->cv ? 1 : 0);
+        /* the cursor over the map (looking, targeting): which square it marks, from the player */
+        if (character_generated && !character_icky && t->scr->cv && rect_contains_pt(ui_map_rect(), cx, cy))
+        {
+            point_t cp = ui_xy_to_cave_pt(cx, cy);
+            o_fmt("\"lk\":[%d,%d],", cp.x - px, cp.y - py);
+        }
         o_raw("\"rows\":[");
         for (y = 0; y < h; y++)
         {
