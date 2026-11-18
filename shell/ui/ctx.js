@@ -23,6 +23,13 @@ function cellItems(cell) {
     if (/up stair|up staircase|shaft up|way up/.test(f)) out.push({ k: '<', n: 'Go up the stairs', run: () => sendText(cmd('<')) });
     if (/down stair|down staircase|trap ?door|entrance to|shaft down|way down/.test(f)) out.push({ k: '>', n: /entrance/.test(f) ? 'Enter the dungeon' : 'Go down the stairs', run: () => sendText(cmd('>')) });
     if (cell.c && cell.c[0] && featClass(cell.c[0]) === 'shop' && f !== 'building') out.push({ k: '', n: 'Go into ' + (DICT.f[cell.c[0]] || [''])[0].replace(/^the /i, ''), run: () => sendRaw('M 1 0 0'), hot: true });
+    // the nearest known way down (or up), by the walking distance
+    for (const [cls, word] of [['down', 'down'], ['up', 'up']]) {
+      if (featClass((cell.c || [])[0] || 0) === cls) continue;
+      const mw = S.map.w, sx = mw >> 1, sy = S.map.h >> 1; let best = null;
+      S.map.c.forEach((c, i) => { if (!c || !c[0] || featClass(c[0]) !== cls) return; const dx = i % mw - sx, dy = ((i / mw) | 0) - sy; if (best && Math.max(Math.abs(dx), Math.abs(dy)) >= best.n) return; const p = walkPath(dx, dy); if (p && (!best || p.length < best.n)) best = { dx, dy, n: p.length }; });
+      if (best) out.push({ k: '', n: `Walk to the nearest way ${word} (${best.n} steps)`, run: () => sendRaw(`M 1 ${best.dx} ${best.dy}`) });
+    }
     out.push({ k: 'R', n: 'Rest as needed', run: () => sendText(cmd('R') + '&\r') });
     out.push({ k: 'i', n: 'Open your pack', run: () => sendText(cmd('i')) });
     out.push({ k: 'l', n: 'Look around', run: () => sendText(cmd('l')) });
