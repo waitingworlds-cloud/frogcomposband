@@ -247,7 +247,7 @@ function buildMain() {
 }
 function drawMobCanvas(cv, rIdx, size) {
   const d = 2 * SCALE * (devicePixelRatio || 1); cv.width = cv.height = Math.round(size * d);
-  const g = cv.getContext('2d'); g.scale(d, d); drawToken(g, 0, 0, size, DICT.r[rIdx] || ['?', 63, 1, 0, 0]);
+  const g = cv.getContext('2d'); g.scale(d, d); sprite.flat = true; drawToken(g, 0, 0, size, DICT.r[rIdx] || ['?', 63, 1, 0, 0]); sprite.flat = false;   // list icons stay one size
 }
 // a creature until real sprites exist: its letter on a dark disc, in the game's own colour
 function drawToken(g, x, y, T, r, uniq) {
@@ -275,7 +275,7 @@ function sprite(g, kind, name, x, y, T, alt) {
   if (!TS || !TS[kind]) return false;
   const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
   const im = TS.img[e[0]], t = TS.tile; if (!im || !im.naturalWidth) return false;
-  const sz = kind === 'mon' && TS.size ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' ? sz : SIZE_MUL[sz] || 1;
+  const sz = kind === 'mon' && TS.size && !sprite.flat ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' ? sz : SIZE_MUL[sz] || 1;
   const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t * mul;   // sprites may be taller or wider than one square; they stand on the bottom middle
   g.drawImage(im, e[1] * t, e[2] * t, w, h, x + (T - w * k) / 2, y + T - h * k, w * k, h * k); return true;
 }
@@ -459,8 +459,8 @@ function draw() {
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : ''; let show = false;
-  if (setHtml(nat, nh) && nh) nativeAfter(); nat.classList.toggle('on', !!nh);
+  const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
+  if (setHtml(nat, nh) && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);

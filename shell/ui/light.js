@@ -4,7 +4,7 @@
 'use strict';
 const LIGHT = { on: true, ss: 3, mul: null, add: null, w: 0, h: 0, lum: null, flick: true };
 try { if (localStorage.getItem('light') === '0') LIGHT.on = false; } catch (e) {}
-const WARM = [1, .74, .46], COOL = [.56, .60, .72], MEMORY = [.47, .50, .60];
+const WARM = [1, .74, .46], COOL = [.70, .73, .82], MEMORY = [.52, .55, .66];
 function hexRgb(h) { const n = parseInt(String(h).slice(1), 16) || 0xffffff; return [(n >> 16) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; }
 // two slow waves and a fast one: reads as a flame without ever strobing
 function flame(t, ph) { return LIGHT.flick ? .975 + .015 * Math.sin(t * .0061 + ph) + .01 * Math.sin(t * .0173 + ph * 2.3) : 1; }
