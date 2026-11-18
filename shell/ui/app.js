@@ -60,7 +60,12 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
   }
   else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
-  else if (m.t === 'ui') { UI = m.kind ? m : null; schedule(); }
+  else if (m.t === 'ui') {
+    if (m.kind) { if (UI && UI.kind === 'shop' && m.kind !== 'shop') UIback = UI; UI = m; }
+    else { UI = m.all ? null : UIback; UIback = null; }
+    uiSel = ''; schedule();
+  }
+  else if (m.t === 'uisel') { uiSel = m.name; schedule(); }
   else if (m.t === 'bye') { $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; built = false; S = null; $('#term').classList.remove('on'); }
 }
 let pend = false, ftimer = 0, BASE = null;
@@ -421,7 +426,7 @@ function draw() {
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
   const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : ''; let show = false;
-  setHtml(nat, nh); nat.classList.toggle('on', !!nh);
+  if (setHtml(nat, nh) && nh) nativeAfter(); nat.classList.toggle('on', !!nh);
   if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);

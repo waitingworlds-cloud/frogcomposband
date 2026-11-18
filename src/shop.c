@@ -1639,6 +1639,42 @@ static void _display(_ui_context_ptr context)
     doc_sync_term(doc,
         doc_range_top_lines(doc, r.cy),
         doc_pos_create(r.x, r.y));
+
+    /* the same screen as data, for the interface's own layout */
+    {
+        slot_t slot, max = inv_last(shop->inv, obj_exists);
+        shell_ui_open("shop");
+        shell_ui_str("name", shop->type->name);
+        shell_ui_str("owner", shop->owner->name);
+        shell_ui_str("race", get_race_aux(shop->owner->race_id, 0)->name);
+        shell_ui_int("purse", shop->owner->purse);
+        shell_ui_int("gold", p_ptr->au);
+        shell_ui_int("nosell", no_selling ? 1 : 0);
+        shell_ui_int("page", (context->top - 1) / context->page_size + 1);
+        shell_ui_int("pages", max > 0 ? (max - 1) / context->page_size + 1 : 1);
+        for (slot = context->top; slot < context->top + context->page_size; slot++)
+        {
+            obj_ptr obj = inv_obj(shop->inv, slot);
+            char    name[MAX_NLEN], lab[2];
+            int     price;
+            if (!obj) continue;
+            object_desc(name, obj, 0);
+            price = _sell_price(shop, obj_value(obj));
+            lab[0] = slot_label(slot - context->top + 1); lab[1] = 0;
+            shell_ui_row();
+            shell_ui_str("k", lab);
+            shell_ui_str("n", name);
+            shell_ui_int("tv", obj->tval);
+            shell_ui_int("num", obj->number);
+            shell_ui_int("w", obj->weight);
+            shell_ui_int("price", price);
+            shell_ui_int("ok", price <= p_ptr->au ? 1 : 0);
+            if (object_is_artifact(obj)) shell_ui_int("art", 1);
+            else if (obj->name2) shell_ui_int("ego", 1);
+            if (obj->discount) shell_ui_int("off", obj->discount);
+        }
+        shell_ui_close();
+    }
 }
 
 static int _add_obj(shop_ptr shop, obj_ptr obj, bool is_restock);

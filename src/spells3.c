@@ -3526,6 +3526,11 @@ void print_spells(int target_spell, byte *spells, int num, rect_t display, int u
     Term_erase(display.x, display.y, display.cx);
     put_str("Name", display.y, display.x + 5);
     put_str(buf, display.y, display.x + 29);
+    shell_ui_open("spells");
+    shell_ui_str("realm", (use_realm > REALM_NONE && use_realm <= MAX_REALM) ? realm_names[use_realm] : "");
+    shell_ui_str("unit", strstr(buf, "HP") ? "HP" : "SP");
+    shell_ui_int("have", strstr(buf, "HP") ? p_ptr->chp : p_ptr->csp);
+    shell_ui_int("sel", (use_menu && target_spell) ? target_spell - 1 : -1);
 
     if ((p_ptr->pclass == CLASS_SORCERER) || (p_ptr->pclass == CLASS_RED_MAGE)) increment = 0;
     else if (use_realm == p_ptr->realm1) increment = 0;
@@ -3587,6 +3592,10 @@ void print_spells(int target_spell, byte *spells, int num, rect_t display, int u
         {
                 strcat(out_val, format("%-30s", "(illegible)"));
                 c_put_str(TERM_L_DARK, out_val, display.y + i + 1, display.x);
+                shell_ui_row();
+                { char lab[2]; lab[0] = I2A(i); lab[1] = 0; shell_ui_str("k", lab); }
+                shell_ui_str("n", "(illegible)");
+                shell_ui_int("dim", 1);
                 continue;
         }
 
@@ -3663,10 +3672,26 @@ void print_spells(int target_spell, byte *spells, int num, rect_t display, int u
                 vaikeustaso, need_mana, spell_chance(spell, use_realm), comment));
         }
         c_put_str(line_attr, out_val, display.y + i + 1, display.x);
+        shell_ui_row();
+        { char lab[2]; lab[0] = I2A(i); lab[1] = 0; shell_ui_str("k", lab); }
+        shell_ui_str("n", do_spell(use_realm, spell, SPELL_NAME));
+        shell_ui_int("lvl", vaikeustaso);
+        shell_ui_int("cost", need_mana);
+        if (use_realm != REALM_HISSATSU)
+        {
+            shell_ui_int("fail", spell_chance(spell, use_realm));
+            shell_ui_str("prof", exp_level_str[exp_level]);
+            if (max) shell_ui_int("max", 1);
+        }
+        shell_ui_str("info", comment);
+        shell_ui_str("desc", do_spell(use_realm, spell, SPELL_DESC));
+        shell_ui_int("col", line_attr);
+        if (comment == info) shell_ui_int("ok", 1);
     }
 
     /* Clear the bottom line */
     Term_erase(display.x, display.y + i + 1, display.cx);
+    shell_ui_close();
 }
 
 

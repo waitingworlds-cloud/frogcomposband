@@ -2236,6 +2236,9 @@ void do_cmd_view_map(void)
 
     /* Display the map */
     display_map(&cy, &cx);
+#ifdef USE_SHELL
+    { extern void shell_ui_levelmap(void); shell_ui_levelmap(); }
+#endif
 
     /* Wait for it */
     if(max_autopick && !p_ptr->wild_mode)

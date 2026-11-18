@@ -217,9 +217,7 @@ int obj_prompt(obj_prompt_ptr prompt)
         }
     }
     ui_popup_end();
-#ifdef USE_SHELL
-    { extern void shell_ui_end(void); shell_ui_end(); }
-#endif
+    shell_ui_end();
     _context_unmake(&context);
     return result;
 }

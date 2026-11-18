@@ -55,6 +55,7 @@ static byte old_a[SHELL_MAX_H][SHELL_MAX_W];
 static char old_c[SHELL_MAX_H][SHELL_MAX_W];
 static bool old_valid = FALSE;
 static bool want_state = FALSE;
+static bool ui_live = FALSE;
 static int click_kind = 0, click_x = 0, click_y = 0;
 bool shell_take_click(int *kind, int *x, int *y)
 {
@@ -194,6 +195,14 @@ static void shell_command(char *line)
          * game waits for a command, so it can never answer some other question by mistake */
         int kind = 0, dx = 0, dy = 0;
         if (sscanf(line + 2, "%d %d %d", &kind, &dx, &dy) != 3) return;
+        if (kind == 3)
+        {
+            /* from the level map screen: close it, then walk */
+            if (!character_generated || p_ptr->wild_mode || !in_bounds(py + dy, px + dx)) return;
+            click_kind = 1; click_x = px + dx; click_y = py + dy;
+            Term_keypress(ESCAPE); Term_keypress('\\'); Term_keypress('`');
+            return;
+        }
         if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
         if (kind == 1 && !dx && !dy) { Term_keypress('\\'); Term_keypress('g'); }
         else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
@@ -392,10 +401,79 @@ void shell_ui_items(vptr ctx)
     o_close(']');
     o_raw("}");
     o_send();
+    ui_live = TRUE;
+}
+/* Generic builder used by game code: open, top-level fields, then rows of fields, close */
+static int ui_rows = -1;
+void shell_ui_open(cptr kind)
+{
+    if (shell_sock == INVALID_SOCKET) return;
+    olen = 0; ui_rows = 0;
+    o_raw("{\"t\":\"ui\",");
+    o_kstr("kind", kind);
+}
+void shell_ui_str(cptr k, cptr v) { if (ui_rows < 0) return; o_kstr(k, v ? v : ""); }
+void shell_ui_int(cptr k, int v) { if (ui_rows < 0) return; o_kint(k, v); }
+void shell_ui_row(void)
+{
+    if (ui_rows < 0) return;
+    if (ui_rows == 0) o_raw("\"rows\":[{");
+    else { o_close('}'); o_raw(",{"); }
+    ui_rows++;
+}
+void shell_ui_close(void)
+{
+    if (ui_rows < 0) return;
+    if (ui_rows == 0) o_raw("\"rows\":[]}");
+    else { o_close('}'); o_raw("]}"); }
+    ui_rows = -1;
+    ui_live = TRUE;
+    o_send();
+}
+/* which row the game is now describing */
+void shell_ui_sel(cptr name)
+{
+    if (shell_sock == INVALID_SOCKET) return;
+    o_raw("{\"t\":\"uisel\",");
+    o_kstr("name", name);
+    o_close('}');
+    o_send();
+}
+/* The whole level as known, for the level map screen */
+void shell_ui_levelmap(void)
+{
+    int x, y;
+    if (shell_sock == INVALID_SOCKET) return;
+    if (!dict_sent) return;
+    o_raw("{\"t\":\"ui\",\"kind\":\"lmap\",");
+    o_kstr("place", map_name());
+    o_kint("dlvl", dun_level);
+    o_kint("w", cur_wid); o_kint("h", cur_hgt);
+    o_kint("px", px); o_kint("py", py);
+    o_kint("wild", p_ptr->wild_mode ? 1 : 0);
+    o_raw("\"c\":[");
+    for (y = 0; y < cur_hgt; y++)
+    {
+        for (x = 0; x < cur_wid; x++)
+        {
+            cave_type *c = &cave[y][x];
+            int f = 0, m = 0, o = 0;
+            if (c->info & CAVE_MARK) f = c->mimic ? c->mimic : c->feat;
+            if (c->m_idx && m_list[c->m_idx].ml) m = m_list[c->m_idx].ap_r_idx;
+            if (c->o_idx && (o_list[c->o_idx].marked & OM_FOUND)) o = o_list[c->o_idx].k_idx;
+            if (m || o) o_fmt("[%d,%d,%d],", f, m, o);
+            else o_fmt("%d,", f);
+        }
+    }
+    o_close(']');
+    o_raw("}");
+    o_send();
+    ui_live = TRUE;
 }
 void shell_ui_end(void)
 {
     if (shell_sock == INVALID_SOCKET) return;
+    ui_live = FALSE;
     o_raw("{\"t\":\"ui\",\"kind\":\"\"}");
     o_send();
 }
@@ -592,6 +670,14 @@ static void send_state(void)
 
 static void send_frame(void)
 {
+    /* a native screen ends when the game is back to plain play */
+    if (ui_live && !character_icky && ui_screen_depth() == 0)
+    {
+        ui_live = FALSE;
+        o_raw("{\"t\":\"ui\",\"kind\":\"\",\"all\":1}");
+        o_send();
+    }
+
     term *t = Term;
     int w = t->wid, h = t->hgt, x, y, cx = 0, cy = 0;
     bool any = FALSE;

@@ -32,6 +32,21 @@ body{cursor:default;user-select:none}
 #tip{position:absolute;display:none;z-index:40;max-width:340px;padding:8px 13px 9px;font:500 16px/1.35 Spectral,serif;color:#e9e3d6;background:linear-gradient(#1c1e21,#101113);border:1px solid #000;box-shadow:0 0 0 1px #4a4e54,0 10px 30px #000c;pointer-events:none}
 #tip .hint{margin-top:5px;font:500 12px Inter;color:#8f8a80;letter-spacing:.02em}#tip .sub{font-size:14px}
 [data-key]{cursor:pointer}
+.shg{display:grid;gap:0 26px;margin:8px 0 6px}
+.shopp .srow{display:flex;align-items:center;gap:13px;height:50px;padding:0 6px;border-bottom:1px solid #000;box-shadow:0 1px 0 #2e3135}
+.shopp .srow:hover{background:linear-gradient(90deg,#ff8a3c2a,transparent);box-shadow:inset 3px 0 0 var(--em),0 1px 0 #2e3135}
+.shopp .srow .slot{width:38px;font-size:23px}.shopp .srow .n{font-size:18.500px}.shopp .srow .price{font-size:20px;color:#ffcf6a}.shopp .srow.cant .price{color:#6a665e}
+#native.on{background:#08090ab8}
+.spg{display:grid;gap:10px 14px;margin:12px 0 10px}
+.spc{display:flex;align-items:center;gap:14px;padding:10px 14px;min-width:0;background:linear-gradient(#1b1d20,#121315);box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135}
+.spc.sm{padding:5px 10px;gap:10px}.spc.sm .spn{font-size:17px}.spc.sm .ring{width:34px;height:34px}.spc.sm .ring .rv{font-size:10px}
+.spc:hover,.spc.sel{box-shadow:0 0 0 1px #000,0 0 0 2px var(--em),0 0 14px #ff8a3c44;background:linear-gradient(#2a211a,#15110e)}
+.spc.dim{opacity:.5}
+.spn{font:400 21px Fell;letter-spacing:.06em;color:#f4efe4}.sps{font:italic 400 15px Spectral;color:#a39a8a;margin-top:1px}
+.spm{display:flex;align-items:center;gap:6px;color:#7fd0f0;font-size:17px}.spm b{font:600 18px Inter;color:#bfe6f7;min-width:22px;text-align:right}.spm.hp{color:#ff7a66}.spm.hp b{color:#ffb3a6}
+.ring{--p:0;--rc:#a9c98c;width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--rc) calc(var(--p)*1%),#2a2d31 0)}
+.ring .rv{font:600 12px Inter;color:#e9e3d6;width:calc(100% - 8px);height:calc(100% - 8px);border-radius:50%;background:#121315;display:flex;align-items:center;justify-content:center}
+.spd{display:flex;gap:24px;align-items:flex-start;padding:12px 16px;min-height:74px;background:#0e0f11;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135}.spd .spn{flex:none;max-width:300px;color:var(--em3)}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="native"></div><div id="tip"></div></div>
