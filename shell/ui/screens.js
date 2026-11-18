@@ -179,8 +179,10 @@ function showTip(html, ev) {
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
   t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
 }
-let hover = null;
+let hover = null, atHover = '';
 document.addEventListener('mousemove', ev => {
+  const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
+  if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }   // a creature or item in the side lists: show where it is
   if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }

@@ -473,6 +473,13 @@ function drawMap() {
     for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { g.beginPath(); g.moveTo(x1 + a * r * .55, y1 + b * r * .55); g.lineTo(x1 + a * r * 1.3, y1 + b * r * 1.3); g.stroke(); }
     g.restore();
   } else if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
+  if (atHover) {   // the side list row under the mouse: mark its square and draw the line to it
+    const [adx, ady] = atHover.split(',').map(Number), ax = ox + (pcx + adx) * T, ay = oy + (pcy + ady) * T, k = T * .3;
+    g.save(); g.strokeStyle = 'rgba(255,207,158,.55)'; g.lineWidth = 1.5; g.setLineDash([T * .16, T * .14]); g.beginPath(); g.moveTo(ox + (pcx + .5) * T, oy + (pcy + .5) * T); g.lineTo(ax + T / 2, ay + T / 2); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(255,207,158,.14)'; g.fillRect(ax, ay, T, T); g.strokeStyle = '#ffcf9e'; g.lineWidth = 2.5;
+    [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([bx, by, dx, dy]) => { g.beginPath(); g.moveTo(ax + bx + dx * k, ay + by); g.lineTo(ax + bx, ay + by); g.lineTo(ax + bx, ay + by + dy * k); g.stroke(); });
+    g.restore();
+  }
   fxDraw(g, (x, y) => [ox + (pcx + x - S.px) * T, oy + (pcy + y - S.py) * T], T);
   fxPartsDraw(g, (x, y) => [ox + (pcx + x - S.px) * T, oy + (pcy + y - S.py) * T], T);
   const vg = g.createRadialGradient(px, py, T * 6, px, py, Math.max(W, H) * .8); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,5,6,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
