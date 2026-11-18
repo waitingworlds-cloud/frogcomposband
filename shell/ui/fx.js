@@ -1,7 +1,7 @@
 // Feel: smooth steps, hit flashes, floating numbers, screen shake, low-health warning.
 // Everything here is drawn from changes between two game states; it never delays a key press.
 'use strict';
-const FX = { scroll: null, mons: {}, floats: [], puffs: [], flash: {}, shake: null, lunge: {}, on: true };
+const FX = { scroll: null, mons: {}, floats: [], puffs: [], flash: {}, shake: null, lunge: {}, on: true, parts: [], rings: [], seen: {}, lastProj: 0 };
 const now = () => FX.freeze || performance.now();   // FX.freeze pins the clock (used when testing)
 const ease = t => 1 - (1 - t) * (1 - t);
 const STEP_MS = 95, HIT_MS = 55, HOLD_MS = 45, BACK_MS = 90;   // lunge out, hold on the hit, settle back
@@ -10,6 +10,7 @@ function fxOnState(prev, cur) {
   if (!FX.on || !prev || !prev.map || !cur.map || !prev.p || !cur.p) return;
   const t = now(), same = prev.p.place === cur.p.place && prev.p.dlvl === cur.p.dlvl;
   const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
+  fxSelf(prev, cur, same, near);
   if (!near) { FX.scroll = null; FX.mons = {}; FX.floats = []; FX.puffs = []; FX.lunge = {}; return; }
   if (mx || my) FX.scroll = { dx: mx, dy: my, t };
   if (mx || my) sndPlay('walk');
@@ -73,6 +74,8 @@ function fxActive() {
   for (const k in FX.mons) { if (t - FX.mons[k].t < STEP_MS) return true; delete FX.mons[k]; }
   for (const k in FX.lunge) { if (t - FX.lunge[k].t < HIT_MS + HOLD_MS + BACK_MS) return true; delete FX.lunge[k]; }
   FX.floats = FX.floats.filter(f => t - f.t < 900); FX.puffs = FX.puffs.filter(f => t - f.t < 380);
+  FX.parts = FX.parts.filter(p => t - p.t < p.life); FX.rings = FX.rings.filter(r => t - r.t < r.life);
+  if (FX.parts.length || FX.rings.length) return true;
   for (const k in FX.flash) if (t - FX.flash[k] > 220) delete FX.flash[k];
   if (FX.shake && t - FX.shake.t > FX.shake.ms) FX.shake = null;
   if (postActive()) return true;
@@ -88,6 +91,75 @@ function fxFlash(i) { const t = FX.flash[i]; if (!t) return 0; const k = (now() 
 function fxLunge(who) { const s = FX.lunge[who]; if (!s) return [0, 0]; const e = now() - s.t; if (e < 0 || e >= HIT_MS + HOLD_MS + BACK_MS) return [0, 0];
   const a = (e < HIT_MS ? ease(e / HIT_MS) : e < HIT_MS + HOLD_MS ? 1 : 1 - ease((e - HIT_MS - HOLD_MS) / BACK_MS)) * .3; return [s.dx * a, s.dy * a]; }
 function fxShake() { const s = FX.shake; if (!s) return [0, 0]; const k = (now() - s.t) / s.ms; if (k < 0 || k >= 1) return [0, 0]; const a = s.amp * (1 - k); return [Math.sin(k * 40) * a, Math.cos(k * 33) * a * .6]; }
+/* ---------- spell particles ----------
+ * The game animates bolts and balls as coloured * | - / \ marks. Each new mark sheds sparks that outlive it,
+ * a ball mark throws a burst and a shock ring, and the start of each volley flares at whoever cast it. */
+const rnd1 = () => Math.random() * 2 - 1;
+function fxPart(x, y, vx, vy, life, size, c, kind) { if (FX.parts.length < 700) FX.parts.push({ x, y, vx, vy, t: now(), life, size, c, kind }); }
+function fxSpell(lx, ly, ch, c) {
+  if (!FX.on) return;
+  const t = now(), key = lx + ',' + ly + ch; if (t - (FX.seen[key] || 0) < 160) return; FX.seen[key] = t;
+  if (t - FX.lastProj > 260) {   // a new volley: flare at the caster next to the first mark
+    FX.seen = {}; FX.seen[key] = t;
+    const who = [[S.px, S.py]].concat(S.mons.map(m => [S.px + m.dx, S.py + m.dy])).map(([x, y]) => [x, y, Math.hypot(x - lx, y - ly)]).filter(w => w[2] <= 1.5).sort((a, b) => a[2] - b[2])[0];
+    if (who) fxCast(who[0], who[1], c);
+  }
+  FX.lastProj = t;
+  const cx = lx + .5, cy = ly + .5;
+  if (ch === '*') {
+    FX.rings.push({ x: cx, y: cy, t, life: 420, r0: .15, r1: 1.05, c, w: 3 });
+    for (let i = 0; i < 18; i++) { const a = Math.random() * 6.283, s = 2.6 + Math.random() * 3.2; fxPart(cx, cy, Math.cos(a) * s, Math.sin(a) * s, 420 + Math.random() * 380, 3 + Math.random() * 3, i % 3 ? c : '#fff', 'spark'); }
+    fxPart(cx, cy, 0, 0, 300, 9, c, 'glow');
+  } else {
+    for (let i = 0; i < 4; i++) fxPart(cx + rnd1() * .18, cy + rnd1() * .18, rnd1() * .9, rnd1() * .9 - .35, 300 + Math.random() * 350, 1.8 + Math.random() * 2, i ? c : '#fff', 'spark');
+    fxPart(cx, cy, 0, 0, 220, 6, c, 'glow');
+  }
+  fxKick();
+}
+function fxCast(x, y, c) {
+  const t = now(), cx = x + .5, cy = y + .5;
+  FX.rings.push({ x: cx, y: cy, t, life: 360, r0: .75, r1: .25, c, w: 2 });
+  for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283, r = .7; fxPart(cx + Math.cos(a) * r, cy + Math.sin(a) * r, -Math.cos(a) * 1.6 + Math.sin(a) * .8, -Math.sin(a) * 1.6 - Math.cos(a) * .8, 320, 2.4, i % 2 ? c : '#fff', 'spark'); }
+}
+// what happened to us, read off the change in state: a blink out and in, mending, mana coming back, a new level
+function fxSelf(prev, cur, same, near) {
+  const P = prev.p, C = cur.p, x = cur.px + .5, y = cur.py + .5, t = now();
+  if (same && !near) {                         // teleported on this level: a swirl where we were, sparks gathering where we land
+    const ox = prev.px + .5, oy = prev.py + .5;
+    for (let i = 0; i < 16; i++) { const a = Math.random() * 6.283, s = .6 + Math.random() * 1.4; fxPart(ox, oy, Math.cos(a) * s, Math.sin(a) * s - .8, 500 + Math.random() * 300, 2.5 + Math.random() * 2, i % 3 ? '#b58cff' : '#fff', 'mote'); }
+    FX.rings.push({ x: ox, y: oy, t, life: 380, r0: .2, r1: .9, c: '#b58cff', w: 2 });
+    FX.rings.push({ x, y, t, life: 420, r0: 1.1, r1: .2, c: '#c9a8ff', w: 2.5 });
+    for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283, r = 1; fxPart(x + Math.cos(a) * r, y + Math.sin(a) * r, -Math.cos(a) * 2.2, -Math.sin(a) * 2.2, 420, 2.6, i % 2 ? '#c9a8ff' : '#fff', 'mote'); }
+    fxPart(x, y, 0, 0, 380, 8, '#b58cff', 'glow'); fxKick(); return;
+  }
+  if (!same) return;
+  const healed = C.hp - P.hp, mana = C.sp - P.sp;
+  if (healed > 0 && healed >= Math.max(3, C.mhp * .08)) {   // real mending, not the trickle of rest
+    const n = Math.min(18, 8 + Math.round(healed / Math.max(1, C.mhp) * 20));
+    for (let i = 0; i < n; i++) fxPart(x + rnd1() * .45, y + .2 + Math.random() * .3, rnd1() * .15, -.9 - Math.random() * .8, 600 + Math.random() * 400, 2.5 + Math.random() * 2, i % 3 ? '#7dff9a' : '#e8ffe8', 'mote');
+    fxPart(x, y, 0, 0, 420, 7, '#5fe07a', 'glow'); fxKick();
+  }
+  if (mana > 0 && mana >= Math.max(3, C.msp * .15)) {
+    for (let i = 0; i < 8; i++) fxPart(x + rnd1() * .4, y + .2, rnd1() * .1, -.7 - Math.random() * .6, 600 + Math.random() * 300, 2.2, i % 2 ? '#7fb6ff' : '#e0ecff', 'mote');
+    fxKick();
+  }
+  if (C.lev > P.lev) {                         // a new level: a golden ring rises out of us and the air fills with sparks
+    FX.rings.push({ x, y, t, life: 700, r0: .2, r1: 1.8, c: '#ffd36b', w: 3 }); FX.rings.push({ x, y, t: t + 140, life: 600, r0: .2, r1: 1.3, c: '#fff1c2', w: 2 });
+    for (let i = 0; i < 24; i++) { const a = Math.random() * 6.283, s = 1 + Math.random() * 2.5; fxPart(x, y, Math.cos(a) * s, Math.sin(a) * s - 1.2, 800 + Math.random() * 500, 3 + Math.random() * 2.5, i % 3 ? '#ffd36b' : '#fff', 'mote'); }
+    fxPart(x, y, 0, 0, 600, 10, '#ffcf5a', 'glow'); fxKick();
+  }
+}
+function fxPartsDraw(g, toXY, T) {
+  if (!FX.parts.length && !FX.rings.length) return;
+  const t = now(); g.save(); g.globalCompositeOperation = 'lighter';
+  for (const r of FX.rings) { const k = (t - r.t) / r.life; if (k < 0 || k >= 1) continue; const [x, y] = toXY(r.x, r.y), e = 1 - (1 - k) * (1 - k);
+    g.globalAlpha = (1 - k) * .9; g.strokeStyle = r.c; g.lineWidth = r.w * (1 - k * .6); g.beginPath(); g.arc(x, y, T * (r.r0 + (r.r1 - r.r0) * e), 0, 7); g.stroke(); }
+  for (const p of FX.parts) { const k = (t - p.t) / p.life; if (k < 0 || k >= 1) continue; const s = (t - p.t) / 1000, drag = 1 - Math.min(.6, s * 1.4);
+    const [x, y] = toXY(p.x + p.vx * s * drag, p.y + p.vy * s * drag + (p.kind === 'spark' ? s * s * .9 : 0));
+    if (p.kind === 'glow') { const r = T * (.35 + k * .4), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = (1 - k) * .55; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); continue; }
+    g.globalAlpha = 1 - k; g.fillStyle = p.c; const z = p.size * (1 - k * .5); g.fillRect(x - z / 2, y - z / 2, z, z); }
+  g.restore(); g.globalAlpha = 1;
+}
 // floating numbers and death puffs, drawn over the map. toXY turns a level square into canvas pixels
 function fxDraw(g, toXY, T) {
   const t = now();
