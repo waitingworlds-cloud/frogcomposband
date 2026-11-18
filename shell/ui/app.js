@@ -306,7 +306,8 @@ const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
 function consoleHtml() {
   const cnt = { q: countTv(t => t === 75), r: countTv(t => t === 70), E: countTv(t => t === 80), a: countTv(t => t === 65 || t === 66 || t === 55) };
-  const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o), noFloor = !S.floor.some(o => !o.dx && !o.dy);   // nothing to fire with: say so on the button
+  const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o); if (!noBow) { const n = countTv(t => t >= 16 && t <= 18); if (n) cnt.f = n; }   // ammunition in the pack shows on the Fire button (a worn quiver keeps its own, so none here is not 'none')
+  const noFloor = !S.floor.some(o => !o.dx && !o.dy);   // nothing to fire with: say so on the button
   const msgs = S.msgs.filter(m => (String(m.s).match(/\n/g) || []).length < 3).slice(-8);   // a picture of the map kept in the log (after a death) is not a line to read
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
