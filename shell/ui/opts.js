@@ -3,7 +3,7 @@
 // Built from the game's own page text, so nothing is lost; clicking moves the game's cursor and
 // presses y or n exactly as the keyboard would. Keys work as before (arrows, y/n, Esc).
 'use strict';
-const OPT_HEAD = /^(.+?)\s*\(RET:next, (y\/n:change, ESC:accept|ESC:exit), \?:help\)/;
+const OPT_HEAD = /^(.+?)\s*\((?:RET:next, (y\/n:change, ESC:accept|ESC:exit), \?:help|RET to advance, y\/n to set(, 'F' for frequency)?, ESC to accept)\)/;
 function optsParse() {
   const head = OPT_HEAD.exec(rowText(0)); if (!head) return null;
   const rows = []; let note = '';
@@ -14,7 +14,7 @@ function optsParse() {
     else rows.push({ y, note: s.trim() });
   }
   if (!rows.some(r => !r.note)) return null;
-  return { title: head[1].replace(/\s*\(.*$/, ''), browse: /ESC:exit/.test(head[2]), rows, cur: G.cy };
+  return { title: head[1].replace(/\s*\(.*$/, ''), browse: /ESC:exit/.test(head[2] || ''), freq: !!head[3], help: !!head[2], rows, cur: G.cy };
 }
 function optsHtml() {
   const o = optsParse(); if (!o) return '';
@@ -34,7 +34,7 @@ function optsHtml() {
   return `<div class="pane npanel optp"><div class="tabs"><div class="on">${esc(o.title)}</div></div>
     <div class="orows">${body}</div>
     <div class="nfoot"><span class="sub">${o.browse ? 'These are set when a character is created and can only be viewed here.' : 'Click an option to change it. Hover for what it does.'}</span><span class="grow"></span>
-      <span class="row" data-key="?"><span class="key">?</span>help</span><span class="row" data-key="\x1b"><span class="key">Esc</span>${o.browse ? 'close' : 'done'}</span></div></div>`;
+      ${o.freq ? '<span class="row" data-key="F"><span class="key">F</span>how often</span>' : ''}${o.help ? '<span class="row" data-key="?"><span class="key">?</span>help</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>${o.browse ? 'close' : 'done'}</span></div></div>`;
 }
 let OPTS = null;
 // move the game's cursor to option i, then press y or n
