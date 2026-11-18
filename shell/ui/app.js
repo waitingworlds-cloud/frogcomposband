@@ -284,7 +284,7 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk to it' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk over and pick it up' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;

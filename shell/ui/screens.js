@@ -306,12 +306,19 @@ document.addEventListener('mousemove', ev => {
   showTip('', ev);
 });
 document.addEventListener('mouseleave', () => { hover = null; showTip('', {}); });
+// an item picked from the floor list: walk there, then pick it up on arrival
+let PICK_AT = null;
+setInterval(() => {
+  if (!PICK_AT) return; if (Date.now() - PICK_AT.t > 20000) { PICK_AT = null; return; }
+  if (S && playing() && S.px === PICK_AT.x && S.py === PICK_AT.y && !expAsk()) { PICK_AT = null; if (S.floor.some(o => !o.dx && !o.dy)) sendText(cmd('g')); }
+}, 150);
+addEventListener('keydown', () => { PICK_AT = null; }, { capture: true });
 document.addEventListener('mousedown', ev => {
   // the side lists: a creature row picks it as the target, an item row walks you to it
   const sideAt = ev.button === 0 && playing() && !aimMode() && !lookMode() && ev.target.closest && ev.target.closest('.mob[data-at], .row[data-at]');
   if (sideAt && !CTX) {
     const [dx, dy] = sideAt.dataset.at.split(',').map(Number);
-    if (sideAt.classList.contains('mob')) sendRaw(`T ${dx} ${dy}`); else sendRaw(`M 1 ${dx} ${dy}`);
+    if (sideAt.classList.contains('mob')) sendRaw(`T ${dx} ${dy}`); else { sendRaw(`M 1 ${dx} ${dy}`); if (dx || dy) PICK_AT = { x: S.px + dx, y: S.py + dy, t: Date.now() }; }
     return;
   }
   const go = ev.target.closest && ev.target.closest('[data-go]');
