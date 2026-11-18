@@ -2,7 +2,7 @@
 // The text keeps its exact place, so nothing is lost or reflowed; each choice gains a key cap,
 // a hover highlight, and a click that presses the same key. Keys work exactly as before.
 'use strict';
-const MENU_TOK = /(^|\s{2,}|^\s+)(\(([A-Za-z0-9@_?])\)|([A-Za-z0-9])\)|\[([A-Za-z0-9])\])(?= \S)/g;
+const MENU_TOK = /(^|\s{2,}|^\s+)(\(([A-Za-z0-9@_?])\)|([A-Za-z0-9])\)|\[([A-Za-z0-9])\]|(ESC)\))(?= \S)/g;
 function menuBox() {
   let x0 = 0, y0 = 0, x1 = G.w - 1, y1 = G.h - 1;
   const ch = (y, x) => { const r = G.s[y]; return r ? r[x] : ' '; };
@@ -25,7 +25,7 @@ function menuHtml() {
     if (pg && (y === pg.head || y === pg.foot)) continue;
     const s = rowText(y).slice(0, b.x1 + 1), toks = []; let m; MENU_TOK.lastIndex = 0;
     while ((m = MENU_TOK.exec(s))) {
-      const at = m.index + m[1].length, len = m[2].length, key = m[3] || m[4] || m[5];
+      const at = m.index + m[1].length, len = m[2].length, key = m[3] || m[4] || m[5] || (m[6] && 'Esc');
       let end = s.indexOf('  ', at + len + 1); if (end < 0) end = s.length;
       toks.push({ at, len, key, end }); n++;
     }

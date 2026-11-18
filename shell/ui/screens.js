@@ -229,6 +229,7 @@ document.addEventListener('mousedown', ev => {
   // the plain text panel: clicking a line that offers a lettered choice presses that letter
   if (ev.target.id === 'termc' && TERMGEO && ev.button === 0) {
     const r = ev.target.getBoundingClientRect(), gx = TERMGEO.x0 + Math.floor((ev.clientX - r.left) / SCALE / TERMGEO.cw), gy = TERMGEO.y0 + Math.floor((ev.clientY - r.top) / SCALE / TERMGEO.chh);
+    if (BROWSE && G.cv) { browsePick(gx, gy, ev.detail >= 2); return; }
     const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
     while ((m = re.exec(s))) { const at = m.index + m[1].length; if (at <= gx + 1) best = m[2]; else if (!best) best = m[2]; }
     if (best) sendText(best);
@@ -236,8 +237,22 @@ document.addEventListener('mousedown', ev => {
 });
 document.addEventListener('contextmenu', ev => ev.preventDefault());
 // the wheel over the map zooms it
+// a list browser: the game's cursor sits on the picked line of the column in use. A click moves it there (crossing columns
+// first if need be), a second click on the picked line recalls it
+function browseCol(gx) { const s = (G.s[G.cy] || ''); for (let x = Math.min(gx, G.cx); x < Math.max(gx, G.cx); x++) if (s[x] === '|') return gx < G.cx ? -1 : 1; for (let y = G.cy - 3; y <= G.cy + 3; y++) { const r = G.s[y] || ''; for (let x = Math.min(gx, G.cx); x < Math.max(gx, G.cx); x++) if (r[x] === '|') return gx < G.cx ? -1 : 1; } return 0; }
+function browsePick(gx, gy, dbl) {
+  const side = browseCol(gx);
+  if (side) { sendText(side > 0 ? '6' : '4'); setTimeout(() => { if (BROWSE && G.cv) browsePick(gx, gy, false); }, 160); return; }
+  const d = gy - G.cy;
+  if (!d) { if (dbl && BROWSE.recall) sendText(BROWSE.recall); else if (BROWSE.recall && browsePick.last === gy && Date.now() - browsePick.t < 600) sendText(BROWSE.recall); browsePick.last = gy; browsePick.t = Date.now(); return; }
+  sendText((d > 0 ? '2' : '8').repeat(Math.min(60, Math.abs(d)))); browsePick.last = gy; browsePick.t = Date.now();
+}
 let wheelAcc = 0;
 document.addEventListener('wheel', ev => {
+  if (BROWSE && ev.target.closest && ev.target.closest('#term')) {   // a list: the wheel walks the picked line
+    wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
+    sendText((n > 0 ? '2' : '8').repeat(Math.min(8, Math.abs(n)))); return;
+  }
   if (PAGER && ev.target.closest && ev.target.closest('#term,#native')) {   // a scrolling page: the wheel moves it three lines a notch
     wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
     for (let i = 0; i < Math.min(12, Math.abs(n) * 3); i++) trigger(n > 0 ? KS.ArrowDown : KS.ArrowUp, {}); return;

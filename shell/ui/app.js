@@ -509,10 +509,13 @@ function drawTerm(float) {
     if (x0 === x1 && y0 === y1 && blankRow(y0)) return false;
   }
   // a scrolling page (messages, help, lists): its caption and key line become a title bar and buttons
-  PAGER = pagerInfo(y0, y1); const skip = {};
+  PAGER = pagerInfo(y0, y1); BROWSE = PAGER ? null : browseInfo(y0, y1); const skip = {};
+  if (BROWSE) { skip[BROWSE.foot] = 1; if (BROWSE.foot === y1) y1--; if (BROWSE.title >= 0) { skip[BROWSE.title] = 1; if (BROWSE.title === y0) y0++; }
+    while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; while (y0 < y1 && !(G.s[y0] || '').replace(/[\x01 ]/g, '')) y0++; }
   if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--;
     while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; }
-  setHtml($('#termh'), PAGER ? pagerHead(PAGER) : ''); setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : '');
+  setHtml($('#termh'), PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
+  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : '');
   const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
   let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
@@ -523,7 +526,25 @@ function drawTerm(float) {
   TERMGEO = { x0, y0, cw, chh };
   return true;
 }
-let TERMGEO = null, PAGER = null;
+let TERMGEO = null, PAGER = null, BROWSE = null;
+// list browsers (knowledge, visuals): the bottom line reads "<dir>, 'r' to recall, ..., ESC"
+function browseInfo(y0, y1) {
+  let foot = -1;
+  for (let y = y1; y >= Math.max(y0, y1 - 2); y--) { const t = (G.s[y] || '').replace(/\x01/g, ' ').trim(); if (/^<dir>.*ESC$/.test(t)) { foot = y; break; } if (t) break; }
+  if (foot < 0) return null;
+  for (let y = y0; y < foot; y++) if (/\[Press Any Key|-more-/i.test(G.s[y] || '')) return null;   // a recall laid over the list
+  const line = (G.s[foot] || '').replace(/\x01/g, ' '), keys = []; let m; const re = /'(.)'(?:, '(.)')? (?:to|for) ([^,]+)/g;
+  while ((m = re.exec(line))) { keys.push([m[1], m[2] ? m[3].trim() + ' ' : m[3].trim()]); if (m[2]) { keys[keys.length - 1][1] = 'copy'; keys.push([m[2], m[3].trim()]); } }
+  if (/ENTER to accept/.test(line)) keys.push(['\r', 'accept']);
+  let title = -1, name = '';
+  for (let y = y0; y < foot; y++) { const t = (G.s[y] || '').replace(/\x01/g, ' ').trim(); if (!t) continue; if (t.length < 48 && !/[|=]{2}|:/.test(t)) { title = y; name = t; } break; }
+  const recall = keys.find(k => /recall/.test(k[1]));
+  return { foot, keys, title, name, recall: recall ? recall[0] : '' };
+}
+function browseFoot(b) {
+  const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
+  return k('Esc', 'data-key="Esc"', 'close') + '<span class="pgb"><span class="key">⇅</span>move</span>' + b.keys.map(([key, what]) => k(key === '\r' ? 'Enter' : esc(key), `data-key="${esc(key)}"`, esc(what))).join('') + '<span class="pgw">wheel moves</span>';
+}
 function pagerInfo(y0, y1) {
   let head = -1, foot = -1, cap = '', at = 0, of = 0, keys = '';
   for (let y = y0; y <= Math.min(y1, y0 + 2); y++) { const m = /\[(.+?), Line (\d+)\/(\d+)\]/.exec((G.s[y] || '').replace(/\x01/g, ' ')); if (m) { head = y; cap = m[1]; at = +m[2]; of = +m[3]; break; } }
@@ -538,7 +559,7 @@ function pagerHead(p) {
 }
 function pagerFoot(p) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  let h = k('Esc', 'data-key="\x1b"', 'close');
+  let h = k('Esc', 'data-key="Esc"', 'close');
   if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
   if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
   if (/\?/.test(p.keys)) h += k('?', 'data-key="?"', 'help');
@@ -560,7 +581,7 @@ function draw() {
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  PAGER = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
+  PAGER = null; BROWSE = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
   const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
@@ -571,6 +592,6 @@ function draw() {
 }
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
-  const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key.replace(/\n/g, '\r'));   // HTML turns a stored Return into a newline: give the game its Return back
+  const k = e.target.closest('[data-key]'); if (k) { const v = k.dataset.key; if (v === 'Esc' || v === '\x1b') sendBytes([27]); else sendText(v.replace(/\n/g, '\r')); }   // HTML turns a stored Return into a newline: give the game its Return back
 });
 document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
