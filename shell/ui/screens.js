@@ -244,6 +244,20 @@ function cellTip(cell) {
   const stair = !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && c[0] ? featClass(c[0]) : '';
   return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : digHere(cell) === 'dig' ? 'click: tunnel' : digHere(cell) === 'hard' ? 'too hard to dig with what you have' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
 }
+// after each turn, a tip resting on the map follows what is now under the pointer (a hurt creature, a square you moved off)
+let MAPEV = null;
+function tipRefresh() {
+  const t = $('#tip'); if (!MAPEV || !t || t.style.display !== 'block' || !S || !S.map || !playing() || aimMode() || lookMode()) return;
+  const el = document.elementFromPoint(MAPEV.clientX, MAPEV.clientY); if (!el || el.id !== 'map') return;
+  const cell = mapCellAt(MAPEV); hover = cell; if (!cell) return showTip('', MAPEV);
+  if (t.classList.contains('wide')) {   // the lore stays while the same kind of creature or item is still there
+    const m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy), fo = !m && S.floor.find(o => o.dx === cell.dx && o.dy === cell.dy && o.oi), key = m ? 'm:' + m.r : fo ? 'o:' + fo.oi : '';
+    const lore = t.lastElementChild && t.lastElementChild.tagName === 'DIV' && /margin-top/.test(t.lastElementChild.getAttribute('style') || '') ? t.lastElementChild.outerHTML : '';
+    if (key && key === loreKey && lore) return showTip(cellTip(cell) + lore, MAPEV);
+    t.classList.remove('wide'); loreKey = ''; descHover = '';
+  }
+  showTip(cellTip(cell), MAPEV);
+}
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
   t.innerHTML = html; t.style.display = 'block';
@@ -291,7 +305,7 @@ document.addEventListener('mousemove', ev => {
     return showTip(f ? `${esc(f)} <span class="sub">${dirOf(cell.dx, cell.dy)}</span><div class="hint">click: travel here</div>` : '', ev);
   }
   if (ev.target.id === 'map' && playing()) {
-    const cell = mapCellAt(ev);
+    MAPEV = ev; const cell = mapCellAt(ev);
     // the pointer says what a click will do: aim, attack, or walk
     { const foe = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy && !m.pet && !m.friendly), want = aimMode() || lookMode() ? 'crosshair' : foe ? 'pointer' : 'default';
       if (ev.target.style.cursor !== want) ev.target.style.cursor = want; }
@@ -353,6 +367,7 @@ document.addEventListener('mousedown', ev => {
   if (ev.target.id === 'mini' && playing() && ev.button === 0 && !aimMode() && !lookMode()) {
     // the area map: click a known square to travel there
     const cell = miniCellAt(ev); ev.preventDefault(); if (!cell || !(cell.c && cell.c[0]) || (!cell.dx && !cell.dy)) return;
+    if (!walkPath(cell.dx, cell.dy) && typeof exploreGoto === 'function' && exploreGoto(cell.dx, cell.dy)) return;
     sendRaw(`M 1 ${cell.dx} ${cell.dy}`); return;
   }
   if (ev.target.id === 'map' && playing()) {
@@ -366,6 +381,8 @@ document.addEventListener('mousedown', ev => {
     if (sc === 'down' || sc === 'up') { sendText(cmd(sc === 'down' ? '>' : '<')); ev.preventDefault(); return; }
     if (ev.button === 0 && digHere(cell)) { if (digHere(cell) === 'dig') sendText(cmd('T') + dirKey(cell.dx, cell.dy)); else postToast('Too hard to dig with what you have'); ev.preventDefault(); return; }
     if (ev.button === 0 && (cell.dx || cell.dy) && S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy)) PICK_AT = { x: S.px + cell.dx, y: S.py + cell.dy, t: Date.now() };   // an item there: pick it up on arrival
+    // too far for the game to find a way (it forgets dark floor): walk it over the squares this interface remembers
+    if (ev.button === 0 && Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) > 1 && !walkPath(cell.dx, cell.dy) && typeof exploreGoto === 'function' && exploreGoto(cell.dx, cell.dy, S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy && !m.pet && !m.friendly))) { ev.preventDefault(); return; }
     sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
   }
   // the plain text panel: clicking a line that offers a lettered choice presses that letter
