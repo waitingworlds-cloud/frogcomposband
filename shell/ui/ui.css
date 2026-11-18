@@ -261,3 +261,4 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 @keyframes thrp{50%{box-shadow:0 0 0 1px #ff5a3c inset,0 0 8px #ff5a3c88}}
 #native.pop>*,#term.pop>*{animation:panin .16s cubic-bezier(.2,.8,.3,1)}#native.pop,#term.pop{animation:bgin .16s ease-out}@keyframes bgin{from{background-color:transparent}}@keyframes panin{from{opacity:0;transform:translateY(10px) scale(.985)}}
 @media (prefers-reduced-motion:reduce){#native.pop>*,#term.pop>*,#native.pop,#term.pop{animation:none}}
+.spm.short b{color:#ff7a66}.spm.short svg{filter:grayscale(1) brightness(.7)}

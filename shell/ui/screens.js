@@ -55,6 +55,7 @@ function spellsHtml() {
   const prompt = (G.s[0] || '').replace(/\x01/g, ' ').trim();
   const cur = rows.find(r => r.n === spHover) || rows.find(r => r.n === uiSel) || (u.sel >= 0 ? rows[u.sel] : null);
   const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
+  const have = u.unit === 'HP' ? S.p.hp : u.unit === 'au' ? S.p.au : S.p.sp;   // a cost above what you have shows red
   const cards = rows.map((r, i) => {
     const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
     const el = spElem(r.n);
@@ -62,7 +63,7 @@ function spellsHtml() {
       <span class="key kb">${esc(r.k)}</span>
       <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? 'level ' + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
       ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
-      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''}">${icon('potion')}<b>${r.cost}</b></span>` : ''}
+      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}"${r.cost > have ? ` data-tip="You have ${have} ${unit}: not enough to cast this safely."` : ''}>${icon('potion')}<b>${r.cost}</b></span>` : ''}
       ${f != null ? `<span class="ring" style="--p:${Math.min(100, f)};--rc:${fc}"><span class="rv">${f}%</span></span>` : ''}</div>`;
   }).join('');
   const detail = cur ? `<div class="spd"><div class="spn" style="font-size:24px">${esc(cur.n)}</div><div class="grow" style="font-size:17px;line-height:1.35;color:#d9d2c4">${esc(cur.desc || '')}${cur.info ? `<div style="color:#ffcf9e;margin-top:4px">${esc(cur.info)}</div>` : ''}</div>
