@@ -142,6 +142,14 @@ function liveHtml() {
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
 function qtyKeys() {
   const top = (G.s[0] || '').replace(/\x01/g, ' ');
+  // which way: the map answers it (click a square); the keys it names become buttons too
+  if (/^Direction\b.*\?/.test(top.trim()) && /'\*'|'5'|Escape/.test(top)) {
+    const b = [];
+    if (/'5'|'t'/.test(top)) b.push([/'5'/.test(top) ? '5' : 't', 'at your target']);
+    if (/'\*'/.test(top)) b.push(['*', 'pick a target']);
+    if (/'''/.test(top)) b.push(["'", 'nearest']);
+    return '<span class="lkeys">' + b.map(([k, w]) => `<span class="lk" data-key="${esc(k)}"><span class="key">${esc(k)}</span>${w}</span>`).join('') + '<span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span><span class="lk dirk" style="opacity:.75"><i>or click where to aim</i></span></span>';
+  }
   // resting: the usual answers as buttons
   if (/^Rest \(0-\d+, '\*' for HP\/SP, '&' as needed\)/.test(top)) return '<span class="lkeys">' + [['&', 'as needed'], ['*', 'until healed'], ['50', '50 turns']].map(([n, w]) => `<span class="lk" data-qty="${n}"><span class="key">${n}</span>${w}</span>`).join('') + '<span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span></span>';
   const m = /Quantity \((\d+)(?:-| to )(\d+)\)/.exec(top); if (!m) return '';
