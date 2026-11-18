@@ -48,6 +48,8 @@ typedef int sock_t;
 extern rect_t ui_effects_rect(void);
 extern int ui_screen_depth(void);
 /* the effect type of the last projection the game drew (set in project()) */
+/* a describe page as rows of text and colours (64 wide, at most 48 rows) */
+static void _doc_rows(doc_ptr doc);
 int shell_proj_gf = 0;
 static cptr _gf_elem(int gf)
 {
@@ -146,6 +148,25 @@ static void o_close(char c)
     o_need(2);
     obuf[olen++] = c;
 }
+static void _doc_rows(doc_ptr doc)
+{
+    int y, x, n = doc_line_count(doc);
+    if (n > 48) n = 48;
+    o_raw("[");
+    for (y = 0; y < n; y++)
+    {
+        char rs[65]; char ra[64 * 2 + 1];
+        for (x = 0; x < 64; x++)
+        {
+            doc_char_ptr c = doc_char(doc, doc_pos_create(x, y));
+            rs[x] = (c && c->c) ? c->c : ' ';
+            sprintf(ra + x * 2, "%02x", c ? c->a : 1);
+        }
+        rs[64] = 0;
+        o_raw("{"); o_kstr("s", rs); o_kstr("a", ra); o_close('}'); o_raw(",");
+    }
+    o_close(']');
+}
 /* the interface has gone: keep the character safe, then leave */
 static void shell_lost(void)
 {
@@ -229,27 +250,26 @@ static void shell_command(char *line)
         if (o || line[2] == 'm')
         {
             doc_ptr doc = doc_alloc(64);
-            int y, x, n;
             if (o) obj_display_doc(o, doc);
             else mon_display_doc(&r_info[atoi(line + 4)], doc);
-            n = doc_line_count(doc);
-            if (n > 48) n = 48;
             o_raw("{\"t\":\"desc\",");
             { char k[16]; my_strcpy(k, line + 2, sizeof(k)); k[1] = ':'; o_kstr("key", k); }
-            o_raw("\"rows\":[");
-            for (y = 0; y < n; y++)
+            o_raw("\"rows\":");
+            _doc_rows(doc);
+            /* something you could wear: what you wear there now, to compare side by side */
+            if (o && line[2] != 'e' && object_is_wearable(o))
             {
-                char rs[65]; char ra[64 * 2 + 1];
-                for (x = 0; x < 64; x++)
+                slot_t sl = equip_first_slot(o);
+                obj_ptr w = sl ? equip_obj(sl) : NULL;
+                if (w)
                 {
-                    doc_char_ptr c = doc_char(doc, doc_pos_create(x, y));
-                    rs[x] = (c && c->c) ? c->c : ' ';
-                    sprintf(ra + x * 2, "%02x", c ? c->a : 1);
+                    doc_ptr d2 = doc_alloc(64);
+                    obj_display_doc(w, d2);
+                    o_raw(",\"cmp\":");
+                    _doc_rows(d2);
+                    doc_free(d2);
                 }
-                rs[64] = 0;
-                o_raw("{"); o_kstr("s", rs); o_kstr("a", ra); o_close('}'); o_raw(",");
             }
-            o_close(']');
             o_raw("}");
             o_send();
             doc_free(doc);

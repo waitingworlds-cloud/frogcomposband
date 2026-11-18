@@ -231,11 +231,15 @@ function showTip(html, ev) {
   t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
 }
 let loreT = 0, loreKey = '', hover = null, atHover = '', DESC = {}, DESC_ASKED = {}, descHover = '', descEv = null;
-function descIn(m) {
-  const rows = m.rows.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
+function descRows(list) {
+  const rows = list.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
     const s = r.s.replace(/\s+$/, ''); for (let x = 0; x < s.length; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h; });
   while (rows.length && !rows[rows.length - 1]) rows.pop();
-  DESC[m.key] = `<div class="dsc">${rows.join('\n')}</div>`;
+  return `<div class="dsc">${rows.join('\n')}</div>`;
+}
+function descIn(m) {
+  // something you could wear arrives with what you wear in that place now, shown beside it
+  DESC[m.key] = m.cmp && m.cmp.length ? `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
   if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }
   if (descHover === m.key && descEv) { const de = descEv.target.closest && descEv.target.closest('[data-desc]'); $('#tip').classList.add('wide'); showTip(DESC[m.key] + (de ? descHint(de) : ''), descEv); }
 }
