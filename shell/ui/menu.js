@@ -36,7 +36,7 @@ function menuHtml() {
   // only menus: a few choices, and not a page of running text or a table
   const filled = rows.filter(r => r.s.trim()).length;
   if ((n < 3 && !(n === 2 && filled <= 4)) || prose > 4 || n < filled * .3) return '';   // two choices count in a small box (which hand?)
-  { const c = menuCards(rows, b); if (c) return c; }
+  { const c = menuCards(rows, b) || menuSections(rows, b); if (c) return c; }
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
   let fs = Math.floor(Math.min((VH - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
@@ -82,4 +82,34 @@ function menuCards(rows, b) {
   return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
     ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
     ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}</div>` : ''}</div>`;
+}
+
+// two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
+// Anything else on the lines (a description beside a choice, prose between them) keeps the text layout.
+function menuSections(rows, b) {
+  const isEsc = t => t.key === 'Esc';
+  const items = rows.filter(r => r.toks.some(t => !isEsc(t)));
+  if (items.length < 4 || items.length > 40) return '';
+  const ats = []; items.forEach(r => r.toks.forEach(t => { if (!isEsc(t)) ats.push(t.at); }));
+  const lo = Math.min(...ats), hi = Math.max(...ats); if (hi - lo < 12 || !ats.every(a => a - lo <= 3 || hi - a <= 3)) return '';
+  const mid = (lo + hi) >> 1, firstItem = rows.indexOf(items[0]), lastItem = rows.indexOf(items[items.length - 1]);
+  // text runs on a line that are not part of a choice
+  const loose = r => { const out = [], re = /\S+(?: {1,2}\S+)*/g; let m; while ((m = re.exec(r.s))) { const x = m.index, e = x + m[0].length; if (x >= b.x0 && !r.toks.some(t => x < t.end && e > t.at)) out.push({ x, e }); } return out; };
+  const first = rows.findIndex(r => r.s.trim()); let title = null;
+  if (first < firstItem && !rows[first].toks.length && loose(rows[first]).length === 1) { const nx = rows.slice(first + 1).find(r => r.s.trim()); if (nx && !nx.toks.length) title = rows[first]; }
+  const cols = [[], []]; let heads = 0;
+  for (const r of rows.slice(title ? first + 1 : 0, lastItem + 1)) {
+    const ls = loose(r);
+    if (ls.some(l => l.e - l.x > 40)) return '';                       // prose: not a plain menu
+    for (const l of ls) { const c = l.x < mid ? 0 : 1; if (r.toks.some(t => (t.at < mid ? 0 : 1) === c && !isEsc(t))) return ''; cols[c].push({ head: rowHtml(r.y, l.x, l.e), items: [] }); heads++; }
+    for (const t of r.toks) { if (isEsc(t)) continue; const c = t.at < mid ? 0 : 1; if (!cols[c].length) cols[c].push({ head: '', items: [] }); cols[c][cols[c].length - 1].items.push({ r, t }); }
+  }
+  if (heads < 2) return '';
+  const esc1 = rows.flatMap(r => r.toks.filter(isEsc).map(t => ({ r, t })));
+  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim() && !r.toks.length && !/:\s*_?\s*$/.test(r.s));
+  const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
+  const sec = g => g.items.length ? `<div class="msec">${g.head ? `<div class="mhead">${g.head}</div>` : ''}<div class="mlist">${g.items.map(card).join('')}</div></div>` : '';
+  return `<div class="pane npanel menup mcards msect">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    <div class="mcols">${cols.map(c => `<div>${c.map(sec).join('')}</div>`).join('')}</div>
+    ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${rowHtml(r.y, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
 }
