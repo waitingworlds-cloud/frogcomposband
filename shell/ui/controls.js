@@ -8,7 +8,7 @@ const CONTROLS = [
     ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['prompts and menus', 'every key shown is a button'], ['drag a spell or item onto the hotbar', 'then one click uses it'], ['drag a hotbar slot off the bar', 'clear it'],
   ]],
   ['Keys', [
-    ['x', 'explore until something turns up (original keys)'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'],
+    ['x', 'explore until something turns up (original keys)'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'], ['Shift+F7', 'living map: ripples, flicker, sway'],
     ['F8', 'retro moments'], ['F9', 'screen style (Shift+F9 back)'], ['Ctrl + / Ctrl −', 'interface size'], ['F11', 'full screen'], ['Ctrl+1 … Ctrl+0', 'hotbar slots'], ['?', "the game's own help"],
   ]],
 ];

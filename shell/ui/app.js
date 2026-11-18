@@ -55,7 +55,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (hotbarKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -562,6 +562,7 @@ function drawMap() {
       else if (cls === 'tree') { g.fillStyle = lit ? '#2f5a2a' : '#1c3219'; g.beginPath(); g.arc(sx + T / 2, sy + T * .42, T * .34, 0, 7); g.fill(); g.fillStyle = '#3a2a1a'; g.fillRect(sx + T / 2 - 2, sy + T * .68, 4, T * .24); }
       else if (f && cls === 'other' && String.fromCharCode(fd[1]) !== '.' && String.fromCharCode(fd[1]) !== ' ') later.push([sx, sy, String.fromCharCode(fd[1]), readable(col(fd[2])), lit ? 1 : .6, 4]);
     }
+    if (cls === 'water' || cls === 'lava') ambCell(g, cls, sx, sy, T, S.px + x - pcx, S.py + y - pcy, lit);
     if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, objArt(c[3])]); }
     if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
     else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
@@ -571,11 +572,12 @@ function drawMap() {
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
   if (lon) lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy);
+  ambMotes(g, px, py, T, W, H);
   for (let [sx, sy, what, c, al, kind, nm] of later) {
     if (lon && kind !== 0 && kind !== 2 && kind !== 3) { const lx = Math.round((sx - ox) / T), ly = Math.round((sy - oy) / T); if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) al *= .45 + .55 * Math.min(1, lightAt(lx, ly, mw) * 1.5); }
     g.globalAlpha = al;
     if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
-    if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
+    if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1] + ambBob(nm, nm && nm.i)) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
       const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2 && spriteFlash(g, DICT.r[what], mx2, my2, T, fl2)) { /* drawn */ } else if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
     else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T;
       // a thin ring at your feet, so you find yourself at a glance on a dark or busy map

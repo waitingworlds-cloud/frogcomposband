@@ -207,7 +207,7 @@ function postRender(src, toPx, art, lowHealth) {
 function postKey(e) {
   if (e.key === 'F9') { POST.style = (POST.style + (e.shiftKey ? POST_STYLES.length - 1 : 1)) % POST_STYLES.length; try { localStorage.setItem('post.style', POST.style); } catch (x) {} postToast('Screen style: ' + POST_STYLES[POST.style].name); return true; }
   if (e.key === 'F8') { POST.moments = !POST.moments; try { localStorage.setItem('post.moments', POST.moments ? '1' : '0'); } catch (x) {} postToast('Retro moments: ' + (POST.moments ? 'on' : 'off')); return true; }
-  if (e.key === 'F7') { LIGHT.on = !LIGHT.on; try { localStorage.setItem('light', LIGHT.on ? '1' : '0'); } catch (x) {} postToast('Map lighting: ' + (LIGHT.on ? 'on' : 'off')); return true; }
+  if (e.key === 'F7' && !e.shiftKey) { LIGHT.on = !LIGHT.on; try { localStorage.setItem('light', LIGHT.on ? '1' : '0'); } catch (x) {} postToast('Map lighting: ' + (LIGHT.on ? 'on' : 'off')); return true; }
   return false;
 }
 // the toast sits under the game's message line when one is up, never on top of it
