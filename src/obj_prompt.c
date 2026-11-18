@@ -132,7 +132,7 @@ int obj_prompt(obj_prompt_ptr prompt)
     }
 
     context.doc = doc_alloc(MIN(80, ui_map_rect().cx));
-    Term_save();
+    ui_popup_begin();
     for (;;)
     {
         obj_prompt_tab_ptr tab = vec_get(context.tabs, context.tab);
@@ -216,7 +216,7 @@ int obj_prompt(obj_prompt_ptr prompt)
             }
         }
     }
-    Term_load();
+    ui_popup_end();
     _context_unmake(&context);
     return result;
 }

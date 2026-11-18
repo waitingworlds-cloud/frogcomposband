@@ -2061,6 +2061,9 @@ extern point_t viewport_origin;
    "cave". This is nothing more than computing displacement vectors and
    adding them to a new origin for the target coordinate system. Easy peasy: */
 extern point_t ui_pt_to_cave_pt(point_t pt);
+extern void ui_popup_begin(void);
+extern void ui_popup_end(void);
+extern int ui_screen_depth(void);
 extern point_t ui_xy_to_cave_pt(int x, int y);
 extern point_t cave_pt_to_ui_pt(point_t pt);
 extern point_t cave_xy_to_ui_pt(int x, int y);

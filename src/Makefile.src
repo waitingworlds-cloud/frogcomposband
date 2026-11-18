@@ -21,7 +21,7 @@ ZFILES = z-doc.o z-form.o z-rand.o z-term.o z-util.o z-virt.o
 
 # MAINFILES is defined by autotools (or manually) to be combinations of these
 
-BASEMAINFILES = main.o
+BASEMAINFILES = main.o main-shell.o
 
 GCUMAINFILES = main-gcu.o
 

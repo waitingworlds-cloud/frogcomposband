@@ -615,6 +615,19 @@ int main(int argc, char *argv[])
 	}
 #endif
 
+#ifdef USE_SHELL
+	/* The "main-shell.c" front end: used when FROG_SHELL_PORT is set */
+	if (!done && (!mstr || (streq(mstr, "shell"))))
+	{
+		extern errr init_shell(int, char**);
+		if (0 == init_shell(argc, argv))
+		{
+			ANGBAND_SYS = "x11"; /* reuse the X11 key maps */
+			done = TRUE;
+		}
+	}
+#endif
+
 #ifdef USE_SDL
 	/* Attempt to use the "main-sdl.c" support */
 	if (!done && (!mstr || (streq(mstr, "sdl"))))

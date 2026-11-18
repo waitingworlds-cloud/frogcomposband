@@ -27,6 +27,11 @@ int auto_more_state = AUTO_MORE_PROMPT;
  * Hack -- prevent "accidents" in "screen_save()" or "screen_load()"
  */
 static int screen_depth = 0;
+static int popup_depth = 0;
+int ui_screen_depth(void) { return screen_depth + popup_depth; }
+/* a pop-up that saves the screen itself, without the usual screen_save() */
+void ui_popup_begin(void) { Term_save(); popup_depth++; }
+void ui_popup_end(void) { Term_load(); if (popup_depth > 0) popup_depth--; }
 
 
 /* Save macro trigger string for use in inkey_special() */
