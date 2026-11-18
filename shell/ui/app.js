@@ -65,7 +65,7 @@ function onMsg(m) {
   else if (m.t === 'f') {
     if (m.w !== G.w || m.h !== G.h) { G.w = m.w; G.h = m.h; G.s = Array(m.h).fill(' '.repeat(m.w)); G.a = Array(m.h).fill(null).map(() => new Uint8Array(m.w)); }
     for (const r of m.rows) { G.s[r.y] = r.s; const a = G.a[r.y]; for (let x = 0; x < m.w; x++) a[x] = parseInt(r.a.substr(x * 2, 2), 16); }
-    G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.lk = m.lk || null; G.icky = m.icky; G.ov = m.ov;
+    G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.lk = m.lk || null; G.gf = m.gf || null; G.icky = m.icky; G.ov = m.ov;
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }

@@ -98,6 +98,55 @@ function fxShake() { const s = FX.shake; if (!s) return [0, 0]; const k = (now()
  * a ball mark throws a burst and a shock ring, and the start of each volley flares at whoever cast it. */
 const rnd1 = () => Math.random() * 2 - 1;
 function fxPart(x, y, vx, vy, life, size, c, kind) { if (FX.parts.length < 700) FX.parts.push({ x, y, vx, vy, t: now(), life, size, c, kind }); }
+// what a bolt or ball is made of, read off its colour: each element moves its own way
+function fxElem(c) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(c || ''); if (!m) return 'plain';
+  const r = parseInt(m[1], 16) / 255, g = parseInt(m[2], 16) / 255, b = parseInt(m[3], 16) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (d < .12) return l > .7 ? 'light' : l < .35 ? 'dark' : 'plain';
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360;
+  if (l < .3) return 'dark';
+  if (h < 50 || h >= 345) return 'fire';
+  if (h < 68) return 'elec';
+  if (h < 160) return mx === g && r < .45 && b < .45 && l < .5 ? 'poison' : 'acid';
+  if (h < 215) return 'cold';
+  if (h < 255) return 'elec';
+  return 'arcane';
+}
+function fxBurst(cx, cy, el, c, big, t) {
+  const n = big ? 1 : .35, P = (vx, vy, life, size, col, kind, g, extra) => FX.parts.length < 700 && FX.parts.push(Object.assign({ x: cx + (big ? 0 : rnd1() * .18), y: cy + (big ? 0 : rnd1() * .18), vx, vy, t, life, size, c: col, kind, g }, extra || {}));
+  const ring = (a, b) => FX.rings.push({ x: cx, y: cy, t, life: 420, r0: a, r1: b, c, w: 3 });
+  if (el === 'fire') {              // embers that climb and flicker out, a hot core
+    if (big) ring(.15, 1.05);
+    for (let i = 0; i < 22 * n; i++) { const a = Math.random() * 6.283, s = (big ? 1.2 : .5) + Math.random() * 2.2; P(Math.cos(a) * s, Math.sin(a) * s - .6, 500 + Math.random() * 500, 2.5 + Math.random() * 3, ['#ffe08a', '#ff8a2a', c, '#ff5a1a'][i % 4], 'spark', -1.6); }
+  } else if (el === 'cold') {       // slow crystals that turn and settle
+    if (big) ring(.2, 1.1);
+    for (let i = 0; i < 18 * n; i++) { const a = Math.random() * 6.283, s = (big ? .8 : .3) + Math.random() * 1.6; P(Math.cos(a) * s, Math.sin(a) * s, 700 + Math.random() * 500, 3 + Math.random() * 3, i % 3 ? '#cfeeff' : '#ffffff', 'flake', .45, { spin: rnd1() * 8 }); }
+  } else if (el === 'elec') {       // forks of lightning that crack and vanish
+    if (big) ring(.1, .9);
+    for (let i = 0; i < (big ? 7 : 3); i++) P(0, 0, 140 + Math.random() * 120, 0, i % 2 ? c : '#ffffff', 'arc', 0, { a: Math.random() * 6.283, len: (big ? .7 : .45) + Math.random() * .5, seed: Math.random() * 99 });
+    for (let i = 0; i < 8 * n; i++) { const a = Math.random() * 6.283, s = 2 + Math.random() * 4; P(Math.cos(a) * s, Math.sin(a) * s, 200 + Math.random() * 200, 2 + Math.random() * 1.5, '#ffffff', 'spark', 0); }
+  } else if (el === 'acid' || el === 'water') {       // a splash of drops that fall back down
+    if (big) ring(.15, .95);
+    for (let i = 0; i < 18 * n; i++) { const a = -Math.PI / 2 + rnd1() * 1.4, s = (big ? 1.6 : .8) + Math.random() * 2.2; P(Math.cos(a) * s * .8, Math.sin(a) * s, 450 + Math.random() * 300, 3 + Math.random() * 2.5, i % 3 ? c : el === 'water' ? '#e0f4ff' : '#e8ffb0', 'drop', 5.5, { solid: i % 3 !== 0 }); }
+  } else if (el === 'poison' || el === 'dark') {   // a cloud that swells and drifts
+    const col = el === 'dark' ? '#1c1424' : c;
+    if (big && el === 'dark') FX.rings.push({ x: cx, y: cy, t, life: 460, r0: 1.1, r1: .15, c: '#8a4ad0', w: 2.5 });   // darkness pulls inward
+    for (let i = 0; i < (big ? 9 : 3); i++) { const a = Math.random() * 6.283, s = .2 + Math.random() * (big ? .9 : .4); P(Math.cos(a) * s, Math.sin(a) * s - .25, 700 + Math.random() * 500, 0, col, 'smoke', -.2, { r0: .18 + Math.random() * .12, r1: (big ? .7 : .45) + Math.random() * .3, solid: el === 'dark' }); }
+    if (el === 'poison') for (let i = 0; i < 10 * n; i++) { const a = Math.random() * 6.283, s = .4 + Math.random() * 1.2; P(Math.cos(a) * s, Math.sin(a) * s - .3, 700 + Math.random() * 500, 2.5 + Math.random() * 2, i % 3 ? '#9cff6a' : '#e0ffc0', 'mote', -.4); }
+    if (el === 'dark') for (let i = 0; i < 8 * n; i++) { const a = Math.random() * 6.283, s = .8 + Math.random() * 1.5; P(Math.cos(a) * s, Math.sin(a) * s, 500 + Math.random() * 300, 2.5, i % 2 ? '#b07aff' : '#5a2a8a', 'spark', 0); }
+  } else if (el === 'shard') {      // hard fragments thrown outward, tumbling and dropping
+    if (big) ring(.15, .9);
+    for (let i = 0; i < 16 * n; i++) { const a = Math.random() * 6.283, s = (big ? 2.2 : 1) + Math.random() * 3; P(Math.cos(a) * s, Math.sin(a) * s - .5, 380 + Math.random() * 300, 2.5 + Math.random() * 2.5, i % 3 ? '#d8d2c8' : c, 'flake', 2.4, { spin: rnd1() * 14, solid: true }); }
+  } else if (el === 'light') {      // a clean flash with rays
+    if (big) { ring(.15, 1.15); FX.rings.push({ x: cx, y: cy, t: t + 60, life: 360, r0: .1, r1: .7, c: '#ffffff', w: 2 }); }
+    for (let i = 0; i < (big ? 10 : 4); i++) P(0, 0, 220 + Math.random() * 120, 0, i % 2 ? '#fffbe0' : c, 'arc', 0, { a: i / (big ? 10 : 4) * 6.283 + Math.random() * .3, len: (big ? .9 : .5), seed: 0, straight: 1 });
+    for (let i = 0; i < 10 * n; i++) { const a = Math.random() * 6.283, s = 1 + Math.random() * 2.5; P(Math.cos(a) * s, Math.sin(a) * s, 400 + Math.random() * 300, 2.5, '#ffffff', 'mote', 0); }
+  } else {                           // light, arcane and the rest: a bright burst of sparks
+    if (big) ring(.15, 1.05);
+    for (let i = 0; i < 18 * n; i++) { const a = Math.random() * 6.283, s = (big ? 2.6 : 1) + Math.random() * 3.2; P(Math.cos(a) * s, Math.sin(a) * s, 420 + Math.random() * 380, 3 + Math.random() * 3, i % 3 ? c : '#fff', 'spark'); }
+  }
+  P(0, 0, big ? 300 : 220, big ? 9 : 6, el === 'dark' ? '#6a3aa0' : c, 'glow');
+}
 function fxSpell(lx, ly, ch, c) {
   if (!FX.on) return;
   const t = now(), key = lx + ',' + ly + ch; if (t - (FX.seen[key] || 0) < 160) return; FX.seen[key] = t;
@@ -107,15 +156,7 @@ function fxSpell(lx, ly, ch, c) {
     if (who) fxCast(who[0], who[1], c);
   }
   FX.lastProj = t;
-  const cx = lx + .5, cy = ly + .5;
-  if (ch === '*') {
-    FX.rings.push({ x: cx, y: cy, t, life: 420, r0: .15, r1: 1.05, c, w: 3 });
-    for (let i = 0; i < 18; i++) { const a = Math.random() * 6.283, s = 2.6 + Math.random() * 3.2; fxPart(cx, cy, Math.cos(a) * s, Math.sin(a) * s, 420 + Math.random() * 380, 3 + Math.random() * 3, i % 3 ? c : '#fff', 'spark'); }
-    fxPart(cx, cy, 0, 0, 300, 9, c, 'glow');
-  } else {
-    for (let i = 0; i < 4; i++) fxPart(cx + rnd1() * .18, cy + rnd1() * .18, rnd1() * .9, rnd1() * .9 - .35, 300 + Math.random() * 350, 1.8 + Math.random() * 2, i ? c : '#fff', 'spark');
-    fxPart(cx, cy, 0, 0, 220, 6, c, 'glow');
-  }
+  fxBurst(lx + .5, ly + .5, (G && G.gf) || fxElem(c), c, ch === '*', t);
   fxKick();
 }
 // a blow lands: drops fly off the far side of the square, with a few bright chips at the point of contact
@@ -163,10 +204,19 @@ function fxPartsDraw(g, toXY, T) {
   for (const r of FX.rings) { const k = (t - r.t) / r.life; if (k < 0 || k >= 1) continue; const [x, y] = toXY(r.x, r.y), e = 1 - (1 - k) * (1 - k);
     g.globalAlpha = (1 - k) * .9; g.strokeStyle = r.c; g.lineWidth = r.w * (1 - k * .6); g.beginPath(); g.arc(x, y, T * (r.r0 + (r.r1 - r.r0) * e), 0, 7); g.stroke(); }
   for (const p of FX.parts) { const k = (t - p.t) / p.life; if (k < 0 || k >= 1) continue; const s = (t - p.t) / 1000, drag = 1 - Math.min(.6, s * 1.4);
-    const [x, y] = toXY(p.x + p.vx * s * drag, p.y + p.vy * s * drag + (p.kind === 'spark' ? s * s * .9 : 0));
+    const [x, y] = toXY(p.x + p.vx * s * drag, p.y + p.vy * s * drag + (p.g != null ? p.g : p.kind === 'spark' ? .9 : 0) * s * s);
+    if (p.kind === 'arc') {   // a jagged fork, redrawn a little differently every frame so it crackles
+      const n = 5, L = p.len * T, ca = Math.cos(p.a), sa = Math.sin(p.a), j = Math.floor(t / 40);
+      g.globalCompositeOperation = 'lighter'; g.globalAlpha = (1 - k) * (.6 + .4 * rnd(j, p.seed)); g.strokeStyle = p.c; g.lineWidth = Math.max(1.5, T / 22); g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(x, y); for (let i = 1; i <= n; i++) { const f = i / n, w = p.straight ? 0 : (rnd(j + i, p.seed + i) - .5) * T * .28 * (i < n ? 1 : 0); g.lineTo(x + ca * L * f - sa * w, y + sa * L * f + ca * w); } g.stroke(); continue; }
+    if (p.kind === 'smoke') { const r = T * (p.r0 + (p.r1 - p.r0) * Math.sqrt(k)), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.globalCompositeOperation = p.solid ? 'source-over' : 'lighter'; g.globalAlpha = Math.min(1, (1 - k) * 1.4) * (p.solid ? .85 : .6); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); continue; }
     if (p.kind === 'glow') { const r = T * (.35 + k * .4), gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalCompositeOperation = 'lighter'; g.globalAlpha = (1 - k) * .55; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); continue; }
     if (p.solid) { g.globalCompositeOperation = 'source-over'; g.globalAlpha = Math.min(1, (1 - k) * 1.6); } else { g.globalCompositeOperation = 'lighter'; g.globalAlpha = 1 - k; }
-    g.fillStyle = p.c; const z = p.size * Math.max(1, T / 32) * (1 - k * .5); g.fillRect(x - z / 2, y - z / 2, z, z); }
+    g.fillStyle = p.c; const z = p.size * Math.max(1, T / 32) * (1 - k * .5);
+    if (p.kind === 'flake') { g.save(); g.translate(x, y); g.rotate(p.spin * s); g.fillRect(-z / 2, -z / 6, z, z / 3); g.fillRect(-z / 6, -z / 2, z / 3, z); g.restore(); }
+    else if (p.kind === 'drop') { g.beginPath(); g.arc(x, y, z / 2, 0, 7); g.fill(); }
+    else g.fillRect(x - z / 2, y - z / 2, z, z); }
   g.restore(); g.globalAlpha = 1;
 }
 // floating numbers and death puffs, drawn over the map. toXY turns a level square into canvas pixels

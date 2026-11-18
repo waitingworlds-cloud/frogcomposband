@@ -47,6 +47,27 @@ typedef int sock_t;
 
 extern rect_t ui_effects_rect(void);
 extern int ui_screen_depth(void);
+/* the effect type of the last projection the game drew (set in project()) */
+int shell_proj_gf = 0;
+static cptr _gf_elem(int gf)
+{
+    switch (gf)
+    {
+    case GF_FIRE: case GF_PLASMA: case GF_HELL_FIRE: case GF_ROCKET: case GF_METEOR: return "fire";
+    case GF_COLD: case GF_ICE: return "cold";
+    case GF_WATER: return "water";
+    case GF_ELEC: case GF_STORM: return "elec";
+    case GF_ACID: return "acid";
+    case GF_POIS: case GF_NUKE: return "poison";
+    case GF_DARK: case GF_NETHER: case GF_CAUSE_1: case GF_CAUSE_2: case GF_CAUSE_3: case GF_CAUSE_4:
+    case GF_HAND_DOOM: case GF_BLOOD_CURSE: return "dark";
+    case GF_LITE: case GF_HOLY_FIRE: return "light";
+    case GF_MANA: case GF_CHAOS: case GF_NEXUS: case GF_DISENCHANT: case GF_CONFUSION: case GF_TIME:
+    case GF_GRAVITY: case GF_DISINTEGRATE: case GF_PSY_SPEAR: case GF_PSI: case GF_PSI_STORM: return "arcane";
+    case GF_SHARDS: case GF_ROCK: case GF_ARROW: case GF_MISSILE: case GF_FORCE: case GF_SOUND: case GF_INERT: return "shard";
+    }
+    return NULL;
+}
 
 static term shell_term;
 static sock_t shell_sock = INVALID_SOCKET;
@@ -786,6 +807,12 @@ static void send_frame(void)
         {
             point_t cp = ui_xy_to_cave_pt(cx, cy);
             o_fmt("\"lk\":[%d,%d],", cp.x - px, cp.y - py);
+        }
+        /* what the projection now on screen is made of, so the interface can give it its own look */
+        if (shell_proj_gf && character_generated && !character_icky)
+        {
+            cptr e = _gf_elem(shell_proj_gf);
+            if (e) o_fmt("\"gf\":\"%s\",", e);
         }
         o_raw("\"rows\":[");
         for (y = 0; y < h; y++)
