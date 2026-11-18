@@ -163,7 +163,7 @@ function cellTip(cell) {
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[c[0]] || [''])[0])}</span>`);
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
-  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'}' · right-click: actions'</div>`;
+  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'} · right-click: actions</div>`;
 }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
@@ -178,6 +178,9 @@ document.addEventListener('mousemove', ev => {
   if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
+  const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic) : '';
+  $('#tip').classList.toggle('wide', !!th);
+  if (th) return showTip(th, ev);
   if (tipEl) return showTip(esc(tipEl.dataset.tip), ev);
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];

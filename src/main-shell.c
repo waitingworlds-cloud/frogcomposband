@@ -792,6 +792,17 @@ static errr Term_xtra_shell(int n, int v)
             return 0;
         case TERM_XTRA_FRESH:
             send_frame();
+            /* while running, travelling or resting the game draws without waiting for a key:
+             * send the state whenever you have moved, so the map shows you (not the text "@") every step */
+            if (character_generated && !character_icky && !p_ptr->is_dead)
+            {
+                static int last_x = -1, last_y = -1;
+                if (px != last_x || py != last_y)
+                {
+                    last_x = px; last_y = py;
+                    send_state();
+                }
+            }
             return 0;
         case TERM_XTRA_REACT:
             send_hello();

@@ -53,6 +53,9 @@ function start(opts = {}) {
       let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVMT] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
       return;
     }
+    // the game's own help files, read-only, for tooltips (races, classes, options...)
+    const hm = /^\/help\/([A-Za-z0-9_-]+\.txt)$/.exec(u.pathname);
+    if (hm) { fs.readFile(path.join(root, 'lib', 'help', hm[1]), 'latin1', (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(d); }); return; }
     let f = path.normalize(path.join(uiDir, u.pathname === '/' ? 'index.html' : u.pathname));
     if (!f.startsWith(uiDir)) { res.writeHead(403); return res.end(); }
     fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); return res.end('not found'); } res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(d); });

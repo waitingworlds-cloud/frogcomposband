@@ -60,6 +60,7 @@ function birthParse() {
   return out;
 }
 function birthHtml() {
+  topicsLoad();
   if (G.ov) return '';
   const b = birthParse(); if (!b || (!b.nchoice && !b.fields.length)) return '';
   const val = n => (b.fields.find(f => f.label === n) || {}).value || '';
@@ -86,7 +87,7 @@ function birthHtml() {
     else { const n = k.items.length, cols = k.cols > 1 ? k.cols : n > 16 ? 3 : n > 5 ? 2 : 1;
       // two columns of text read down each column, so keep that order
       const ordered = k.cols > 1 ? k.items.filter(i => i.col === 0).concat(k.items.filter(i => i.col > 0)) : k.items, per = Math.ceil(ordered.length / cols);
-      right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
+      right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-topic="${esc(i.html.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, '').trim())}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
   }
   return `<div class="pane npanel birth" style="width:${left ? 1320 : 900}px"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
     <div class="bbody">${left}<div class="bright">${right}</div></div></div>`;

@@ -513,6 +513,6 @@ function draw() {
   const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
 }
 document.addEventListener('click', e => {
-  const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key);
+  const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key.replace(/\n/g, '\r'));   // HTML turns a stored Return into a newline: give the game its Return back
 });
 document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
