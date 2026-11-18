@@ -10,9 +10,12 @@ function start(opts = {}) {
   const exe = process.platform === 'win32' ? 'frogcomposband.exe' : 'frogcomposband';
   const game = opts.game || [path.join(root, exe), path.join(root, 'src', exe)].find(p => fs.existsSync(p));
   const clients = new Set();
-  let hello = null, dict = null, lastState = null, lastMap = null, lastUi = null, gameSock = null, child = null, pending = [];
+  let spawnGame = null, hello = null, dict = null, lastState = null, lastMap = null, lastUi = null, gameSock = null, child = null, pending = [];
   const rows = new Map(); let frameMeta = null;   // full copy of the text grid for late joiners
 
+  // the game ending: tell the page once per run; the page answers K (keep the window: a death, a new character may follow) or E (close)
+  let ended = false;
+  const gone = () => { if (ended) return; ended = true; push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); };
   const push = line => { for (const r of clients) r.write(`data: ${line}\n\n`); };
   const toGame = s => { if (gameSock) gameSock.write(s + '\n'); else pending.push(s); };
 
@@ -31,7 +34,7 @@ function start(opts = {}) {
         push(line);
       }
     });
-    sock.on('close', () => { gameSock = null; push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); });
+    sock.on('close', () => { gameSock = null; gone(); });
     sock.on('error', () => {});
   });
 
@@ -50,7 +53,14 @@ function start(opts = {}) {
       return;
     }
     if (u.pathname === '/in' && req.method === 'POST') {
-      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVMT] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
+      let b = ''; req.on('data', d => b += d); req.on('end', () => {
+        for (const l of b.split('\n')) {
+          if (/^([XRVMT] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l);
+          else if (l === 'K' && ended && opts.onKeep) opts.onKeep();
+          else if (l === 'E' && ended && opts.onLeave) opts.onLeave();
+          else if (l === 'N' && ended && spawnGame) spawnGame();
+        }
+        res.writeHead(204); res.end(); });
       return;
     }
     // the game's own help files, read-only, for tooltips (races, classes, options...)
@@ -66,10 +76,13 @@ function start(opts = {}) {
       const gport = tcp.address().port;
       web.listen(opts.port || 0, '127.0.0.1', () => {
         const env = { ...process.env, FROG_SHELL_PORT: String(gport), FROG_SHELL_COLS: String(opts.cols || 110), FROG_SHELL_ROWS: String(opts.rows || 40) };
-        if (game && !opts.noGame) {
+        spawnGame = () => {
+          ended = false; hello = dict = lastState = lastMap = lastUi = null; rows.clear(); frameMeta = null; pending = [];
+          if (opts.onRespawn) opts.onRespawn();
           child = spawn(game, ['-mshell', ...(opts.args || [])], { cwd: root, env, stdio: ['ignore', 'inherit', 'inherit'] });
-          child.on('exit', () => { push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); });
-        }
+          child.on('exit', gone);
+        };
+        if (game && !opts.noGame) spawnGame(); else spawnGame = null;
         resolve({ port: web.address().port, gport, quit: () => toGame('Q'), stop: () => { try { child && child.kill(); } catch (e) {} tcp.close(); web.close(); } });
       });
     });
@@ -82,5 +95,6 @@ if (require.main === module) {
   if (i >= 0) o.args = a.splice(i).slice(1);
   for (let j = 0; j < a.length; j += 2) o[a[j].replace(/^--/, '')] = a[j + 1];
   if (o.port) o.port = +o.port;
-  start({ ...o, onExit: () => process.exit(0) }).then(s => console.log(`interface at http://127.0.0.1:${s.port}/`));
+  let t = 0;   // a death keeps the server for a new character; anything else ends it
+  start({ ...o, onExit: () => { t = setTimeout(() => process.exit(0), 2500); }, onKeep: () => clearTimeout(t), onLeave: () => process.exit(0), onRespawn: () => clearTimeout(t) }).then(s => console.log(`interface at http://127.0.0.1:${s.port}/`));
 }

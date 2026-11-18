@@ -135,6 +135,7 @@ function nativeAfter() { lmapDraw(); }
 function nativeHtml() {
   NATIVE_SIDE = false;
   if (!(G.ov || G.icky)) return '';
+  const dh = deathHtml(); if (dh) return dh;
   if (!UI || !UI.kind || !uiOnTop()) return optsHtml() || menuHtml();
   if (UI.kind === 'items') return itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
@@ -142,6 +143,32 @@ function nativeHtml() {
   if (UI.kind === 'lmap') return lmapHtml();
   if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
   return UI.kind === 'char' ? '' : menuHtml();
+}
+
+/* ---------- death: the tombstone becomes a memorial card; what the game asks next stays live under it ---------- */
+let DIED = null;
+function deathRead() {
+  const rows = G.s.map(r => (r || '').replace(/\x01/g, ' ')); const top = rows.findIndex(r => /\bRIP\b/.test(r)); if (top < 0) return null;
+  const end = rows.findIndex((r, i) => i > top && /^_{4,}\)/.test(r.trim())); if (end < 0) return null;
+  // the stone is the box between the pipes: take its middle column of words
+  const inner = rows.slice(top + 1, end).map(r => { const a = r.indexOf('|'), b = r.indexOf('|', a + 1); const m = /\/(.*)\\/.exec(r); return (a >= 0 && b > a ? r.slice(a + 1, b) : m ? m[1] : '').trim(); }).filter(Boolean);
+  const pick = re => { const l = inner.find(x => re.test(x)); return l ? l.replace(re, '').trim() : ''; };
+  const name = inner[0] || '', i1 = inner.indexOf('the');
+  const d = { name, title: i1 >= 0 ? inner[i1 + 1] : '', cls: i1 >= 0 ? inner[i1 + 2] : '', lev: pick(/^Level:\s*/), exp: pick(/^Exp:\s*/), au: pick(/^AU:\s*/),
+    where: (inner.find(x => /^Killed on/.test(x)) || '').replace(/^Killed on\s*/, ''), by: (inner.find(x => /^by /.test(x)) || '').replace(/^by\s*/, '').replace(/\.$/, ''),
+    when: inner.find(x => /\d{4}$/.test(x)) || '', after: rows.slice(end + 1) };
+  return d;
+}
+function deathHtml() {
+  const d = deathRead(); if (!d) return ''; DIED = d;
+  const ask = d.after.map(r => r.replace(/\s+$/, '')).filter(Boolean);
+  const cy = G.cy - (G.s.length - d.after.length), live = ask.map((l, i) => `<div class="dl">${esc(l)}${G.cv && i === ask.length - 1 ? '<i class="dcaret"></i>' : ''}</div>`).join('');
+  const where = /^Level 0$/i.test(d.where) ? 'in the town' : d.where ? 'on ' + d.where.toLowerCase().replace(/^level/, 'dungeon level') : '';
+  return `<div class="pane npanel deathp"><div class="dhead">Here lies</div><div class="dname">${esc(d.name)}</div><div class="dtitle">${esc([d.title, d.cls].filter(Boolean).join(' · '))}</div>
+    <div class="dby">${/^quitting$/i.test(d.by) ? 'Laid down the quest ' : d.by ? `Slain by <b>${esc(d.by)}</b> ` : ''}${esc(where)}</div>
+    <div class="dstats"><div><b>${esc(d.lev)}</b><span>level</span></div><div><b>${esc(d.exp)}</b><span>experience</span></div><div><b>${esc(d.au)}</b><span>gold</span></div></div>
+    <div class="dwhen">${esc(d.when)}</div><div class="dask">${live}</div>
+    <div class="dbtns"><span class="pgb" data-key="\r"><span class="key">Enter</span>see the character</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span></div></div>`;
 }
 
 /* ---------- mouse ---------- */

@@ -11,7 +11,10 @@ app.whenReady().then(async () => {
   const packed = path.join(path.dirname(process.execPath), 'game');
   const root = fs.existsSync(packed) ? packed : path.resolve(__dirname, '..');
   const args = process.argv.slice(app.isPackaged ? 1 : 2).filter(a => /^-[a-zA-Z]/.test(a) && !a.startsWith('--'));
-  srv = await start({ root, args, onExit: () => { gameGone = true; setTimeout(() => app.exit(0), closing ? 0 : 600); } });
+  // the game ending closes the program, unless the page keeps it open after a death to offer a new character
+  let exitT = 0;
+  srv = await start({ root, args, onExit: () => { gameGone = true; exitT = setTimeout(() => app.exit(0), closing ? 0 : 2500); },
+    onKeep: () => { if (!closing) clearTimeout(exitT); }, onLeave: () => app.exit(0), onRespawn: () => { clearTimeout(exitT); gameGone = false; } });
   Menu.setApplicationMenu(null);
   win = new BrowserWindow({ width: 1600, height: 900, minWidth: 1280, minHeight: 720, backgroundColor: '#08090a', show: false, title: 'FrogComposband',
     icon: path.join(__dirname, 'ui', 'icon.png'), webPreferences: { backgroundThrottling: false, contextIsolation: true } });

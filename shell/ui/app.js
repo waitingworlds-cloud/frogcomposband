@@ -31,7 +31,12 @@ function trigger(ks, e) {
   const m = (e.ctrlKey ? 'N' : '') + (e.shiftKey ? 'S' : '') + (e.altKey ? 'O' : '');
   sendText(String.fromCharCode(31) + m + '_' + ks.toString(16).toUpperCase() + '\r');
 }
+let GAMEOVER = false, GONE = false;
+function playAgain() { if (!GAMEOVER) return; GAMEOVER = false; GONE = false; G.w = 0; $('#app').innerHTML = '<div id="wait">Waking the dungeon…</div>'; sendRaw('N'); }
+function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
+document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
+  if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
   if (ctxKey(e) || postKey(e) || sndKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
@@ -72,7 +77,16 @@ function onMsg(m) {
   }
   else if (m.t === 'snd') sndEvent(m.v);
   else if (m.t === 'uisel') { uiSel = m.name; schedule(); }
-  else if (m.t === 'bye') { $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; built = false; S = null; $('#term').classList.remove('on'); }
+  else if (m.t === 'bye') {
+    if (GONE) return; GONE = true;   // the game and the server may both say goodbye
+    built = false; S = null; UI = null; UIback = null; $('#term').classList.remove('on'); const nat = $('#native'); nat.classList.remove('on'); setHtml(nat, '');
+    if (DIED) {   // a death: say farewell, and offer a new character without closing the program
+      sendRaw('K'); const d = DIED; DIED = null;
+      $('#app').innerHTML = `<div class="tscr over"><div class="tglow"></div><div class="tver">the tale of</div><h1>${esc(d.name)}</h1><div class="tver">${esc([d.title, d.cls].filter(Boolean).join(' · '))}${d.by && !/^quitting$/i.test(d.by) ? ' · slain by ' + esc(d.by) : ''}</div>
+        <div class="tbtns"><span class="tbtn main" id="again"><span class="key">Enter</span>New character</span><span class="tbtn" id="leave"><span class="key">Esc</span>Quit</span></div></div>`;
+      GAMEOVER = true;
+    } else { sendRaw('E'); $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; }
+  }
 }
 let pend = false, ftimer = 0, BASE = null;
 const setHtml = (el, h) => { if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; };
