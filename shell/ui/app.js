@@ -42,7 +42,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -311,7 +311,7 @@ function consoleHtml() {
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
   <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
-  <div class="hints">${HINTS.map(([k, n]) => `<div class="row" data-key="${k === 'Esc' ? '\x1b' : k}"${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
+  <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
   const p = S.p, t = `${p.hour}:${String(p.min).padStart(2, '0')}`;
@@ -705,6 +705,7 @@ function draw() {
 }
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
+  if (e.target.closest('[data-gmenu]')) { gmenuToggle(true); return; }
   if (e.target.closest('[data-explore]')) { if (EXP.on) exploreStop(); else exploreStart(); return; }
   const q = e.target.closest('[data-qty]'); if (q) { sendText('\b'.repeat(8) + '\x7f'.repeat(8) + q.dataset.qty + '\r'); return; }
   const k = e.target.closest('[data-key]'); if (k) { const v = k.dataset.key; if (v === 'Esc' || v === '\x1b') sendBytes([27]); else sendText(v.replace(/\n/g, '\r')); }   // HTML turns a stored Return into a newline: give the game its Return back
