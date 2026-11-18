@@ -282,3 +282,12 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .mcard{display:flex;align-items:center;gap:14px;padding:9px 14px;background:linear-gradient(#1a1c1f,#141618);border:1px solid #2c2f34;box-shadow:inset 0 1px 0 #ffffff0d;border-radius:3px;cursor:pointer;font:400 18px Spectral,serif;color:#e6dfd2}
 .mcard.cur .ml span{color:inherit!important}.mcard.cur{border-color:#ff8a3c;box-shadow:inset 0 1px 0 #ffffff12,0 0 0 1px #ff8a3c55;color:#fff}.mcard:hover{border-color:#ff8a3c88;background:linear-gradient(#24201c,#1a1714);color:#fff}.mcard .ml{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mfoot{font:italic 400 16px Spectral,serif;color:#b3ac9f;margin-top:4px}.mfoot .row{display:inline-flex;gap:8px;align-items:center}.mfoot span{color:inherit!important}
+
+/* Recall panel: the creature last pointed at */
+.rcard .rc{display:flex;flex-direction:column;gap:8px}.rchd{display:flex;gap:12px;align-items:flex-start}
+.rcart{width:112px;height:112px;flex:none;position:relative;background:radial-gradient(circle at 50% 100%,#ff8a3c33,#0b0c0d 70%);box-shadow:inset 0 2px 8px #000,0 0 0 1px #3a2a1c,0 0 0 2px #000}
+.rcart canvas{position:absolute;inset:6px;width:100px;height:100px}
+.rcn{font-weight:600;font-size:18px;color:var(--em3);line-height:1.15;margin-bottom:3px}
+.rclore{max-height:260px;overflow:auto;font:400 14.5px/1.4 Spectral,serif;color:#d8d0c2;padding-right:4px}
+.rclore p{margin:0 0 7px}.rcfs{display:grid;grid-template-columns:1fr 1fr;gap:1px 10px;font-size:13.5px;color:#b3ac9f;line-height:1.35;margin-bottom:7px}
+.rckeys{gap:14px;font-size:14px;color:#b3ac9f;flex-wrap:wrap}

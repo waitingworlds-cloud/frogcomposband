@@ -295,6 +295,7 @@ function descRows(list) {
   return `<div class="dsc">${rows.join('\n')}</div>`;
 }
 function descIn(m) {
+  if (typeof loreIn === 'function') loreIn(m);
   // something you could wear arrives with what you wear in that place now, shown beside it
   DESC[m.key] = m.cmp && m.cmp.length ? `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
   if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }
@@ -303,7 +304,8 @@ function descIn(m) {
 function descHint(de) { const t = (de.dataset.tip || '').split('\n')[1] || (de.dataset.worn ? 'right-click: actions · drag onto the map to drop' : de.classList.contains('mob') ? de.dataset.tip : ''); return t ? `<div class="hint">${esc(t)}</div>` : ''; }
 document.addEventListener('mousemove', ev => {
   const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
-  if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }   // a creature or item in the side lists: show where it is
+  if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }
+  if (atEl && atEl.classList.contains('mob') && S && S.mons) { const [ax, ay] = atv.split(',').map(Number); recallSet(S.mons.find(m => m.dx === ax && m.dy === ay)); }   // a creature or item in the side lists: show where it is
   if (CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   // an item: its full description from the game, fetched once and kept until the next turn
@@ -338,7 +340,7 @@ document.addEventListener('mousemove', ev => {
       hover = cell; requestAnimationFrame(drawMap); clearTimeout(loreT); loreKey = '';
       // resting the pointer on a creature for a moment opens what you know of it
       const m = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy), fo = cell && !m && S.floor.find(o => o.dx === cell.dx && o.dy === cell.dy && o.oi);
-      const key = m ? 'm:' + m.r : fo ? 'o:' + fo.oi : '';
+      if (m && !m.pet) recallSet(m); const key = fo ? 'o:' + fo.oi : '';   // a creature's lore shows in the Recall panel; an item's in the tip
       if (key && !aimMode() && !lookMode()) loreT = setTimeout(() => { loreKey = key; descHover = loreKey; if (DESC[loreKey]) { $('#tip').classList.add('wide'); showTip(cellTip(cell) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', descEv); } else if (!DESC_ASKED[loreKey]) { DESC_ASKED[loreKey] = 1; sendRaw('D ' + key.replace(':', ' ')); } }, 650);
     }
     if (loreKey && DESC[loreKey]) { descHover = loreKey; $('#tip').classList.add('wide'); return showTip((cell ? cellTip(cell) : '') + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', ev); }

@@ -3,7 +3,7 @@
 const CONTROLS = [
   ['Mouse', [
     ['click a square', 'walk there (dots show the way)'], ['click a creature', 'attack it, or walk to it'], ['click yourself', 'pick up, or take the stairs you stand on'],
-    ['click an item', 'walk over and pick it up'], ['right-click anything', 'everything you can do with it'], ['rest the pointer', 'what you know of a creature or item'],
+    ['click an item', 'walk over and pick it up'], ['right-click anything', 'everything you can do with it'], ['point at a creature', 'what you know of it, in Recall'], ['rest the pointer on an item', 'what it does'],
     ['wheel over the map', 'zoom in and out'], ['drag an item onto the map', 'drop it'], ['click the area map', 'travel there'], ['click your name', 'character sheet'], ['click an edge arrow', 'target the creature off view'],
     ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['prompts and menus', 'every key shown is a button'],
   ]],
