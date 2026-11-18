@@ -42,11 +42,11 @@ function fxOnState(prev, cur) {
   // swings that found nothing, and spells shrugged off, say so where they happened
   { const bare = n => String(n || '').replace(/^(an?|the|some) /i, '').toLowerCase(), hurt = {};
     for (const m of cur.mons) { const o = old[m.i]; if (o && ((o.rh != null && m.rh != null) ? o.rh - m.rh : o.hp - m.hp) > 0) hurt[m.i] = 1; }
-    const xn = s => { const r = /\(x(\d+)\)\s*$/.exec(s); return r ? +r[1] : 1; }, misses = fresh.filter(s => /^You miss( |\.)/.test(s)).reduce((a, s) => a + xn(s), 0);
+    const xn = s => { const r = /\(x(\d+)\)\s*$/.exec(s); return r ? +r[1] : 1; }, cnt = re => fresh.reduce((a, s) => a + (s.match(re) || []).length * xn(s), 0), misses = cnt(/\bYou miss\b/g);
     if (misses) { const adj = cur.mons.filter(m => m.los && Math.abs(m.dx) <= 1 && Math.abs(m.dy) <= 1 && (m.dx || m.dy) && !hurt[m.i] && !m.pet && !m.friendly);
       const m = adj[0];
       if (m && !mx && !my) { if (!FX.lunge.p) FX.lunge.p = { dx: m.dx, dy: m.dy, t }; FX.floats.push({ x: cur.px + m.dx, y: cur.py + m.dy, s: misses > 1 ? 'miss ×' + misses : 'miss', c: '#b9b2a6', t: t + HIT_MS, small: 1, px: Math.sign(m.dx) * .28 }); } }
-    const theyMiss = fresh.filter(s => / misses( you)?[.!]?( \(x\d+\))?$/.test(s) && !/^A small dart/.test(s)).reduce((a, s) => a + xn(s), 0);
+    const theyMiss = cnt(/\b(It|it|[A-Z][\w' -]*?) misses( you)?[.!]/g) - cnt(/barely misses you/g);
     if (theyMiss && cur.p.hp >= prev.p.hp) FX.floats.push({ x: cur.px, y: cur.py, s: theyMiss > 1 ? 'miss ×' + theyMiss : 'miss', c: '#b9b2a6', t: t + HIT_MS, small: 1, up: .45, px: .45 });
     const shrug = {};
     for (const s of fresh) { const r = /^(.+?) (resists( a lot| somewhat)?|is unaffected|is immune)[.!]/.exec(s); if (!r) continue; const who = bare(r[1]);

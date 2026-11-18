@@ -133,7 +133,10 @@ function liveHtml() {
 }
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
 function qtyKeys() {
-  const m = /Quantity \((\d+)(?:-| to )(\d+)\)/.exec((G.s[0] || '').replace(/\x01/g, ' ')); if (!m) return '';
+  const top = (G.s[0] || '').replace(/\x01/g, ' ');
+  // resting: the usual answers as buttons
+  if (/^Rest \(0-\d+, '\*' for HP\/SP, '&' as needed\)/.test(top)) return '<span class="lkeys">' + [['&', 'as needed'], ['*', 'until healed'], ['50', '50 turns']].map(([n, w]) => `<span class="lk" data-qty="${n}"><span class="key">${n}</span>${w}</span>`).join('') + '<span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span></span>';
+  const m = /Quantity \((\d+)(?:-| to )(\d+)\)/.exec(top); if (!m) return '';
   const lo = +m[1], hi = +m[2], opts = [[lo, 'one'], [Math.max(lo, Math.floor(hi / 2)), 'half'], [hi, 'all']].filter((o, i, a) => a.findIndex(p => p[0] === o[0]) === i);
   return '<span class="lkeys">' + opts.map(([n, w]) => `<span class="lk" data-qty="${n}"><span class="key">${n}</span>${w}</span>`).join('') + '<span class="lk" data-key="\r"><span class="key">Enter</span>ok</span><span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span></span>';
 }
