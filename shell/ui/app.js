@@ -665,6 +665,7 @@ function draw() {
     setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : '';
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
+  const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
   const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
@@ -672,6 +673,8 @@ function draw() {
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
   const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
+  // a panel opening eases in rather than snapping; one already open just updates
+  for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
 }
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
