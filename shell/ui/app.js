@@ -24,7 +24,19 @@ const KP = { Numpad0: 0xFFB0, Numpad1: 0xFFB1, Numpad2: 0xFFB2, Numpad3: 0xFFB3,
   NumpadEnter: 0xFF8D, NumpadAdd: 0xFFAB, NumpadSubtract: 0xFFAD, NumpadMultiply: 0xFFAA, NumpadDivide: 0xFFAF, NumpadDecimal: 0xFFAE };
 const hex = bytes => bytes.map(b => (b & 255).toString(16).padStart(2, '0')).join('');
 let sendQ = Promise.resolve();
-function sendRaw(line) { sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {})); }
+function sendRaw(line) {
+  // a walk of more than a step goes through the game's travel, which will not go in the dark: remember it, so it can be walked another way
+  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line); if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now() };
+  sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {}));
+}
+let TRAVEL = null;
+// after each turn: the travel just asked for was refused ("You cannot see!" with no light, "No route is found!"), so walk it a step at a time over what you have seen
+function travelRetry() {
+  if (!TRAVEL || !S || !S.p) return; if (Date.now() - TRAVEL.t > 2500) { TRAVEL = null; return; }
+  if (!/You cannot see!|No route is found/.test(msgTop())) return;
+  const t = TRAVEL; TRAVEL = null; if (typeof EXP !== 'undefined' && EXP.on) return;
+  setTimeout(() => { if (playing() && !(typeof EXP !== 'undefined' && EXP.on) && !exploreGoto(t.x - S.px, t.y - S.py)) postToast('No way there that you know'); }, 60);
+}
 // the spell last picked from the spell list, so aiming it can show how wide it bursts
 let CAST = { n: '', t: 0 };
 function sendBytes(bytes) {
@@ -74,7 +86,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); }
+  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
