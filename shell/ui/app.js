@@ -308,7 +308,7 @@ function sprite(g, kind, name, x, y, T, alt) {
   if (!TS || !TS[kind]) return false;
   const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
   const im = TS.img[e[0]], t = TS.tile; if (!im || !im.naturalWidth) return false;
-  const sz = kind === 'mon' && TS.size && !sprite.flat ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' ? sz : SIZE_MUL[sz] || 1;
+  const sz = kind === 'mon' && TS.size && !sprite.flat ? TS.size[tkey(name)] : 0, mul = typeof sz === 'number' && sz > 0 ? sz : SIZE_MUL[sz] || 1;
   const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t * mul;   // sprites may be taller or wider than one square; they stand on the bottom middle
   g.drawImage(im, e[1] * t, e[2] * t, w, h, x + (T - w * k) / 2, y + T - h * k, w * k, h * k); return true;
 }

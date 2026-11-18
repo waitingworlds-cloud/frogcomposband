@@ -1,1 +1,8625 @@
-{"tile":64,"images":[]}
+{
+ "tile": 64,
+ "images": [
+  "monsters.png",
+  "objects.png",
+  "features.png",
+  "player.png"
+ ],
+ "mon": {
+  "filthy street urchin": [
+   0,
+   0,
+   0
+  ],
+  "scrawny cat": [
+   0,
+   1,
+   0
+  ],
+  "sparrow": [
+   0,
+   2,
+   0
+  ],
+  "chaffinch": [
+   0,
+   3,
+   0
+  ],
+  "wild rabbit": [
+   0,
+   4,
+   0
+  ],
+  "woodsman": [
+   0,
+   5,
+   0
+  ],
+  "scruffy little dog": [
+   0,
+   6,
+   0
+  ],
+  "farmer maggot": [
+   0,
+   7,
+   0
+  ],
+  "blubbering idiot": [
+   0,
+   8,
+   0
+  ],
+  "hobo": [
+   0,
+   9,
+   0
+  ],
+  "raving lunatic": [
+   0,
+   10,
+   0
+  ],
+  "pitiful looking beggar": [
+   0,
+   11,
+   0
+  ],
+  "mangy looking leper": [
+   0,
+   12,
+   0
+  ],
+  "agent of black market": [
+   0,
+   13,
+   0
+  ],
+  "singing, happy drunk": [
+   0,
+   14,
+   0
+  ],
+  "aimless looking merchant": [
+   0,
+   15,
+   0
+  ],
+  "mean looking mercenary": [
+   0,
+   16,
+   0
+  ],
+  "battle scarred veteran": [
+   0,
+   17,
+   0
+  ],
+  "nick the butcher": [
+   0,
+   18,
+   0
+  ],
+  "large white snake": [
+   0,
+   19,
+   0
+  ],
+  "blinking dot": [
+   0,
+   20,
+   0
+  ],
+  "newt": [
+   0,
+   21,
+   0
+  ],
+  "giant white mouse": [
+   0,
+   22,
+   0
+  ],
+  "large brown snake": [
+   0,
+   23,
+   0
+  ],
+  "green worm mass": [
+   0,
+   24,
+   0
+  ],
+  "floating eye": [
+   0,
+   25,
+   0
+  ],
+  "rock lizard": [
+   0,
+   26,
+   0
+  ],
+  "grid bug": [
+   0,
+   27,
+   0
+  ],
+  "jackal": [
+   0,
+   28,
+   0
+  ],
+  "insect swarm": [
+   0,
+   29,
+   0
+  ],
+  "greater hell-beast": [
+   0,
+   30,
+   0
+  ],
+  "shrieker mushroom patch": [
+   0,
+   31,
+   0
+  ],
+  "novice warrior": [
+   0,
+   32,
+   0
+  ],
+  "novice rogue": [
+   0,
+   33,
+   0
+  ],
+  "novice archaeologist": [
+   0,
+   34,
+   0
+  ],
+  "novice mage": [
+   0,
+   35,
+   0
+  ],
+  "yellow mushroom patch": [
+   0,
+   36,
+   0
+  ],
+  "yellow jelly": [
+   0,
+   37,
+   0
+  ],
+  "salamander": [
+   0,
+   38,
+   0
+  ],
+  "white harpy": [
+   0,
+   39,
+   0
+  ],
+  "grip, farmer maggot's dog": [
+   0,
+   40,
+   0
+  ],
+  "wolf, farmer maggot's dog": [
+   0,
+   41,
+   0
+  ],
+  "fang, farmer maggot's dog": [
+   0,
+   42,
+   0
+  ],
+  "giant green frog": [
+   0,
+   43,
+   0
+  ],
+  "freesia": [
+   0,
+   44,
+   0
+  ],
+  "slimy worm mass": [
+   0,
+   45,
+   0
+  ],
+  "large yellow snake": [
+   0,
+   46,
+   0
+  ],
+  "cave spider": [
+   0,
+   47,
+   0
+  ],
+  "crow": [
+   0,
+   48,
+   0
+  ],
+  "wild cat": [
+   0,
+   49,
+   0
+  ],
+  "smeagol": [
+   0,
+   50,
+   0
+  ],
+  "slimy ooze": [
+   0,
+   51,
+   0
+  ],
+  "poltergeist": [
+   0,
+   52,
+   0
+  ],
+  "green jelly": [
+   0,
+   53,
+   0
+  ],
+  "raven": [
+   0,
+   54,
+   0
+  ],
+  "giant white louse": [
+   0,
+   55,
+   0
+  ],
+  "piranha": [
+   0,
+   56,
+   0
+  ],
+  "spotted mushroom patch": [
+   0,
+   57,
+   0
+  ],
+  "silver jelly": [
+   0,
+   58,
+   0
+  ],
+  "scruffy looking hobbit": [
+   0,
+   59,
+   0
+  ],
+  "yellow worm mass": [
+   0,
+   60,
+   0
+  ],
+  "clear worm mass": [
+   0,
+   61,
+   0
+  ],
+  "radiation eye": [
+   0,
+   62,
+   0
+  ],
+  "cave lizard": [
+   0,
+   0,
+   1
+  ],
+  "novice ranger": [
+   0,
+   1,
+   1
+  ],
+  "frosty jelly": [
+   0,
+   2,
+   1
+  ],
+  "giant white rat": [
+   0,
+   3,
+   1
+  ],
+  "goblin": [
+   0,
+   4,
+   1
+  ],
+  "swordfish": [
+   0,
+   5,
+   1
+  ],
+  "white worm mass": [
+   0,
+   6,
+   1
+  ],
+  "large grey snake": [
+   0,
+   7,
+   1
+  ],
+  "skeleton kobold": [
+   0,
+   8,
+   1
+  ],
+  "ewok": [
+   0,
+   9,
+   1
+  ],
+  "giant leech": [
+   0,
+   10,
+   1
+  ],
+  "barracuda": [
+   0,
+   11,
+   1
+  ],
+  "novice paladin": [
+   0,
+   12,
+   1
+  ],
+  "zog": [
+   0,
+   13,
+   1
+  ],
+  "slush pile": [
+   0,
+   14,
+   1
+  ],
+  "green glutton ghost": [
+   0,
+   15,
+   1
+  ],
+  "slimy jelly": [
+   0,
+   16,
+   1
+  ],
+  "disenchanter eye": [
+   0,
+   17,
+   1
+  ],
+  "red worm mass": [
+   0,
+   18,
+   1
+  ],
+  "copperhead snake": [
+   0,
+   19,
+   1
+  ],
+  "purple mushroom patch": [
+   0,
+   20,
+   1
+  ],
+  "novice priest": [
+   0,
+   21,
+   1
+  ],
+  "nibelung": [
+   0,
+   22,
+   1
+  ],
+  "disembodied hand that strangled people": [
+   0,
+   23,
+   1
+  ],
+  "rat-thing": [
+   0,
+   24,
+   1
+  ],
+  "novice archer": [
+   0,
+   25,
+   1
+  ],
+  "snaga": [
+   0,
+   26,
+   1
+  ],
+  "rattlesnake": [
+   0,
+   27,
+   1
+  ],
+  "giant slug": [
+   0,
+   28,
+   1
+  ],
+  "giant pink frog": [
+   0,
+   29,
+   1
+  ],
+  "dark elf": [
+   0,
+   30,
+   1
+  ],
+  "zombified kobold": [
+   0,
+   31,
+   1
+  ],
+  "crypt creep": [
+   0,
+   32,
+   1
+  ],
+  "rotting corpse": [
+   0,
+   33,
+   1
+  ],
+  "cave orc": [
+   0,
+   34,
+   1
+  ],
+  "wood spider": [
+   0,
+   35,
+   1
+  ],
+  "manes": [
+   0,
+   36,
+   1
+  ],
+  "bloodshot eye": [
+   0,
+   37,
+   1
+  ],
+  "pink jelly": [
+   0,
+   38,
+   1
+  ],
+  "lost soul": [
+   0,
+   39,
+   1
+  ],
+  "night lizard": [
+   0,
+   40,
+   1
+  ],
+  "skeleton orc": [
+   0,
+   41,
+   1
+  ],
+  "wormtongue, agent of saruman": [
+   0,
+   42,
+   1
+  ],
+  "robin hood, the outlaw": [
+   0,
+   43,
+   1
+  ],
+  "nurgling": [
+   0,
+   44,
+   1
+  ],
+  "lagduf, the snaga": [
+   0,
+   45,
+   1
+  ],
+  "giant salamander": [
+   0,
+   46,
+   1
+  ],
+  "carnivorous flying monkey": [
+   0,
+   47,
+   1
+  ],
+  "lemure": [
+   0,
+   48,
+   1
+  ],
+  "hill orc": [
+   0,
+   49,
+   1
+  ],
+  "bandit": [
+   0,
+   50,
+   1
+  ],
+  "hunting hawk of julian": [
+   0,
+   51,
+   1
+  ],
+  "phantom warrior": [
+   0,
+   52,
+   1
+  ],
+  "gremlin": [
+   0,
+   53,
+   1
+  ],
+  "yeti": [
+   0,
+   54,
+   1
+  ],
+  "giant grey rat": [
+   0,
+   55,
+   1
+  ],
+  "black harpy": [
+   0,
+   56,
+   1
+  ],
+  "skaven": [
+   0,
+   57,
+   1
+  ],
+  "wounded bear": [
+   0,
+   58,
+   1
+  ],
+  "portuguese man-o-war": [
+   0,
+   59,
+   1
+  ],
+  "rock mole": [
+   0,
+   60,
+   1
+  ],
+  "orc shaman": [
+   0,
+   61,
+   1
+  ],
+  "baby blue dragon": [
+   0,
+   62,
+   1
+  ],
+  "baby white dragon": [
+   0,
+   0,
+   2
+  ],
+  "baby green dragon": [
+   0,
+   1,
+   2
+  ],
+  "baby black dragon": [
+   0,
+   2,
+   2
+  ],
+  "baby red dragon": [
+   0,
+   3,
+   2
+  ],
+  "brodda, the easterling": [
+   0,
+   4,
+   2
+  ],
+  "bloodfang the wolf": [
+   0,
+   5,
+   2
+  ],
+  "king cobra": [
+   0,
+   6,
+   2
+  ],
+  "eagle": [
+   0,
+   7,
+   2
+  ],
+  "war bear": [
+   0,
+   8,
+   2
+  ],
+  "killer bee": [
+   0,
+   9,
+   2
+  ],
+  "giant spider": [
+   0,
+   10,
+   2
+  ],
+  "giant white tick": [
+   0,
+   11,
+   2
+  ],
+  "borshin": [
+   0,
+   12,
+   2
+  ],
+  "dark elven mage": [
+   0,
+   13,
+   2
+  ],
+  "servant of glaaki": [
+   0,
+   14,
+   2
+  ],
+  "dark elven warrior": [
+   0,
+   15,
+   2
+  ],
+  "sand-dweller": [
+   0,
+   16,
+   2
+  ],
+  "clear mushroom patch": [
+   0,
+   17,
+   2
+  ],
+  "quiver slot": [
+   0,
+   18,
+   2
+  ],
+  "grishnakh, the hill orc": [
+   0,
+   19,
+   2
+  ],
+  "giant piranha": [
+   0,
+   20,
+   2
+  ],
+  "owlbear": [
+   0,
+   21,
+   2
+  ],
+  "blue horror": [
+   0,
+   22,
+   2
+  ],
+  "grizzly bear": [
+   0,
+   23,
+   2
+  ],
+  "pseudo dragon": [
+   0,
+   24,
+   2
+  ],
+  "tengu": [
+   0,
+   25,
+   2
+  ],
+  "wolf": [
+   0,
+   26,
+   2
+  ],
+  "giant fruit fly": [
+   0,
+   27,
+   2
+  ],
+  "panther": [
+   0,
+   28,
+   2
+  ],
+  "tax collector": [
+   0,
+   29,
+   2
+  ],
+  "hobbes the tiger": [
+   0,
+   30,
+   2
+  ],
+  "shadow creature of fiona": [
+   0,
+   31,
+   2
+  ],
+  "undead mass": [
+   0,
+   32,
+   2
+  ],
+  "chaos shapechanger": [
+   0,
+   33,
+   2
+  ],
+  "baby multi-hued dragon": [
+   0,
+   34,
+   2
+  ],
+  "vorpal bunny": [
+   0,
+   35,
+   2
+  ],
+  "old man willow": [
+   0,
+   36,
+   2
+  ],
+  "hippocampus": [
+   0,
+   37,
+   2
+  ],
+  "zombified orc": [
+   0,
+   38,
+   2
+  ],
+  "hippogriff": [
+   0,
+   39,
+   2
+  ],
+  "black mamba": [
+   0,
+   40,
+   2
+  ],
+  "white wolf": [
+   0,
+   41,
+   2
+  ],
+  "grape jelly": [
+   0,
+   42,
+   2
+  ],
+  "nether worm mass": [
+   0,
+   43,
+   2
+  ],
+  "abyss worm mass": [
+   0,
+   44,
+   2
+  ],
+  "golfimbul, the hill orc chief": [
+   0,
+   45,
+   2
+  ],
+  "swordsman": [
+   0,
+   46,
+   2
+  ],
+  "skaven shaman": [
+   0,
+   47,
+   2
+  ],
+  "gazer": [
+   0,
+   48,
+   2
+  ],
+  "knight archer": [
+   0,
+   49,
+   2
+  ],
+  "ixitxachitl": [
+   0,
+   50,
+   2
+  ],
+  "mine-dog": [
+   0,
+   51,
+   2
+  ],
+  "hellcat": [
+   0,
+   52,
+   2
+  ],
+  "moon beast": [
+   0,
+   53,
+   2
+  ],
+  "priest": [
+   0,
+   54,
+   2
+  ],
+  "dark elven priest": [
+   0,
+   55,
+   2
+  ],
+  "air spirit": [
+   0,
+   56,
+   2
+  ],
+  "skeleton human": [
+   0,
+   57,
+   2
+  ],
+  "zombified human": [
+   0,
+   58,
+   2
+  ],
+  "tiger": [
+   0,
+   59,
+   2
+  ],
+  "moaning spirit": [
+   0,
+   60,
+   2
+  ],
+  "spotted jelly": [
+   0,
+   61,
+   2
+  ],
+  "drider": [
+   0,
+   62,
+   2
+  ],
+  "illusionist": [
+   0,
+   0,
+   3
+  ],
+  "druid": [
+   0,
+   1,
+   3
+  ],
+  "pink horror": [
+   0,
+   2,
+   3
+  ],
+  "black orc": [
+   0,
+   3,
+   3
+  ],
+  "ochre jelly": [
+   0,
+   4,
+   3
+  ],
+  "software bug": [
+   0,
+   5,
+   3
+  ],
+  "nixie": [
+   0,
+   6,
+   3
+  ],
+  "vlasta": [
+   0,
+   7,
+   3
+  ],
+  "snaga sapper": [
+   0,
+   8,
+   3
+  ],
+  "gibbering mouther": [
+   0,
+   9,
+   3
+  ],
+  "irish wolfhound of flora": [
+   0,
+   10,
+   3
+  ],
+  "hill giant": [
+   0,
+   11,
+   3
+  ],
+  "flesh golem": [
+   0,
+   12,
+   3
+  ],
+  "warg": [
+   0,
+   13,
+   3
+  ],
+  "cheerful leprechaun": [
+   0,
+   14,
+   3
+  ],
+  "giant flea": [
+   0,
+   15,
+   3
+  ],
+  "ufthak of cirith ungol": [
+   0,
+   16,
+   3
+  ],
+  "clay golem": [
+   0,
+   17,
+   3
+  ],
+  "dweller on the threshold": [
+   0,
+   18,
+   3
+  ],
+  "half-orc": [
+   0,
+   19,
+   3
+  ],
+  "giant octopus": [
+   0,
+   20,
+   3
+  ],
+  "magic mushroom patch": [
+   0,
+   21,
+   3
+  ],
+  "plaguebearer of nurgle": [
+   0,
+   22,
+   3
+  ],
+  "wererat": [
+   0,
+   23,
+   3
+  ],
+  "light hound": [
+   0,
+   24,
+   3
+  ],
+  "shadow hound": [
+   0,
+   25,
+   3
+  ],
+  "flying skull": [
+   0,
+   26,
+   3
+  ],
+  "mi-go": [
+   0,
+   27,
+   3
+  ],
+  "giant tarantula": [
+   0,
+   28,
+   3
+  ],
+  "mirkwood spider": [
+   0,
+   29,
+   3
+  ],
+  "frost giant": [
+   0,
+   30,
+   3
+  ],
+  "griffon": [
+   0,
+   31,
+   3
+  ],
+  "homonculus": [
+   0,
+   32,
+   3
+  ],
+  "gnome mage": [
+   0,
+   33,
+   3
+  ],
+  "clear hound": [
+   0,
+   34,
+   3
+  ],
+  "rust monster": [
+   0,
+   35,
+   3
+  ],
+  "orc captain": [
+   0,
+   36,
+   3
+  ],
+  "gelatinous cube": [
+   0,
+   37,
+   3
+  ],
+  "fire giant": [
+   0,
+   38,
+   3
+  ],
+  "hummerhorn": [
+   0,
+   39,
+   3
+  ],
+  "lizardman": [
+   0,
+   40,
+   3
+  ],
+  "ulfast, son of ulfang": [
+   0,
+   41,
+   3
+  ],
+  "hammerhead": [
+   0,
+   42,
+   3
+  ],
+  "berserker": [
+   0,
+   43,
+   3
+  ],
+  "quasit": [
+   0,
+   44,
+   3
+  ],
+  "sphinx": [
+   0,
+   45,
+   3
+  ],
+  "imp": [
+   0,
+   46,
+   3
+  ],
+  "forest troll": [
+   0,
+   47,
+   3
+  ],
+  "swamp thing": [
+   0,
+   48,
+   3
+  ],
+  "water spirit": [
+   0,
+   49,
+   3
+  ],
+  "giant pink scorpion": [
+   0,
+   50,
+   3
+  ],
+  "earth spirit": [
+   0,
+   51,
+   3
+  ],
+  "fire spirit": [
+   0,
+   52,
+   3
+  ],
+  "fire hound": [
+   0,
+   53,
+   3
+  ],
+  "cold hound": [
+   0,
+   54,
+   3
+  ],
+  "energy hound": [
+   0,
+   55,
+   3
+  ],
+  "blink dog": [
+   0,
+   56,
+   3
+  ],
+  "uruk": [
+   0,
+   57,
+   3
+  ],
+  "shagrat, the orc captain": [
+   0,
+   58,
+   3
+  ],
+  "gorbag, the orc captain": [
+   0,
+   59,
+   3
+  ],
+  "shambling mound": [
+   0,
+   60,
+   3
+  ],
+  "white shark": [
+   0,
+   61,
+   3
+  ],
+  "chaos beastman": [
+   0,
+   62,
+   3
+  ],
+  "daemonette of slaanesh": [
+   0,
+   0,
+   4
+  ],
+  "stone giant": [
+   0,
+   1,
+   4
+  ],
+  "stone golem": [
+   0,
+   2,
+   4
+  ],
+  "stunwall": [
+   0,
+   3,
+   4
+  ],
+  "ghast": [
+   0,
+   4,
+   4
+  ],
+  "ixitxachitl priest": [
+   0,
+   5,
+   4
+  ],
+  "huorn": [
+   0,
+   6,
+   4
+  ],
+  "bolg, son of azog": [
+   0,
+   7,
+   4
+  ],
+  "phase spider": [
+   0,
+   8,
+   4
+  ],
+  "lizard king": [
+   0,
+   9,
+   4
+  ],
+  "wyvern": [
+   0,
+   10,
+   4
+  ],
+  "great eagle": [
+   0,
+   11,
+   4
+  ],
+  "livingstone": [
+   0,
+   12,
+   4
+  ],
+  "earth hound": [
+   0,
+   13,
+   4
+  ],
+  "air hound": [
+   0,
+   14,
+   4
+  ],
+  "sabre-tooth tiger": [
+   0,
+   15,
+   4
+  ],
+  "water hound": [
+   0,
+   16,
+   4
+  ],
+  "chimera": [
+   0,
+   17,
+   4
+  ],
+  "quylthulg": [
+   0,
+   18,
+   4
+  ],
+  "sasquatch": [
+   0,
+   19,
+   4
+  ],
+  "weir": [
+   0,
+   20,
+   4
+  ],
+  "whale": [
+   0,
+   21,
+   4
+  ],
+  "electric eel": [
+   0,
+   22,
+   4
+  ],
+  "werewolf": [
+   0,
+   23,
+   4
+  ],
+  "dark elven lord": [
+   0,
+   24,
+   4
+  ],
+  "cloud giant": [
+   0,
+   25,
+   4
+  ],
+  "ugluk, the uruk": [
+   0,
+   26,
+   4
+  ],
+  "fire vortex": [
+   0,
+   27,
+   4
+  ],
+  "water vortex": [
+   0,
+   28,
+   4
+  ],
+  "lugdush, the uruk": [
+   0,
+   29,
+   4
+  ],
+  "arch-vile": [
+   0,
+   30,
+   4
+  ],
+  "cold vortex": [
+   0,
+   31,
+   4
+  ],
+  "energy vortex": [
+   0,
+   32,
+   4
+  ],
+  "globefish": [
+   0,
+   33,
+   4
+  ],
+  "carrion": [
+   0,
+   34,
+   4
+  ],
+  "mummified orc": [
+   0,
+   35,
+   4
+  ],
+  "killer whale": [
+   0,
+   36,
+   4
+  ],
+  "serpent man": [
+   0,
+   37,
+   4
+  ],
+  "vampiric mist": [
+   0,
+   38,
+   4
+  ],
+  "iron golem": [
+   0,
+   39,
+   4
+  ],
+  "auto-roller": [
+   0,
+   40,
+   4
+  ],
+  "giant yellow scorpion": [
+   0,
+   41,
+   4
+  ],
+  "jade monk": [
+   0,
+   42,
+   4
+  ],
+  "black ooze": [
+   0,
+   43,
+   4
+  ],
+  "hardened warrior": [
+   0,
+   44,
+   4
+  ],
+  "azog, king of the uruk-hai": [
+   0,
+   45,
+   4
+  ],
+  "fleshhound of khorne": [
+   0,
+   46,
+   4
+  ],
+  "dark elven warlock": [
+   0,
+   47,
+   4
+  ],
+  "master rogue": [
+   0,
+   48,
+   4
+  ],
+  "ice skeleton": [
+   0,
+   49,
+   4
+  ],
+  "angamaite of umbar": [
+   0,
+   50,
+   4
+  ],
+  "kouko": [
+   0,
+   51,
+   4
+  ],
+  "mime, the nibelung": [
+   0,
+   52,
+   4
+  ],
+  "hagen, son of alberich": [
+   0,
+   53,
+   4
+  ],
+  "meneldor the swift": [
+   0,
+   54,
+   4
+  ],
+  "phantom beast": [
+   0,
+   55,
+   4
+  ],
+  "great white shark": [
+   0,
+   56,
+   4
+  ],
+  "lesser hell-beast": [
+   0,
+   57,
+   4
+  ],
+  "tyrannosaurus": [
+   0,
+   58,
+   4
+  ],
+  "mummified human": [
+   0,
+   59,
+   4
+  ],
+  "sangahyando of umbar": [
+   0,
+   60,
+   4
+  ],
+  "banshee": [
+   0,
+   61,
+   4
+  ],
+  "xiclotlan": [
+   0,
+   62,
+   4
+  ],
+  "silent watcher": [
+   0,
+   0,
+   5
+  ],
+  "pukelman": [
+   0,
+   1,
+   5
+  ],
+  "disenchanter beast": [
+   0,
+   2,
+   5
+  ],
+  "dark elven druid": [
+   0,
+   3,
+   5
+  ],
+  "stone troll": [
+   0,
+   4,
+   5
+  ],
+  "black": [
+   0,
+   5,
+   5
+  ],
+  "troll priest": [
+   0,
+   6,
+   5
+  ],
+  "wereworm": [
+   0,
+   7,
+   5
+  ],
+  "vampiric ixitxachitl": [
+   0,
+   8,
+   5
+  ],
+  "gnoph-keh": [
+   0,
+   9,
+   5
+  ],
+  "kharis the powerslave": [
+   0,
+   10,
+   5
+  ],
+  "gwaihir the windlord": [
+   0,
+   11,
+   5
+  ],
+  "giant red tick": [
+   0,
+   12,
+   5
+  ],
+  "displacer beast": [
+   0,
+   13,
+   5
+  ],
+  "ulwarth, son of ulfang": [
+   0,
+   14,
+   5
+  ],
+  "agent of benedict": [
+   0,
+   15,
+   5
+  ],
+  "white wraith": [
+   0,
+   16,
+   5
+  ],
+  "angel": [
+   0,
+   17,
+   5
+  ],
+  "ghoul": [
+   0,
+   18,
+   5
+  ],
+  "alberich the nibelung king": [
+   0,
+   19,
+   5
+  ],
+  "beast of nurgle": [
+   0,
+   20,
+   5
+  ],
+  "algroth": [
+   0,
+   21,
+   5
+  ],
+  "flamer of tzeentch": [
+   0,
+   22,
+   5
+  ],
+  "roper": [
+   0,
+   23,
+   5
+  ],
+  "headless": [
+   0,
+   24,
+   5
+  ],
+  "vibration hound": [
+   0,
+   25,
+   5
+  ],
+  "nexus hound": [
+   0,
+   26,
+   5
+  ],
+  "gorgimera": [
+   0,
+   27,
+   5
+  ],
+  "shantak": [
+   0,
+   28,
+   5
+  ],
+  "colbran": [
+   0,
+   29,
+   5
+  ],
+  "corpser": [
+   0,
+   30,
+   5
+  ],
+  "fiend of slaanesh": [
+   0,
+   31,
+   5
+  ],
+  "gachapin": [
+   0,
+   32,
+   5
+  ],
+  "black knight": [
+   0,
+   33,
+   5
+  ],
+  "seahorse": [
+   0,
+   34,
+   5
+  ],
+  "cyclops": [
+   0,
+   35,
+   5
+  ],
+  "clairvoyant": [
+   0,
+   36,
+   5
+  ],
+  "giant purple worm": [
+   0,
+   37,
+   5
+  ],
+  "catoblepas": [
+   0,
+   38,
+   5
+  ],
+  "lesser wall monster": [
+   0,
+   39,
+   5
+  ],
+  "mage": [
+   0,
+   40,
+   5
+  ],
+  "mind flayer": [
+   0,
+   41,
+   5
+  ],
+  "ultimate dungeon cleaner": [
+   0,
+   42,
+   5
+  ],
+  "deep one": [
+   0,
+   43,
+   5
+  ],
+  "basilisk": [
+   0,
+   44,
+   5
+  ],
+  "ice troll": [
+   0,
+   45,
+   5
+  ],
+  "dhole": [
+   0,
+   46,
+   5
+  ],
+  "archangel": [
+   0,
+   47,
+   5
+  ],
+  "young blue dragon": [
+   0,
+   48,
+   5
+  ],
+  "young white dragon": [
+   0,
+   49,
+   5
+  ],
+  "young green dragon": [
+   0,
+   50,
+   5
+  ],
+  "young bronze dragon": [
+   0,
+   51,
+   5
+  ],
+  "aklash": [
+   0,
+   52,
+   5
+  ],
+  "mithril golem": [
+   0,
+   53,
+   5
+  ],
+  "skeleton troll": [
+   0,
+   54,
+   5
+  ],
+  "skeletal tyrannosaurus": [
+   0,
+   55,
+   5
+  ],
+  "jaws": [
+   0,
+   56,
+   5
+  ],
+  "thorondor": [
+   0,
+   57,
+   5
+  ],
+  "grave wight": [
+   0,
+   58,
+   5
+  ],
+  "shadow drake": [
+   0,
+   59,
+   5
+  ],
+  "manticore": [
+   0,
+   60,
+   5
+  ],
+  "gorgon": [
+   0,
+   61,
+   5
+  ],
+  "gug": [
+   0,
+   62,
+   5
+  ],
+  "ghost": [
+   0,
+   0,
+   6
+  ],
+  "nexus quylthulg": [
+   0,
+   1,
+   6
+  ],
+  "shelob, spider of darkness": [
+   0,
+   2,
+   6
+  ],
+  "giant squid": [
+   0,
+   3,
+   6
+  ],
+  "ghoulking": [
+   0,
+   4,
+   6
+  ],
+  "ninja": [
+   0,
+   5,
+   6
+  ],
+  "memory moss": [
+   0,
+   6,
+   6
+  ],
+  "storm giant": [
+   0,
+   7,
+   6
+  ],
+  "spectator": [
+   0,
+   8,
+   6
+  ],
+  "bokrug": [
+   0,
+   9,
+   6
+  ],
+  "biclops": [
+   0,
+   10,
+   6
+  ],
+  "half-troll": [
+   0,
+   11,
+   6
+  ],
+  "ivory monk": [
+   0,
+   12,
+   6
+  ],
+  "bert the stone troll": [
+   0,
+   13,
+   6
+  ],
+  "bill the stone troll": [
+   0,
+   14,
+   6
+  ],
+  "tom the stone troll": [
+   0,
+   15,
+   6
+  ],
+  "cave troll": [
+   0,
+   16,
+   6
+  ],
+  "anti-paladin": [
+   0,
+   17,
+   6
+  ],
+  "logrus master": [
+   0,
+   18,
+   6
+  ],
+  "barrow wight": [
+   0,
+   19,
+   6
+  ],
+  "giant skeleton troll": [
+   0,
+   20,
+   6
+  ],
+  "chaos drake": [
+   0,
+   21,
+   6
+  ],
+  "law drake": [
+   0,
+   22,
+   6
+  ],
+  "balance drake": [
+   0,
+   23,
+   6
+  ],
+  "ethereal drake": [
+   0,
+   24,
+   6
+  ],
+  "ishikawa goemon": [
+   0,
+   25,
+   6
+  ],
+  "fasolt the giant": [
+   0,
+   26,
+   6
+  ],
+  "logrus ghost": [
+   0,
+   27,
+   6
+  ],
+  "spectre": [
+   0,
+   28,
+   6
+  ],
+  "water troll": [
+   0,
+   29,
+   6
+  ],
+  "fire elemental": [
+   0,
+   30,
+   6
+  ],
+  "cherub": [
+   0,
+   31,
+   6
+  ],
+  "water elemental": [
+   0,
+   32,
+   6
+  ],
+  "multi-hued hound": [
+   0,
+   33,
+   6
+  ],
+  "night stalker": [
+   0,
+   34,
+   6
+  ],
+  "velociraptor": [
+   0,
+   35,
+   6
+  ],
+  "master thief": [
+   0,
+   36,
+   6
+  ],
+  "jurt the living trump": [
+   0,
+   37,
+   6
+  ],
+  "gas spore": [
+   0,
+   38,
+   6
+  ],
+  "greater mummy": [
+   0,
+   39,
+   6
+  ],
+  "bloodletter of khorne": [
+   0,
+   40,
+   6
+  ],
+  "giant grey scorpion": [
+   0,
+   41,
+   6
+  ],
+  "earth elemental": [
+   0,
+   42,
+   6
+  ],
+  "air elemental": [
+   0,
+   43,
+   6
+  ],
+  "doom drake": [
+   0,
+   44,
+   6
+  ],
+  "gargoyle": [
+   0,
+   45,
+   6
+  ],
+  "malicious leprechaun": [
+   0,
+   46,
+   6
+  ],
+  "eog golem": [
+   0,
+   47,
+   6
+  ],
+  "dagashi": [
+   0,
+   48,
+   6
+  ],
+  "headless ghost": [
+   0,
+   49,
+   6
+  ],
+  "dread knight": [
+   0,
+   50,
+   6
+  ],
+  "leng spider": [
+   0,
+   51,
+   6
+  ],
+  "smoke elemental": [
+   0,
+   52,
+   6
+  ],
+  "olog": [
+   0,
+   53,
+   6
+  ],
+  "halfling slinger": [
+   0,
+   54,
+   6
+  ],
+  "gravity hound": [
+   0,
+   55,
+   6
+  ],
+  "acidic cytoplasm": [
+   0,
+   56,
+   6
+  ],
+  "inertia hound": [
+   0,
+   57,
+   6
+  ],
+  "impact hound": [
+   0,
+   58,
+   6
+  ],
+  "sea troll": [
+   0,
+   59,
+   6
+  ],
+  "ooze elemental": [
+   0,
+   60,
+   6
+  ],
+  "young black dragon": [
+   0,
+   61,
+   6
+  ],
+  "wooly rhinoceros": [
+   0,
+   62,
+   6
+  ],
+  "mature white dragon": [
+   0,
+   0,
+   7
+  ],
+  "rogrog the black troll": [
+   0,
+   1,
+   7
+  ],
+  "mist giant": [
+   0,
+   2,
+   7
+  ],
+  "pattern ghost": [
+   0,
+   3,
+   7
+  ],
+  "grey wraith": [
+   0,
+   4,
+   7
+  ],
+  "revenant": [
+   0,
+   5,
+   7
+  ],
+  "young multi-hued dragon": [
+   0,
+   6,
+   7
+  ],
+  "colossus": [
+   0,
+   7,
+   7
+  ],
+  "young gold dragon": [
+   0,
+   8,
+   7
+  ],
+  "mature blue dragon": [
+   0,
+   9,
+   7
+  ],
+  "mature green dragon": [
+   0,
+   10,
+   7
+  ],
+  "mature bronze dragon": [
+   0,
+   11,
+   7
+  ],
+  "young red dragon": [
+   0,
+   12,
+   7
+  ],
+  "nightblade": [
+   0,
+   13,
+   7
+  ],
+  "bodak": [
+   0,
+   14,
+   7
+  ],
+  "mezzodaemon": [
+   0,
+   15,
+   7
+  ],
+  "elder thing": [
+   0,
+   16,
+   7
+  ],
+  "ice elemental": [
+   0,
+   17,
+   7
+  ],
+  "ipsissimus": [
+   0,
+   18,
+   7
+  ],
+  "greater hell magic mushroom were-quylthulg": [
+   0,
+   19,
+   7
+  ],
+  "lord borel of hendrake": [
+   0,
+   20,
+   7
+  ],
+  "chaos spawn": [
+   0,
+   21,
+   7
+  ],
+  "mummified troll": [
+   0,
+   22,
+   7
+  ],
+  "fire angel": [
+   0,
+   23,
+   7
+  ],
+  "chaos butterfly": [
+   0,
+   24,
+   7
+  ],
+  "time ghost": [
+   0,
+   25,
+   7
+  ],
+  "flying polyp": [
+   0,
+   26,
+   7
+  ],
+  "will o' the wisp": [
+   0,
+   27,
+   7
+  ],
+  "shan": [
+   0,
+   28,
+   7
+  ],
+  "magma elemental": [
+   0,
+   29,
+   7
+  ],
+  "black pudding": [
+   0,
+   30,
+   7
+  ],
+  "nexus vortex": [
+   0,
+   31,
+   7
+  ],
+  "plasma vortex": [
+   0,
+   32,
+   7
+  ],
+  "mature red dragon": [
+   0,
+   33,
+   7
+  ],
+  "mature gold dragon": [
+   0,
+   34,
+   7
+  ],
+  "crystal drake": [
+   0,
+   35,
+   7
+  ],
+  "mature black dragon": [
+   0,
+   36,
+   7
+  ],
+  "mature multi-hued dragon": [
+   0,
+   37,
+   7
+  ],
+  "sky whale": [
+   0,
+   38,
+   7
+  ],
+  "father dagon": [
+   0,
+   39,
+   7
+  ],
+  "mother hydra": [
+   0,
+   40,
+   7
+  ],
+  "death knight": [
+   0,
+   41,
+   7
+  ],
+  "mandor, master of the logrus": [
+   0,
+   42,
+   7
+  ],
+  "time vortex": [
+   0,
+   43,
+   7
+  ],
+  "shimmering vortex": [
+   0,
+   44,
+   7
+  ],
+  "ancient blue dragon": [
+   0,
+   45,
+   7
+  ],
+  "ancient bronze dragon": [
+   0,
+   46,
+   7
+  ],
+  "beholder": [
+   0,
+   47,
+   7
+  ],
+  "emperor wight": [
+   0,
+   48,
+   7
+  ],
+  "seraph": [
+   0,
+   49,
+   7
+  ],
+  "loge, spirit of fire": [
+   0,
+   50,
+   7
+  ],
+  "black wraith": [
+   0,
+   51,
+   7
+  ],
+  "nightgaunt": [
+   0,
+   52,
+   7
+  ],
+  "baron of hell": [
+   0,
+   53,
+   7
+  ],
+  "nether wraith": [
+   0,
+   54,
+   7
+  ],
+  "moire, queen of rebma": [
+   0,
+   55,
+   7
+  ],
+  "kavlax the many-headed": [
+   0,
+   56,
+   7
+  ],
+  "ancient white dragon": [
+   0,
+   57,
+   7
+  ],
+  "ancient green dragon": [
+   0,
+   58,
+   7
+  ],
+  "chthonian": [
+   0,
+   59,
+   7
+  ],
+  "eldrak": [
+   0,
+   60,
+   7
+  ],
+  "ettin": [
+   0,
+   61,
+   7
+  ],
+  "night mare": [
+   0,
+   62,
+   7
+  ],
+  "ancient black dragon": [
+   0,
+   0,
+   8
+  ],
+  "weird fume": [
+   0,
+   1,
+   8
+  ],
+  "spawn of ubbo-sathla": [
+   0,
+   2,
+   8
+  ],
+  "malekith the accursed": [
+   0,
+   3,
+   8
+  ],
+  "morgenstern, julian's steed": [
+   0,
+   4,
+   8
+  ],
+  "spirit troll": [
+   0,
+   5,
+   8
+  ],
+  "war troll": [
+   0,
+   6,
+   8
+  ],
+  "disenchanter worm mass": [
+   0,
+   7,
+   8
+  ],
+  "rotting quylthulg": [
+   0,
+   8,
+   8
+  ],
+  "lesser titan": [
+   0,
+   9,
+   8
+  ],
+  "enchantress": [
+   0,
+   10,
+   8
+  ],
+  "archpriest": [
+   0,
+   11,
+   8
+  ],
+  "sorcerer": [
+   0,
+   12,
+   8
+  ],
+  "jubjub bird": [
+   0,
+   13,
+   8
+  ],
+  "minotaur": [
+   0,
+   14,
+   8
+  ],
+  "death drake": [
+   0,
+   15,
+   8
+  ],
+  "ancient red dragon": [
+   0,
+   16,
+   8
+  ],
+  "ancient gold dragon": [
+   0,
+   17,
+   8
+  ],
+  "great crystal drake": [
+   0,
+   18,
+   8
+  ],
+  "wyrd sister": [
+   0,
+   19,
+   8
+  ],
+  "clubber demon": [
+   0,
+   20,
+   8
+  ],
+  "death quasit": [
+   0,
+   21,
+   8
+  ],
+  "giganto the gargantuan": [
+   0,
+   22,
+   8
+  ],
+  "strygalldwir": [
+   0,
+   23,
+   8
+  ],
+  "fallen angel": [
+   0,
+   24,
+   8
+  ],
+  "giant headless": [
+   0,
+   25,
+   8
+  ],
+  "judge fire": [
+   0,
+   26,
+   8
+  ],
+  "ubbo-sathla, the unbegotten source": [
+   0,
+   27,
+   8
+  ],
+  "judge mortis": [
+   0,
+   28,
+   8
+  ],
+  "dark elven sorcerer": [
+   0,
+   29,
+   8
+  ],
+  "byakhee": [
+   0,
+   30,
+   8
+  ],
+  "rinaldo, son of brand": [
+   0,
+   31,
+   8
+  ],
+  "archon": [
+   0,
+   32,
+   8
+  ],
+  "formless spawn of tsathoggua": [
+   0,
+   33,
+   8
+  ],
+  "hunting horror": [
+   0,
+   34,
+   8
+  ],
+  "undead beholder": [
+   0,
+   35,
+   8
+  ],
+  "shadow demon": [
+   0,
+   36,
+   8
+  ],
+  "dread": [
+   0,
+   37,
+   8
+  ],
+  "greater basilisk": [
+   0,
+   38,
+   8
+  ],
+  "charybdis": [
+   0,
+   39,
+   8
+  ],
+  "jack of shadows": [
+   0,
+   40,
+   8
+  ],
+  "zephyr lord": [
+   0,
+   41,
+   8
+  ],
+  "juggernaut of khorne": [
+   0,
+   42,
+   8
+  ],
+  "mumak": [
+   0,
+   43,
+   8
+  ],
+  "judge fear": [
+   0,
+   44,
+   8
+  ],
+  "ancient multi-hued dragon": [
+   0,
+   45,
+   8
+  ],
+  "ethereal dragon": [
+   0,
+   46,
+   8
+  ],
+  "dark young of shub-niggurath": [
+   0,
+   47,
+   8
+  ],
+  "quaker, master of earth": [
+   0,
+   48,
+   8
+  ],
+  "death leprechaun": [
+   0,
+   49,
+   8
+  ],
+  "chaugnar faugn, horror from the hills": [
+   0,
+   50,
+   8
+  ],
+  "lloigor": [
+   0,
+   51,
+   8
+  ],
+  "utgard-loke": [
+   0,
+   52,
+   8
+  ],
+  "quachil uttaus, treader of the dust": [
+   0,
+   53,
+   8
+  ],
+  "shoggoth": [
+   0,
+   54,
+   8
+  ],
+  "judge death": [
+   0,
+   55,
+   8
+  ],
+  "ariel, queen of air": [
+   0,
+   56,
+   8
+  ],
+  "high priest": [
+   0,
+   57,
+   8
+  ],
+  "dreadmaster": [
+   0,
+   58,
+   8
+  ],
+  "drolem": [
+   0,
+   59,
+   8
+  ],
+  "scatha the worm": [
+   0,
+   60,
+   8
+  ],
+  "warrior of the dawn": [
+   0,
+   61,
+   8
+  ],
+  "zoth-ommog": [
+   0,
+   62,
+   8
+  ],
+  "nazgul": [
+   0,
+   0,
+   9
+  ],
+  "smaug the golden": [
+   0,
+   1,
+   9
+  ],
+  "ultra-elite paladin": [
+   0,
+   2,
+   9
+  ],
+  "leprechaun fanatic": [
+   0,
+   3,
+   9
+  ],
+  "dracolich": [
+   0,
+   4,
+   9
+  ],
+  "greater titan": [
+   0,
+   5,
+   9
+  ],
+  "dracolisk": [
+   0,
+   6,
+   9
+  ],
+  "fastitocalon": [
+   0,
+   7,
+   9
+  ],
+  "spectral tyrannosaurus": [
+   0,
+   8,
+   9
+  ],
+  "yibb-tstll the patient one": [
+   0,
+   9,
+   9
+  ],
+  "ghatanothoa": [
+   0,
+   10,
+   9
+  ],
+  "ent": [
+   0,
+   11,
+   9
+  ],
+  "hru": [
+   0,
+   12,
+   9
+  ],
+  "itangast the fire drake": [
+   0,
+   13,
+   9
+  ],
+  "fafner the dragon": [
+   0,
+   14,
+   9
+  ],
+  "fangorn": [
+   0,
+   15,
+   9
+  ],
+  "zhar the twin obscenity": [
+   0,
+   16,
+   9
+  ],
+  "glaurung, father of the dragons": [
+   0,
+   17,
+   9
+  ],
+  "behemoth": [
+   0,
+   18,
+   9
+  ],
+  "garm, guardian of hel": [
+   0,
+   19,
+   9
+  ],
+  "greater wall monster": [
+   0,
+   20,
+   9
+  ],
+  "nycadaemon": [
+   0,
+   21,
+   9
+  ],
+  "greater balrog": [
+   0,
+   22,
+   9
+  ],
+  "goat of mendes": [
+   0,
+   23,
+   9
+  ],
+  "nightwing": [
+   0,
+   24,
+   9
+  ],
+  "maulotaur": [
+   0,
+   25,
+   9
+  ],
+  "nether hound": [
+   0,
+   26,
+   9
+  ],
+  "time hound": [
+   0,
+   27,
+   9
+  ],
+  "plasma hound": [
+   0,
+   28,
+   9
+  ],
+  "demonic quylthulg": [
+   0,
+   29,
+   9
+  ],
+  "great storm wyrm": [
+   0,
+   30,
+   9
+  ],
+  "ulik the troll": [
+   0,
+   31,
+   9
+  ],
+  "baphomet the minotaur lord": [
+   0,
+   32,
+   9
+  ],
+  "hell knight": [
+   0,
+   33,
+   9
+  ],
+  "bull gates": [
+   0,
+   34,
+   9
+  ],
+  "santa claus": [
+   0,
+   35,
+   9
+  ],
+  "eihort, the thing in the labyrinth": [
+   0,
+   36,
+   9
+  ],
+  "great unclean one": [
+   0,
+   37,
+   9
+  ],
+  "lord of chaos": [
+   0,
+   38,
+   9
+  ],
+  "khamul the easterling": [
+   0,
+   39,
+   9
+  ],
+  "hound of tindalos": [
+   0,
+   40,
+   9
+  ],
+  "lesser kraken": [
+   0,
+   41,
+   9
+  ],
+  "great ice wyrm": [
+   0,
+   42,
+   9
+  ],
+  "phoenix": [
+   0,
+   43,
+   9
+  ],
+  "nightcrawler": [
+   0,
+   44,
+   9
+  ],
+  "lord of change": [
+   0,
+   45,
+   9
+  ],
+  "keeper of secrets": [
+   0,
+   46,
+   9
+  ],
+  "shudde m'ell": [
+   0,
+   47,
+   9
+  ],
+  "hand druj": [
+   0,
+   48,
+   9
+  ],
+  "eye druj": [
+   0,
+   49,
+   9
+  ],
+  "skull druj": [
+   0,
+   50,
+   9
+  ],
+  "death vortex": [
+   0,
+   51,
+   9
+  ],
+  "aether vortex": [
+   0,
+   52,
+   9
+  ],
+  "nidhogg the hel-drake": [
+   0,
+   53,
+   9
+  ],
+  "great hell wyrm": [
+   0,
+   54,
+   9
+  ],
+  "hastur the unspeakable": [
+   0,
+   55,
+   9
+  ],
+  "bloodthirster": [
+   0,
+   56,
+   9
+  ],
+  "draconic quylthulg": [
+   0,
+   57,
+   9
+  ],
+  "nyogtha, the thing that should not be": [
+   0,
+   58,
+   9
+  ],
+  "ahtu, avatar of nyarlathotep": [
+   0,
+   59,
+   9
+  ],
+  "fundin bluecloak": [
+   0,
+   60,
+   9
+  ],
+  "dworkin barimen": [
+   0,
+   61,
+   9
+  ],
+  "uriel, angel of fire": [
+   0,
+   62,
+   9
+  ],
+  "azriel, angel of death": [
+   0,
+   0,
+   10
+  ],
+  "ancalagon the black": [
+   0,
+   1,
+   10
+  ],
+  "daoloth, the render of the veils": [
+   0,
+   2,
+   10
+  ],
+  "nightwalker": [
+   0,
+   3,
+   10
+  ],
+  "raphael, the messenger": [
+   0,
+   4,
+   10
+  ],
+  "habu the champion of chaos": [
+   0,
+   5,
+   10
+  ],
+  "saruman of many colours": [
+   0,
+   6,
+   10
+  ],
+  "gandalf the grey": [
+   0,
+   7,
+   10
+  ],
+  "brand, mad visionary of amber": [
+   0,
+   8,
+   10
+  ],
+  "shadowlord": [
+   0,
+   9,
+   10
+  ],
+  "greater kraken": [
+   0,
+   10,
+   10
+  ],
+  "bast, goddess of cats": [
+   0,
+   11,
+   10
+  ],
+  "jabberwock": [
+   0,
+   12,
+   10
+  ],
+  "chaos hound": [
+   0,
+   13,
+   10
+  ],
+  "ultimate beholder": [
+   0,
+   14,
+   10
+  ],
+  "leviathan": [
+   0,
+   15,
+   10
+  ],
+  "great wyrm of chaos": [
+   0,
+   16,
+   10
+  ],
+  "great wyrm of law": [
+   0,
+   17,
+   10
+  ],
+  "great wyrm of balance": [
+   0,
+   18,
+   10
+  ],
+  "shambler": [
+   0,
+   19,
+   10
+  ],
+  "hypnos, lord of sleep": [
+   0,
+   20,
+   10
+  ],
+  "glaaki": [
+   0,
+   21,
+   10
+  ],
+  "bleys, master of manipulation": [
+   0,
+   22,
+   10
+  ],
+  "great wyrm of many colours": [
+   0,
+   23,
+   10
+  ],
+  "fiona the sorceress": [
+   0,
+   24,
+   10
+  ],
+  "tselakus, the dreadlord": [
+   0,
+   25,
+   10
+  ],
+  "sky drake": [
+   0,
+   26,
+   10
+  ],
+  "julian, master of arden forest": [
+   0,
+   27,
+   10
+  ],
+  "tiamat, celestial dragon of evil": [
+   0,
+   28,
+   10
+  ],
+  "norsa": [
+   0,
+   29,
+   10
+  ],
+  "rhan-tegoth": [
+   0,
+   30,
+   10
+  ],
+  "caine, the conspirator": [
+   0,
+   31,
+   10
+  ],
+  "master quylthulg": [
+   0,
+   32,
+   10
+  ],
+  "greater draconic quylthulg": [
+   0,
+   33,
+   10
+  ],
+  "greater rotting quylthulg": [
+   0,
+   34,
+   10
+  ],
+  "omarax the eye tyrant": [
+   0,
+   35,
+   10
+  ],
+  "tsathoggua, the sleeper of n'kai": [
+   0,
+   36,
+   10
+  ],
+  "gerard, strongman of amber": [
+   0,
+   37,
+   10
+  ],
+  "ungoliant, the unlight": [
+   0,
+   38,
+   10
+  ],
+  "atlach-nacha, the spider god": [
+   0,
+   39,
+   10
+  ],
+  "y'golonac": [
+   0,
+   40,
+   10
+  ],
+  "aether hound": [
+   0,
+   41,
+   10
+  ],
+  "warp demon": [
+   0,
+   42,
+   10
+  ],
+  "eric the usurper": [
+   0,
+   43,
+   10
+  ],
+  "yig, father of serpents": [
+   0,
+   44,
+   10
+  ],
+  "unmaker": [
+   0,
+   45,
+   10
+  ],
+  "cyberdemon": [
+   0,
+   46,
+   10
+  ],
+  "hela, queen of the dead": [
+   0,
+   47,
+   10
+  ],
+  "mouth of sauron": [
+   0,
+   48,
+   10
+  ],
+  "klingsor, evil master of magic": [
+   0,
+   49,
+   10
+  ],
+  "corwin, lord of avalon": [
+   0,
+   50,
+   10
+  ],
+  "emperor quylthulg": [
+   0,
+   51,
+   10
+  ],
+  "qlzqqlzuup, the lord of flesh": [
+   0,
+   52,
+   10
+  ],
+  "cthugha, the living flame": [
+   0,
+   53,
+   10
+  ],
+  "benedict, the ideal warrior": [
+   0,
+   54,
+   10
+  ],
+  "witch-king of angmar": [
+   0,
+   55,
+   10
+  ],
+  "cyaegha": [
+   0,
+   56,
+   10
+  ],
+  "pazuzu, lord of air": [
+   0,
+   57,
+   10
+  ],
+  "ithaqua the windwalker": [
+   0,
+   58,
+   10
+  ],
+  "hell hound of julian": [
+   0,
+   59,
+   10
+  ],
+  "cantoras, the skeletal lord": [
+   0,
+   60,
+   10
+  ],
+  "mephistopheles, lord of hell": [
+   0,
+   61,
+   10
+  ],
+  "godzilla": [
+   0,
+   62,
+   10
+  ],
+  "abhoth, source of uncleanness": [
+   0,
+   0,
+   11
+  ],
+  "ymir the ice giant": [
+   0,
+   1,
+   11
+  ],
+  "loki the trickster": [
+   0,
+   2,
+   11
+  ],
+  "star-spawn of cthulhu": [
+   0,
+   3,
+   11
+  ],
+  "surtur the giant fire demon": [
+   0,
+   4,
+   11
+  ],
+  "tarrasque": [
+   0,
+   5,
+   11
+  ],
+  "lungorthin, the balrog of white fire": [
+   0,
+   6,
+   11
+  ],
+  "draugluin, sire of all werewolves": [
+   0,
+   7,
+   11
+  ],
+  "shuma-gorath": [
+   0,
+   8,
+   11
+  ],
+  "tulzscha, the green flame": [
+   0,
+   9,
+   11
+  ],
+  "oremorj the cyberdemon lord": [
+   0,
+   10,
+   11
+  ],
+  "yog-sothoth, the all-in-one": [
+   0,
+   11,
+   11
+  ],
+  "fenris wolf": [
+   0,
+   12,
+   11
+  ],
+  "great wyrm of power": [
+   0,
+   13,
+   11
+  ],
+  "shub-niggurath, black goat of the woods": [
+   0,
+   14,
+   11
+  ],
+  "nodens, lord of the great abyss": [
+   0,
+   15,
+   11
+  ],
+  "carcharoth, the jaws of thirst": [
+   0,
+   16,
+   11
+  ],
+  "nyarlathotep, the crawling chaos": [
+   0,
+   17,
+   11
+  ],
+  "azathoth, seething nuclear chaos": [
+   0,
+   18,
+   11
+  ],
+  "cerberus, guardian of hades": [
+   0,
+   19,
+   11
+  ],
+  "jormungand the midgard serpent": [
+   0,
+   20,
+   11
+  ],
+  "destroyer": [
+   0,
+   21,
+   11
+  ],
+  "gothmog, the high captain of balrogs": [
+   0,
+   22,
+   11
+  ],
+  "great cthulhu": [
+   0,
+   23,
+   11
+  ],
+  "sauron, the sorcerer": [
+   0,
+   24,
+   11
+  ],
+  "unicorn of order": [
+   0,
+   25,
+   11
+  ],
+  "oberon, king of amber": [
+   0,
+   26,
+   11
+  ],
+  "morgoth, lord of darkness": [
+   0,
+   27,
+   11
+  ],
+  "serpent of chaos": [
+   0,
+   28,
+   11
+  ],
+  "quantum dot": [
+   0,
+   29,
+   11
+  ],
+  "lourph": [
+   0,
+   30,
+   11
+  ],
+  "caaws": [
+   0,
+   31,
+   11
+  ],
+  "culverin": [
+   0,
+   32,
+   11
+  ],
+  "boadile": [
+   0,
+   33,
+   11
+  ],
+  "ebony monk": [
+   0,
+   34,
+   11
+  ],
+  "metal babble": [
+   0,
+   35,
+   11
+  ],
+  "combat-echizen \"because it's time\"": [
+   0,
+   36,
+   11
+  ],
+  "spectral wyrm": [
+   0,
+   37,
+   11
+  ],
+  "storm troll": [
+   0,
+   38,
+   11
+  ],
+  "unstable worm mass": [
+   0,
+   39,
+   11
+  ],
+  "ohmu": [
+   0,
+   40,
+   11
+  ],
+  "richard wong, master of time": [
+   0,
+   41,
+   11
+  ],
+  "locke, the superman": [
+   0,
+   42,
+   11
+  ],
+  "layzark, the emperor": [
+   0,
+   43,
+   11
+  ],
+  "zombified serpent of chaos": [
+   0,
+   44,
+   11
+  ],
+  "noxious fume": [
+   0,
+   45,
+   11
+  ],
+  "dark elven shade": [
+   0,
+   46,
+   11
+  ],
+  "mana hound": [
+   0,
+   47,
+   11
+  ],
+  "vore": [
+   0,
+   48,
+   11
+  ],
+  "great venom wyrm": [
+   0,
+   49,
+   11
+  ],
+  "gorlim, betrayer of barahir": [
+   0,
+   50,
+   11
+  ],
+  "djinni": [
+   0,
+   51,
+   11
+  ],
+  "efreeti": [
+   0,
+   52,
+   11
+  ],
+  "troll king": [
+   0,
+   53,
+   11
+  ],
+  "sky golem": [
+   0,
+   54,
+   11
+  ],
+  "bazooker": [
+   0,
+   55,
+   11
+  ],
+  "shard vortex": [
+   0,
+   56,
+   11
+  ],
+  "granite wall": [
+   0,
+   57,
+   11
+  ],
+  "fire troll": [
+   0,
+   58,
+   11
+  ],
+  "elf lord": [
+   0,
+   59,
+   11
+  ],
+  "samurai": [
+   0,
+   60,
+   11
+  ],
+  "bonsai kraken": [
+   0,
+   61,
+   11
+  ],
+  "chaos mushroom": [
+   0,
+   62,
+   11
+  ],
+  "cloud golem": [
+   0,
+   0,
+   12
+  ],
+  "lava golem": [
+   0,
+   1,
+   12
+  ],
+  "aquatic golem": [
+   0,
+   2,
+   12
+  ],
+  "undead devilfish": [
+   0,
+   3,
+   12
+  ],
+  "bullroarer the hobbit": [
+   0,
+   4,
+   12
+  ],
+  "mystic": [
+   0,
+   5,
+   12
+  ],
+  "master mystic": [
+   0,
+   6,
+   12
+  ],
+  "grand master mystic": [
+   0,
+   7,
+   12
+  ],
+  "devilfish": [
+   0,
+   8,
+   12
+  ],
+  "demogorgon": [
+   0,
+   9,
+   12
+  ],
+  "internet exploder": [
+   0,
+   10,
+   12
+  ],
+  "electric rat": [
+   0,
+   11,
+   12
+  ],
+  "yukionna": [
+   0,
+   12,
+   12
+  ],
+  "goomba": [
+   0,
+   13,
+   12
+  ],
+  "monkey of nikko": [
+   0,
+   14,
+   12
+  ],
+  "tsuchinoko": [
+   0,
+   15,
+   12
+  ],
+  "mario": [
+   0,
+   16,
+   12
+  ],
+  "king koopa": [
+   0,
+   17,
+   12
+  ],
+  "aboleth": [
+   0,
+   18,
+   12
+  ],
+  "clone of locke the superman": [
+   0,
+   19,
+   12
+  ],
+  "caldarm the third": [
+   0,
+   20,
+   12
+  ],
+  "banor=rupart": [
+   0,
+   21,
+   12
+  ],
+  "banor the prince regent": [
+   0,
+   22,
+   12
+  ],
+  "rupart the general": [
+   0,
+   23,
+   12
+  ],
+  "druaga": [
+   0,
+   24,
+   12
+  ],
+  "kenshirou the fist of the north star": [
+   0,
+   25,
+   12
+  ],
+  "lems the cyborg": [
+   0,
+   26,
+   12
+  ],
+  "white knight": [
+   0,
+   27,
+   12
+  ],
+  "hoarmurath of dir": [
+   0,
+   28,
+   12
+  ],
+  "lesser balrog": [
+   0,
+   29,
+   12
+  ],
+  "bone dragon": [
+   0,
+   30,
+   12
+  ],
+  "planetar": [
+   0,
+   31,
+   12
+  ],
+  "solar": [
+   0,
+   32,
+   12
+  ],
+  "biketal of fire": [
+   0,
+   33,
+   12
+  ],
+  "jisisl of ice": [
+   0,
+   34,
+   12
+  ],
+  "poor, the thief": [
+   0,
+   35,
+   12
+  ],
+  "rich, the thief": [
+   0,
+   36,
+   12
+  ],
+  "iketa, the brave": [
+   0,
+   37,
+   12
+  ],
+  "hammer brother": [
+   0,
+   38,
+   12
+  ],
+  "buzzy beetle": [
+   0,
+   39,
+   12
+  ],
+  "kamikaze hound": [
+   0,
+   40,
+   12
+  ],
+  "orcish artillery": [
+   0,
+   41,
+   12
+  ],
+  "scrawny horse": [
+   0,
+   42,
+   12
+  ],
+  "horse": [
+   0,
+   43,
+   12
+  ],
+  "unruly horse": [
+   0,
+   44,
+   12
+  ],
+  "red puyo": [
+   0,
+   45,
+   12
+  ],
+  "blue puyo": [
+   0,
+   46,
+   12
+  ],
+  "yellow puyo": [
+   0,
+   47,
+   12
+  ],
+  "green puyo": [
+   0,
+   48,
+   12
+  ],
+  "slime mold": [
+   0,
+   49,
+   12
+  ],
+  "botei-building, the emperor": [
+   0,
+   50,
+   12
+  ],
+  "luigi": [
+   0,
+   51,
+   12
+  ],
+  "jaian, the boss of the kids": [
+   0,
+   52,
+   12
+  ],
+  "bramd the ice dragon": [
+   0,
+   53,
+   12
+  ],
+  "eibra the water dragon": [
+   0,
+   54,
+   12
+  ],
+  "narse the black dragon": [
+   0,
+   55,
+   12
+  ],
+  "mycen the gold dragon": [
+   0,
+   56,
+   12
+  ],
+  "shooting star the red dragon": [
+   0,
+   57,
+   12
+  ],
+  "beld, ruler of marmo": [
+   0,
+   58,
+   12
+  ],
+  "ashram, the ebony knight": [
+   0,
+   59,
+   12
+  ],
+  "eol, the dark elven smith": [
+   0,
+   60,
+   12
+  ],
+  "maeglin, betrayer of gondolin": [
+   0,
+   61,
+   12
+  ],
+  "ar-pharazon the golden": [
+   0,
+   62,
+   12
+  ],
+  "coatl": [
+   0,
+   0,
+   13
+  ],
+  "thunder bird": [
+   0,
+   1,
+   13
+  ],
+  "durahan": [
+   0,
+   2,
+   13
+  ],
+  "hibagon": [
+   0,
+   3,
+   13
+  ],
+  "nue": [
+   0,
+   4,
+   13
+  ],
+  "unicorn": [
+   0,
+   5,
+   13
+  ],
+  "nekomata": [
+   0,
+   6,
+   13
+  ],
+  "nine-tailed fox": [
+   0,
+   7,
+   13
+  ],
+  "fenghuang": [
+   0,
+   8,
+   13
+  ],
+  "kirin": [
+   0,
+   9,
+   13
+  ],
+  "pegasus": [
+   0,
+   10,
+   13
+  ],
+  "sleipnir, the odin's steed": [
+   0,
+   11,
+   13
+  ],
+  "huan, the hound of valinor": [
+   0,
+   12,
+   13
+  ],
+  "dao": [
+   0,
+   13,
+   13
+  ],
+  "marid": [
+   0,
+   14,
+   13
+  ],
+  "wolf chieftain": [
+   0,
+   15,
+   13
+  ],
+  "nar, the dwarf": [
+   0,
+   16,
+   13
+  ],
+  "chiokovo": [
+   0,
+   17,
+   13
+  ],
+  "black chiokovo": [
+   0,
+   18,
+   13
+  ],
+  "devu chiokovo": [
+   0,
+   19,
+   13
+  ],
+  "bahamut, celestial dragon of good": [
+   0,
+   20,
+   13
+  ],
+  "suke-san, the mitsukuni's warder": [
+   0,
+   21,
+   13
+  ],
+  "kaku-san, the mitsukuni's warder": [
+   0,
+   22,
+   13
+  ],
+  "ghost 'q'": [
+   0,
+   23,
+   13
+  ],
+  "pip, the braver from another world": [
+   0,
+   24,
+   13
+  ],
+  "ansalom, the dark wizard": [
+   0,
+   25,
+   13
+  ],
+  "high-elven ranger": [
+   0,
+   26,
+   13
+  ],
+  "giant cockroach": [
+   0,
+   27,
+   13
+  ],
+  "demonologist": [
+   0,
+   28,
+   13
+  ],
+  "dwar, dog lord of waw": [
+   0,
+   29,
+   13
+  ],
+  "golden angel": [
+   0,
+   30,
+   13
+  ],
+  "silver angel": [
+   0,
+   31,
+   13
+  ],
+  "jibaku ghost": [
+   0,
+   32,
+   13
+  ],
+  "rolento": [
+   0,
+   33,
+   13
+  ],
+  "m. bison": [
+   0,
+   34,
+   13
+  ],
+  "spider bomb": [
+   0,
+   35,
+   13
+  ],
+  "bomb mosquito": [
+   0,
+   36,
+   13
+  ],
+  "raou the conqueror": [
+   0,
+   37,
+   13
+  ],
+  "kokuo, raou's steed": [
+   0,
+   38,
+   13
+  ],
+  "kutar": [
+   0,
+   39,
+   13
+  ],
+  "nami, the mate": [
+   0,
+   40,
+   13
+  ],
+  "nappa the saiyan": [
+   0,
+   41,
+   13
+  ],
+  "grand master thief": [
+   0,
+   42,
+   13
+  ],
+  "charon, boatman of the styx": [
+   0,
+   43,
+   13
+  ],
+  "old sorcerer": [
+   0,
+   44,
+   13
+  ],
+  "red helm, the king of bear": [
+   0,
+   45,
+   13
+  ],
+  "mad bear": [
+   0,
+   46,
+   13
+  ],
+  "demonite": [
+   0,
+   47,
+   13
+  ],
+  "meng huo, the king of southerings": [
+   0,
+   48,
+   13
+  ],
+  "wahha-man the golden": [
+   0,
+   49,
+   13
+  ],
+  "minotaur of the labyrinth": [
+   0,
+   50,
+   13
+  ],
+  "trap master": [
+   0,
+   51,
+   13
+  ],
+  "knight templar": [
+   0,
+   52,
+   13
+  ],
+  "paladin": [
+   0,
+   53,
+   13
+  ],
+  "ranger": [
+   0,
+   54,
+   13
+  ],
+  "chameleon": [
+   0,
+   55,
+   13
+  ],
+  "chameleon lord": [
+   0,
+   56,
+   13
+  ],
+  "narwhal": [
+   0,
+   57,
+   13
+  ],
+  "petshop": [
+   0,
+   58,
+   13
+  ],
+  "white crocodile": [
+   0,
+   59,
+   13
+  ],
+  "disintegrate vortex": [
+   0,
+   60,
+   13
+  ],
+  "ulfang the black": [
+   0,
+   61,
+   13
+  ],
+  "topaz monk": [
+   0,
+   62,
+   13
+  ],
+  "stone dragon": [
+   0,
+   0,
+   14
+  ],
+  "steel dragon": [
+   0,
+   1,
+   14
+  ],
+  "atlas, the titan": [
+   0,
+   2,
+   14
+  ],
+  "kronos, lord of the titans": [
+   0,
+   3,
+   14
+  ],
+  "dimensional shambler": [
+   0,
+   4,
+   14
+  ],
+  "novice mindcrafter": [
+   0,
+   5,
+   14
+  ],
+  "mindcrafter": [
+   0,
+   6,
+   14
+  ],
+  "master mindcrafter": [
+   0,
+   7,
+   14
+  ],
+  "mori troll": [
+   0,
+   8,
+   14
+  ],
+  "barney the dinosaur": [
+   0,
+   9,
+   14
+  ],
+  "groo the wanderer": [
+   0,
+   10,
+   14
+  ],
+  "lousy, the king of louses": [
+   0,
+   11,
+   14
+  ],
+  "great wyrm of space-time": [
+   0,
+   12,
+   14
+  ],
+  "octopus of kshitigarbha": [
+   0,
+   13,
+   14
+  ],
+  "great bile wyrm": [
+   0,
+   14,
+   14
+  ],
+  "tanuki": [
+   0,
+   15,
+   14
+  ],
+  "dionysus, the munchkin of chaos": [
+   0,
+   16,
+   14
+  ],
+  "walken": [
+   0,
+   17,
+   14
+  ],
+  "trench wurm": [
+   0,
+   18,
+   14
+  ],
+  "radiant kavu": [
+   0,
+   19,
+   14
+  ],
+  "mauhur, the orc captain": [
+   0,
+   20,
+   14
+  ],
+  "meng you, the brother of meng huo": [
+   0,
+   21,
+   14
+  ],
+  "lady zhurong, the avatar of flame spirit": [
+   0,
+   22,
+   14
+  ],
+  "dailai dongzhu, captain of southerings": [
+   0,
+   23,
+   14
+  ],
+  "king duosi, the chief of southerings": [
+   0,
+   24,
+   14
+  ],
+  "king mulu, the chief of southerings": [
+   0,
+   25,
+   14
+  ],
+  "wutugu, the chief of southerings": [
+   0,
+   26,
+   14
+  ],
+  "invisible pink unicorn": [
+   0,
+   27,
+   14
+  ],
+  "flying spaghetti monster": [
+   0,
+   28,
+   14
+  ],
+  "reindeer": [
+   0,
+   29,
+   14
+  ],
+  "death beast": [
+   0,
+   30,
+   14
+  ],
+  "ultimate magus": [
+   0,
+   31,
+   14
+  ],
+  "spellwarp automaton": [
+   0,
+   32,
+   14
+  ],
+  "talos, masterwork spellwarp automaton": [
+   0,
+   33,
+   14
+  ],
+  "tonberry": [
+   0,
+   34,
+   14
+  ],
+  "ninja tonberry": [
+   0,
+   35,
+   14
+  ],
+  "master tonberry": [
+   0,
+   36,
+   14
+  ],
+  "time initiate": [
+   0,
+   37,
+   14
+  ],
+  "chronomage": [
+   0,
+   38,
+   14
+  ],
+  "temporal champion": [
+   0,
+   39,
+   14
+  ],
+  "variant maintainer": [
+   0,
+   40,
+   14
+  ],
+  "monkey clone": [
+   0,
+   41,
+   14
+  ],
+  "zeus, king of the olympians": [
+   0,
+   42,
+   14
+  ],
+  "poseidon, lord of seas and storm": [
+   0,
+   43,
+   14
+  ],
+  "hades, ruler of the underworld": [
+   0,
+   44,
+   14
+  ],
+  "athena, the goddess of wisdom": [
+   0,
+   45,
+   14
+  ],
+  "ares, the god of war": [
+   0,
+   46,
+   14
+  ],
+  "hermes, the messenger god": [
+   0,
+   47,
+   14
+  ],
+  "apollo, the sun god": [
+   0,
+   48,
+   14
+  ],
+  "artemis, the moon goddess": [
+   0,
+   49,
+   14
+  ],
+  "hephaestus, the smith god": [
+   0,
+   50,
+   14
+  ],
+  "hera, queen of the gods": [
+   0,
+   51,
+   14
+  ],
+  "demeter, the goddess of nature": [
+   0,
+   52,
+   14
+  ],
+  "aphrodite, the goddess of love": [
+   0,
+   53,
+   14
+  ],
+  "orc digger": [
+   0,
+   54,
+   14
+  ],
+  "arthur pendragon": [
+   0,
+   55,
+   14
+  ],
+  "sir lancelot": [
+   0,
+   56,
+   14
+  ],
+  "sir gawain": [
+   0,
+   57,
+   14
+  ],
+  "sir galahad": [
+   0,
+   58,
+   14
+  ],
+  "sir gareth": [
+   0,
+   59,
+   14
+  ],
+  "sir kay": [
+   0,
+   60,
+   14
+  ],
+  "camelot knight": [
+   0,
+   61,
+   14
+  ],
+  "morgana le fay": [
+   0,
+   62,
+   14
+  ],
+  "mordred": [
+   0,
+   0,
+   15
+  ],
+  "fearmaster": [
+   0,
+   1,
+   15
+  ],
+  "grand fearlord": [
+   0,
+   2,
+   15
+  ],
+  "questing beast": [
+   0,
+   3,
+   15
+  ],
+  "greater demonic quylthulg": [
+   0,
+   4,
+   15
+  ],
+  "rock giant": [
+   0,
+   5,
+   15
+  ],
+  "ice giant": [
+   0,
+   6,
+   15
+  ],
+  "elder fire giant": [
+   0,
+   7,
+   15
+  ],
+  "typhoeus, the storm giant": [
+   0,
+   8,
+   15
+  ],
+  "elder storm giant": [
+   0,
+   9,
+   15
+  ],
+  "soul": [
+   0,
+   10,
+   15
+  ],
+  "marilith": [
+   0,
+   11,
+   15
+  ],
+  "takeminakata, drastic measures": [
+   0,
+   12,
+   15
+  ],
+  "kotoshiro, the oracle": [
+   0,
+   13,
+   15
+  ],
+  "okuninushi, the conqueror": [
+   0,
+   14,
+   15
+  ],
+  "omoikane, spirit of wisdom": [
+   0,
+   15,
+   15
+  ],
+  "takemikazuchi, the thunder": [
+   0,
+   16,
+   15
+  ],
+  "izanami, spirit of yomi": [
+   0,
+   17,
+   15
+  ],
+  "izanagi, the spirit": [
+   0,
+   18,
+   15
+  ],
+  "susanoo, the angry": [
+   0,
+   19,
+   15
+  ],
+  "tsukuyomi, spirit of moon": [
+   0,
+   20,
+   15
+  ],
+  "amaterasu, spirit of sun": [
+   0,
+   21,
+   15
+  ],
+  "rusalka": [
+   0,
+   22,
+   15
+  ],
+  "shadow fairy": [
+   0,
+   23,
+   15
+  ],
+  "fiendish donkey": [
+   0,
+   24,
+   15
+  ],
+  "pumpkin man": [
+   0,
+   25,
+   15
+  ],
+  "devil's huntsman": [
+   0,
+   26,
+   15
+  ],
+  "aude": [
+   0,
+   27,
+   15
+  ],
+  "helga": [
+   0,
+   28,
+   15
+  ],
+  "gertrude": [
+   0,
+   29,
+   15
+  ],
+  "osyluth": [
+   0,
+   30,
+   15
+  ],
+  "gelugon": [
+   0,
+   31,
+   15
+  ],
+  "hezrou": [
+   0,
+   32,
+   15
+  ],
+  "pit fiend": [
+   0,
+   33,
+   15
+  ],
+  "glabrezu": [
+   0,
+   34,
+   15
+  ],
+  "nalfeshnee": [
+   0,
+   35,
+   15
+  ],
+  "barbazu": [
+   0,
+   36,
+   15
+  ],
+  "vrock": [
+   0,
+   37,
+   15
+  ],
+  "cave gorm": [
+   0,
+   38,
+   15
+  ],
+  "nebiros, the marquis": [
+   0,
+   39,
+   15
+  ],
+  "atropos, the sister of fate": [
+   0,
+   40,
+   15
+  ],
+  "mothra": [
+   0,
+   41,
+   15
+  ],
+  "king ghidora": [
+   0,
+   42,
+   15
+  ],
+  "thanatos, god of death": [
+   0,
+   43,
+   15
+  ],
+  "diamond dragon": [
+   0,
+   44,
+   15
+  ],
+  "cacodemon": [
+   0,
+   45,
+   15
+  ],
+  "chitauli": [
+   0,
+   46,
+   15
+  ],
+  "umbaba-samahongo": [
+   0,
+   47,
+   15
+  ],
+  "flame spider": [
+   0,
+   48,
+   15
+  ],
+  "nexus spider": [
+   0,
+   49,
+   15
+  ],
+  "ice spider": [
+   0,
+   50,
+   15
+  ],
+  "venom spider": [
+   0,
+   51,
+   15
+  ],
+  "disintegrate spider": [
+   0,
+   52,
+   15
+  ],
+  "undead spider": [
+   0,
+   53,
+   15
+  ],
+  "hell spider": [
+   0,
+   54,
+   15
+  ],
+  "star blade": [
+   0,
+   55,
+   15
+  ],
+  "michael, the guardian overlord": [
+   0,
+   56,
+   15
+  ],
+  "tik'srvzllat": [
+   0,
+   57,
+   15
+  ],
+  "dor": [
+   0,
+   58,
+   15
+  ],
+  "balcmeg, the relentless": [
+   0,
+   59,
+   15
+  ],
+  "lug, the grotesque": [
+   0,
+   60,
+   15
+  ],
+  "boldog, the merciless": [
+   0,
+   61,
+   15
+  ],
+  "othrod, lord of the orcs": [
+   0,
+   62,
+   15
+  ],
+  "orcogar, son of orcobal": [
+   0,
+   0,
+   16
+  ],
+  "orcobal the mighty": [
+   0,
+   1,
+   16
+  ],
+  "orc berserker": [
+   0,
+   2,
+   16
+  ],
+  "orc warlock": [
+   0,
+   3,
+   16
+  ],
+  "orc warlord": [
+   0,
+   4,
+   16
+  ],
+  "maw of hell": [
+   0,
+   5,
+   16
+  ],
+  "wiruin, the maelstrom": [
+   0,
+   6,
+   16
+  ],
+  "storm of unmagic": [
+   0,
+   7,
+   16
+  ],
+  "beelzebub, lord of the flies": [
+   0,
+   8,
+   16
+  ],
+  "lucifer, father of lies": [
+   0,
+   9,
+   16
+  ],
+  "lurking horror": [
+   0,
+   10,
+   16
+  ],
+  "shadow fiend": [
+   0,
+   11,
+   16
+  ],
+  "bronze golem": [
+   0,
+   12,
+   16
+  ],
+  "bone golem": [
+   0,
+   13,
+   16
+  ],
+  "pandemonium": [
+   0,
+   14,
+   16
+  ],
+  "steam-powered mechanical dragon": [
+   0,
+   15,
+   16
+  ],
+  "grand inquisitor": [
+   0,
+   16,
+   16
+  ],
+  "jack the ripper": [
+   0,
+   17,
+   16
+  ],
+  "babbage analytical engine": [
+   0,
+   18,
+   16
+  ],
+  "marquis de la tour": [
+   0,
+   19,
+   16
+  ],
+  "etheric dimensional phase automaton": [
+   0,
+   20,
+   16
+  ],
+  "young silver dragon": [
+   0,
+   21,
+   16
+  ],
+  "mature silver dragon": [
+   0,
+   22,
+   16
+  ],
+  "ancient silver dragon": [
+   0,
+   23,
+   16
+  ],
+  "ruby serpent": [
+   0,
+   24,
+   16
+  ],
+  "emerald serpent": [
+   0,
+   25,
+   16
+  ],
+  "amethyst serpent": [
+   0,
+   26,
+   16
+  ],
+  "midnight dragon": [
+   0,
+   27,
+   16
+  ],
+  "nightmare dragon": [
+   0,
+   28,
+   16
+  ],
+  "winged horror": [
+   0,
+   29,
+   16
+  ],
+  "triceratops": [
+   0,
+   30,
+   16
+  ],
+  "diplodocus": [
+   0,
+   31,
+   16
+  ],
+  "ankylosaur": [
+   0,
+   32,
+   16
+  ],
+  "pteranodon": [
+   0,
+   33,
+   16
+  ],
+  "giant land sloth": [
+   0,
+   34,
+   16
+  ],
+  "glyptodont": [
+   0,
+   35,
+   16
+  ],
+  "dimetrodon": [
+   0,
+   36,
+   16
+  ],
+  "crow of durthang": [
+   0,
+   37,
+   16
+  ],
+  "justshorn, sorcerer-king of the sheeple": [
+   0,
+   38,
+   16
+  ],
+  "sheep": [
+   0,
+   39,
+   16
+  ],
+  "basement cat": [
+   0,
+   40,
+   16
+  ],
+  "beer elemental": [
+   0,
+   41,
+   16
+  ],
+  "zoopi, the cube king": [
+   0,
+   42,
+   16
+  ],
+  "festivus, the teenage offscreen ninja drolem": [
+   0,
+   43,
+   16
+  ],
+  "implorington iii": [
+   0,
+   44,
+   16
+  ],
+  "lorgan, chief of the easterlings": [
+   0,
+   45,
+   16
+  ],
+  "muru-siloch, the spinning abomination": [
+   0,
+   46,
+   16
+  ],
+  "xylibbogaz, the disembodied mouth": [
+   0,
+   47,
+   16
+  ],
+  "cockatrice": [
+   0,
+   48,
+   16
+  ],
+  "moe, the cyclops": [
+   0,
+   49,
+   16
+  ],
+  "ice weasel": [
+   0,
+   50,
+   16
+  ],
+  "scrupiox, the nightcrawler": [
+   0,
+   51,
+   16
+  ],
+  "ancient roc of okeldad": [
+   0,
+   52,
+   16
+  ],
+  "nidaros the clairvoyant": [
+   0,
+   53,
+   16
+  ],
+  "duck": [
+   0,
+   54,
+   16
+  ],
+  "anubis, keeper of the balance": [
+   0,
+   55,
+   16
+  ],
+  "ammit, the devourer": [
+   0,
+   56,
+   16
+  ],
+  "horus, the ancient": [
+   0,
+   57,
+   16
+  ],
+  "apophis, the primordial chaos": [
+   0,
+   58,
+   16
+  ],
+  "thoth, the voice of ra": [
+   0,
+   59,
+   16
+  ],
+  "sekhmet the mistress of fury": [
+   0,
+   60,
+   16
+  ],
+  "huitzilonevada, the feathered boa": [
+   0,
+   61,
+   16
+  ],
+  "frost spirit": [
+   0,
+   62,
+   16
+  ],
+  "polyphemus, the blind cyclops": [
+   0,
+   0,
+   17
+  ],
+  "mathmag, the prince of whales": [
+   0,
+   1,
+   17
+  ],
+  "shrieking eel": [
+   0,
+   2,
+   17
+  ],
+  "metatron, the high angel": [
+   0,
+   3,
+   17
+  ],
+  "kundry, queen of the lost haven": [
+   0,
+   4,
+   17
+  ],
+  "wadjet the protector": [
+   0,
+   5,
+   17
+  ],
+  "nekhbet, the vulture mother": [
+   0,
+   6,
+   17
+  ],
+  "osiris, the reborn": [
+   0,
+   7,
+   17
+  ],
+  "seth, the disintegrator": [
+   0,
+   8,
+   17
+  ],
+  "lutogaida, the spellmistress of rarfus": [
+   0,
+   9,
+   17
+  ],
+  "eskimo": [
+   0,
+   10,
+   17
+  ],
+  "isis, the great goddess": [
+   0,
+   11,
+   17
+  ],
+  "nephthys, lady of the night": [
+   0,
+   12,
+   17
+  ],
+  "ptah, the divine craftsman": [
+   0,
+   13,
+   17
+  ],
+  "amun, the mysterious": [
+   0,
+   14,
+   17
+  ],
+  "mummy king": [
+   0,
+   15,
+   17
+  ],
+  "mummified sorcerer": [
+   0,
+   16,
+   17
+  ],
+  "serpopard": [
+   0,
+   17,
+   17
+  ],
+  "sha": [
+   0,
+   18,
+   17
+  ],
+  "hathor, the heavenly cow": [
+   0,
+   19,
+   17
+  ],
+  "flying fishrooster": [
+   0,
+   20,
+   17
+  ],
+  "giant moth": [
+   0,
+   21,
+   17
+  ],
+  "akuvalt the deceiver": [
+   0,
+   22,
+   17
+  ],
+  "untamo the cruel": [
+   0,
+   23,
+   17
+  ],
+  "sea giant": [
+   0,
+   24,
+   17
+  ],
+  "aegir, god-king of the sea giants": [
+   0,
+   25,
+   17
+  ],
+  "herringfolt, the great wild boar": [
+   0,
+   26,
+   17
+  ],
+  "snow golem": [
+   0,
+   27,
+   17
+  ],
+  "aijem, the walrus": [
+   0,
+   28,
+   17
+  ],
+  "hisser": [
+   0,
+   29,
+   17
+  ],
+  "gragomani, the leprechaun prophet": [
+   0,
+   30,
+   17
+  ],
+  "castamir the usurper": [
+   0,
+   31,
+   17
+  ],
+  "angelic quylthulg": [
+   0,
+   32,
+   17
+  ],
+  "iku-turso": [
+   0,
+   33,
+   17
+  ],
+  "lord bovin of the high tower": [
+   0,
+   34,
+   17
+  ],
+  "arachnotron": [
+   0,
+   35,
+   17
+  ],
+  "plague monk": [
+   0,
+   36,
+   17
+  ],
+  "skaven assassin": [
+   0,
+   37,
+   17
+  ],
+  "rat-ogre": [
+   0,
+   38,
+   17
+  ],
+  "grey seer": [
+   0,
+   39,
+   17
+  ],
+  "swamp rat": [
+   0,
+   40,
+   17
+  ],
+  "plague rat": [
+   0,
+   41,
+   17
+  ],
+  "nizukil, prince of rats": [
+   0,
+   42,
+   17
+  ],
+  "death pumpkin": [
+   0,
+   43,
+   17
+  ],
+  "hrulga": [
+   0,
+   44,
+   17
+  ],
+  "jack of lanterns": [
+   0,
+   45,
+   17
+  ],
+  "spulga, the troll priestess": [
+   0,
+   46,
+   17
+  ],
+  "pryftidustulyx, the communist dragon": [
+   0,
+   47,
+   17
+  ],
+  "wicked witch of the south-east": [
+   0,
+   48,
+   17
+  ],
+  "burning bush": [
+   0,
+   49,
+   17
+  ],
+  "blue-ringed octopus": [
+   0,
+   50,
+   17
+  ],
+  "box jellyfish": [
+   0,
+   51,
+   17
+  ],
+  "tiger snake": [
+   0,
+   52,
+   17
+  ],
+  "taipan": [
+   0,
+   53,
+   17
+  ],
+  "flaming crow": [
+   0,
+   54,
+   17
+  ],
+  "giant funnel-web spider": [
+   0,
+   55,
+   17
+  ],
+  "trapdoor spider": [
+   0,
+   56,
+   17
+  ],
+  "drop bear": [
+   0,
+   57,
+   17
+  ],
+  "wallaby": [
+   0,
+   58,
+   17
+  ],
+  "kangaroo": [
+   0,
+   59,
+   17
+  ],
+  "tin golem": [
+   0,
+   60,
+   17
+  ],
+  "adobe golem": [
+   0,
+   61,
+   17
+  ],
+  "dingo": [
+   0,
+   62,
+   17
+  ],
+  "lion": [
+   0,
+   0,
+   18
+  ],
+  "bunyip": [
+   0,
+   1,
+   18
+  ],
+  "duck-quacked platypus": [
+   0,
+   2,
+   18
+  ],
+  "bush ranger": [
+   0,
+   3,
+   18
+  ],
+  "cassowary": [
+   0,
+   4,
+   18
+  ],
+  "giant yellow toad": [
+   0,
+   5,
+   18
+  ],
+  "ozmanian devil": [
+   0,
+   6,
+   18
+  ],
+  "sadie the rainbow serpent": [
+   0,
+   7,
+   18
+  ],
+  "giant wombat": [
+   0,
+   8,
+   18
+  ],
+  "mutant manta ray": [
+   0,
+   9,
+   18
+  ],
+  "brumby": [
+   0,
+   10,
+   18
+  ],
+  "yowie": [
+   0,
+   11,
+   18
+  ],
+  "atomic elemental": [
+   0,
+   12,
+   18
+  ],
+  "snow leopard": [
+   0,
+   13,
+   18
+  ],
+  "ghost skier": [
+   0,
+   14,
+   18
+  ],
+  "polar bear": [
+   0,
+   15,
+   18
+  ],
+  "booze hound": [
+   0,
+   16,
+   18
+  ],
+  "freyr, lord of plenty": [
+   0,
+   17,
+   18
+  ],
+  "odin, the all-father": [
+   0,
+   18,
+   18
+  ],
+  "einheri berserker": [
+   0,
+   19,
+   18
+  ],
+  "valkyrie": [
+   0,
+   20,
+   18
+  ],
+  "hugin, the scheming raven": [
+   0,
+   21,
+   18
+  ],
+  "lynx": [
+   0,
+   22,
+   18
+  ],
+  "heimdall, guardian of bifrost": [
+   0,
+   23,
+   18
+  ],
+  "thor, the thunderer": [
+   0,
+   24,
+   18
+  ],
+  "tyr, the one-armed god": [
+   0,
+   25,
+   18
+  ],
+  "vidarr, the silent avenger": [
+   0,
+   26,
+   18
+  ],
+  "freyja, lady of the slain": [
+   0,
+   27,
+   18
+  ],
+  "njord, lord of the vanir": [
+   0,
+   28,
+   18
+  ],
+  "frigg, queen of asgard": [
+   0,
+   29,
+   18
+  ],
+  "skadi, the huntress": [
+   0,
+   30,
+   18
+  ],
+  "draugr": [
+   0,
+   31,
+   18
+  ],
+  "ratatosk, the world-tree squirrel": [
+   0,
+   32,
+   18
+  ],
+  "ullur, the archer-god": [
+   0,
+   33,
+   18
+  ],
+  "magni, son of thor": [
+   0,
+   34,
+   18
+  ],
+  "mahishasura, the buffalo demon": [
+   0,
+   35,
+   18
+  ],
+  "agni, the threefold fire": [
+   0,
+   36,
+   18
+  ],
+  "hanuman, the monkey god": [
+   0,
+   37,
+   18
+  ],
+  "vayu, the embodied wind": [
+   0,
+   38,
+   18
+  ],
+  "karthikeya, the six-headed warrior": [
+   0,
+   39,
+   18
+  ],
+  "vanara": [
+   0,
+   40,
+   18
+  ],
+  "sugriva, lord of kishkindha": [
+   0,
+   41,
+   18
+  ],
+  "vali, king of the vanaras": [
+   0,
+   42,
+   18
+  ],
+  "rama, the exiled prince": [
+   0,
+   43,
+   18
+  ],
+  "krishna, avatar of vishnu": [
+   0,
+   44,
+   18
+  ],
+  "vishnu, the preserver": [
+   0,
+   45,
+   18
+  ],
+  "lakshmi, the goddess of prosperity": [
+   0,
+   46,
+   18
+  ],
+  "asura": [
+   0,
+   47,
+   18
+  ],
+  "vanara sage": [
+   0,
+   48,
+   18
+  ],
+  "varuna, lord of water": [
+   0,
+   49,
+   18
+  ],
+  "makara": [
+   0,
+   50,
+   18
+  ],
+  "ganesha, the elephant god": [
+   0,
+   51,
+   18
+  ],
+  "yama, lord of the dead": [
+   0,
+   52,
+   18
+  ],
+  "shiva, the destroyer": [
+   0,
+   53,
+   18
+  ],
+  "nandi, the bull of shiva": [
+   0,
+   54,
+   18
+  ],
+  "parvati, the goddess of hidden power": [
+   0,
+   55,
+   18
+  ],
+  "durga, the goddess of war": [
+   0,
+   56,
+   18
+  ],
+  "kali, mother of rage": [
+   0,
+   57,
+   18
+  ],
+  "jambavan, king of the beasts": [
+   0,
+   58,
+   18
+  ],
+  "rakshasa": [
+   0,
+   59,
+   18
+  ],
+  "swamp rabbit": [
+   0,
+   60,
+   18
+  ],
+  "bloodfreezer": [
+   0,
+   61,
+   18
+  ],
+  "brahma, the creating spirit": [
+   0,
+   62,
+   18
+  ],
+  "saraswati, goddess of knowledge": [
+   0,
+   0,
+   19
+  ],
+  "indra, the heavenly king of meru": [
+   0,
+   1,
+   19
+  ],
+  "polar cat": [
+   0,
+   2,
+   19
+  ],
+  "dokkaebi": [
+   0,
+   3,
+   19
+  ],
+  "greater dokkaebi": [
+   0,
+   4,
+   19
+  ]
+ },
+ "obj": {
+  "ration of food": [
+   1,
+   0,
+   0
+  ],
+  "dagger": [
+   1,
+   1,
+   0
+  ],
+  "rapier": [
+   1,
+   2,
+   0
+  ],
+  "long sword": [
+   1,
+   3,
+   0
+  ],
+  "katana": [
+   1,
+   4,
+   0
+  ],
+  "hatchet": [
+   1,
+   5,
+   0
+  ],
+  "spear": [
+   1,
+   6,
+   0
+  ],
+  "lance": [
+   1,
+   7,
+   0
+  ],
+  "battle axe": [
+   1,
+   8,
+   0
+  ],
+  "club": [
+   1,
+   9,
+   0
+  ],
+  "whip": [
+   1,
+   10,
+   0
+  ],
+  "quarterstaff": [
+   1,
+   11,
+   0
+  ],
+  "shovel": [
+   1,
+   12,
+   0
+  ],
+  "sling": [
+   1,
+   13,
+   0
+  ],
+  "short bow": [
+   1,
+   14,
+   0
+  ],
+  "light crossbow": [
+   1,
+   15,
+   0
+  ],
+  "quiver": [
+   1,
+   16,
+   0
+  ],
+  "arrow": [
+   1,
+   17,
+   0
+  ],
+  "cloak": [
+   1,
+   18,
+   0
+  ],
+  "elven cloak": [
+   1,
+   19,
+   0
+  ],
+  "pair of soft leather boots": [
+   1,
+   20,
+   0
+  ],
+  "pair of metal shod boots": [
+   1,
+   21,
+   0
+  ],
+  "metal cap": [
+   1,
+   22,
+   0
+  ],
+  "iron helm": [
+   1,
+   23,
+   0
+  ],
+  "golden crown": [
+   1,
+   24,
+   0
+  ],
+  "set of leather gloves": [
+   1,
+   25,
+   0
+  ],
+  "set of gauntlets": [
+   1,
+   26,
+   0
+  ],
+  "small leather shield": [
+   1,
+   27,
+   0
+  ],
+  "large metal shield": [
+   1,
+   28,
+   0
+  ],
+  "robe": [
+   1,
+   29,
+   0
+  ],
+  "soft leather armour": [
+   1,
+   30,
+   0
+  ],
+  "ring mail": [
+   1,
+   31,
+   0
+  ],
+  "chain mail": [
+   1,
+   32,
+   0
+  ],
+  "black dragon scale mail": [
+   1,
+   33,
+   0
+  ],
+  "ring": [
+   1,
+   34,
+   0
+  ],
+  "amulet": [
+   1,
+   35,
+   0
+  ],
+  "wand": [
+   1,
+   36,
+   0
+  ],
+  "staff": [
+   1,
+   37,
+   0
+  ],
+  "rod": [
+   1,
+   38,
+   0
+  ],
+  "[book of common prayer]": [
+   1,
+   39,
+   0
+  ],
+  "[beginner's handbook]": [
+   1,
+   40,
+   0
+  ],
+  "wooden torch": [
+   1,
+   41,
+   0
+  ],
+  "brass lantern": [
+   1,
+   42,
+   0
+  ],
+  "flask of oil": [
+   1,
+   43,
+   0
+  ],
+  "small wooden chest": [
+   1,
+   44,
+   0
+  ],
+  "large iron chest": [
+   1,
+   45,
+   0
+  ],
+  "copper": [
+   1,
+   46,
+   0
+  ],
+  "stone statue of": [
+   1,
+   47,
+   0
+  ]
+ },
+ "feat": {
+  "open floor": [
+   2,
+   0,
+   0
+  ],
+  "floor": [
+   2,
+   0,
+   0
+  ],
+  "invisible trap": [
+   2,
+   0,
+   0
+  ],
+  "invis": [
+   2,
+   0,
+   0
+  ],
+  "*floor*": [
+   2,
+   0,
+   0
+  ],
+  "class:floor": [
+   2,
+   0,
+   0
+  ],
+  "glyph of warding": [
+   2,
+   1,
+   0
+  ],
+  "glyph": [
+   2,
+   1,
+   0
+  ],
+  "open door": [
+   2,
+   2,
+   0
+  ],
+  "open_door": [
+   2,
+   2,
+   0
+  ],
+  "class:dooropen": [
+   2,
+   2,
+   0
+  ],
+  "broken door": [
+   2,
+   3,
+   0
+  ],
+  "broken_door": [
+   2,
+   3,
+   0
+  ],
+  "up staircase": [
+   2,
+   4,
+   0
+  ],
+  "up_stair": [
+   2,
+   4,
+   0
+  ],
+  "class:up": [
+   2,
+   4,
+   0
+  ],
+  "down staircase": [
+   2,
+   5,
+   0
+  ],
+  "down_stair": [
+   2,
+   5,
+   0
+  ],
+  "class:down": [
+   2,
+   5,
+   0
+  ],
+  "quest entrance": [
+   2,
+   6,
+   0
+  ],
+  "quest_enter": [
+   2,
+   6,
+   0
+  ],
+  "town exit": [
+   2,
+   7,
+   0
+  ],
+  "town_exit": [
+   2,
+   7,
+   0
+  ],
+  "shaft up": [
+   2,
+   8,
+   0
+  ],
+  "shaft_up": [
+   2,
+   8,
+   0
+  ],
+  "shaft down": [
+   2,
+   9,
+   0
+  ],
+  "shaft_down": [
+   2,
+   9,
+   0
+  ],
+  "trap door": [
+   2,
+   10,
+   0
+  ],
+  "trap_trapdoor": [
+   2,
+   10,
+   0
+  ],
+  "pit": [
+   2,
+   11,
+   0
+  ],
+  "trap_pit": [
+   2,
+   11,
+   0
+  ],
+  "trap_spiked_pit": [
+   2,
+   11,
+   0
+  ],
+  "trap_poison_pit": [
+   2,
+   11,
+   0
+  ],
+  "class:pit": [
+   2,
+   11,
+   0
+  ],
+  "evil rune": [
+   2,
+   12,
+   0
+  ],
+  "trap_ty_curse": [
+   2,
+   12,
+   0
+  ],
+  "strange rune": [
+   2,
+   13,
+   0
+  ],
+  "trap_teleport": [
+   2,
+   13,
+   0
+  ],
+  "discolored spot": [
+   2,
+   14,
+   0
+  ],
+  "trap_fire": [
+   2,
+   14,
+   0
+  ],
+  "trap_acid": [
+   2,
+   14,
+   0
+  ],
+  "dart trap": [
+   2,
+   15,
+   0
+  ],
+  "trap_slow": [
+   2,
+   15,
+   0
+  ],
+  "trap_lose_str": [
+   2,
+   15,
+   0
+  ],
+  "trap_lose_dex": [
+   2,
+   15,
+   0
+  ],
+  "trap_lose_con": [
+   2,
+   15,
+   0
+  ],
+  "gas trap": [
+   2,
+   16,
+   0
+  ],
+  "trap_blind": [
+   2,
+   16,
+   0
+  ],
+  "trap_confuse": [
+   2,
+   16,
+   0
+  ],
+  "trap_poison": [
+   2,
+   16,
+   0
+  ],
+  "trap_sleep": [
+   2,
+   16,
+   0
+  ],
+  "door": [
+   2,
+   17,
+   0
+  ],
+  "closed_door": [
+   2,
+   17,
+   0
+  ],
+  "locked door": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_1": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_2": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_3": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_4": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_5": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_6": [
+   2,
+   17,
+   0
+  ],
+  "locked_door_7": [
+   2,
+   17,
+   0
+  ],
+  "jammed door": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_0": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_1": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_2": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_3": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_4": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_5": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_6": [
+   2,
+   17,
+   0
+  ],
+  "jammed_door_7": [
+   2,
+   17,
+   0
+  ],
+  "class:door": [
+   2,
+   17,
+   0
+  ],
+  "secret door": [
+   2,
+   18,
+   0
+  ],
+  "secret_door": [
+   2,
+   18,
+   0
+  ],
+  "granite wall": [
+   2,
+   18,
+   0
+  ],
+  "granite": [
+   2,
+   18,
+   0
+  ],
+  "granite_inner": [
+   2,
+   18,
+   0
+  ],
+  "granite_outer": [
+   2,
+   18,
+   0
+  ],
+  "granite_solid": [
+   2,
+   18,
+   0
+  ],
+  "*wall*": [
+   2,
+   18,
+   0
+  ],
+  "*inner*": [
+   2,
+   18,
+   0
+  ],
+  "*outer*": [
+   2,
+   18,
+   0
+  ],
+  "*solid*": [
+   2,
+   18,
+   0
+  ],
+  "class:wall": [
+   2,
+   18,
+   0
+  ],
+  "pile of rubble": [
+   2,
+   19,
+   0
+  ],
+  "rubble": [
+   2,
+   19,
+   0
+  ],
+  "class:rubble": [
+   2,
+   19,
+   0
+  ],
+  "magma vein": [
+   2,
+   20,
+   0
+  ],
+  "magma_vein": [
+   2,
+   20,
+   0
+  ],
+  "magma vein with hidden treasure": [
+   2,
+   20,
+   0
+  ],
+  "magma_hidden": [
+   2,
+   20,
+   0
+  ],
+  "*stream1*": [
+   2,
+   20,
+   0
+  ],
+  "quartz vein": [
+   2,
+   21,
+   0
+  ],
+  "quartz_vein": [
+   2,
+   21,
+   0
+  ],
+  "quartz vein hidden treasure": [
+   2,
+   21,
+   0
+  ],
+  "quartz_hidden": [
+   2,
+   21,
+   0
+  ],
+  "*stream2*": [
+   2,
+   21,
+   0
+  ],
+  "magma vein with treasure": [
+   2,
+   22,
+   0
+  ],
+  "magma_treasure": [
+   2,
+   22,
+   0
+  ],
+  "quartz vein with treasure": [
+   2,
+   23,
+   0
+  ],
+  "quartz_treasure": [
+   2,
+   23,
+   0
+  ],
+  "permanent wall": [
+   2,
+   24,
+   0
+  ],
+  "permanent": [
+   2,
+   24,
+   0
+  ],
+  "permanent_inner": [
+   2,
+   24,
+   0
+  ],
+  "permanent_outer": [
+   2,
+   24,
+   0
+  ],
+  "permanent_solid": [
+   2,
+   24,
+   0
+  ],
+  "explosive rune": [
+   2,
+   25,
+   0
+  ],
+  "explosive_rune": [
+   2,
+   25,
+   0
+  ],
+  "pattern startpoint": [
+   2,
+   26,
+   0
+  ],
+  "pattern_start": [
+   2,
+   26,
+   0
+  ],
+  "section of the pattern": [
+   2,
+   27,
+   0
+  ],
+  "pattern_1": [
+   2,
+   27,
+   0
+  ],
+  "pattern_2": [
+   2,
+   27,
+   0
+  ],
+  "pattern_3": [
+   2,
+   27,
+   0
+  ],
+  "pattern_4": [
+   2,
+   27,
+   0
+  ],
+  "pattern_end": [
+   2,
+   27,
+   0
+  ],
+  "section of the pattern (discharged)": [
+   2,
+   28,
+   0
+  ],
+  "pattern_old": [
+   2,
+   28,
+   0
+  ],
+  "pattern exit": [
+   2,
+   29,
+   0
+  ],
+  "pattern_exit": [
+   2,
+   29,
+   0
+  ],
+  "corrupted section of the pattern": [
+   2,
+   30,
+   0
+  ],
+  "pattern_corrupted": [
+   2,
+   30,
+   0
+  ],
+  "general store": [
+   2,
+   31,
+   0
+  ],
+  "general_store": [
+   2,
+   31,
+   0
+  ],
+  "class:shop": [
+   2,
+   31,
+   0
+  ],
+  "armoury": [
+   2,
+   32,
+   0
+  ],
+  "weapon smiths": [
+   2,
+   33,
+   0
+  ],
+  "weapon_smiths": [
+   2,
+   33,
+   0
+  ],
+  "temple": [
+   2,
+   34,
+   0
+  ],
+  "alchemy shop": [
+   2,
+   35,
+   0
+  ],
+  "alchemy_shop": [
+   2,
+   35,
+   0
+  ],
+  "magic shop": [
+   2,
+   36,
+   0
+  ],
+  "magic_shop": [
+   2,
+   36,
+   0
+  ],
+  "black market": [
+   2,
+   37,
+   0
+  ],
+  "black_market": [
+   2,
+   37,
+   0
+  ],
+  "home": [
+   2,
+   38,
+   0
+  ],
+  "bookstore": [
+   2,
+   39,
+   0
+  ],
+  "deep water": [
+   2,
+   40,
+   0
+  ],
+  "deep_water": [
+   2,
+   40,
+   0
+  ],
+  "class:water": [
+   2,
+   40,
+   0
+  ],
+  "shallow water": [
+   2,
+   41,
+   0
+  ],
+  "shallow_water": [
+   2,
+   41,
+   0
+  ],
+  "deep lava": [
+   2,
+   42,
+   0
+  ],
+  "deep_lava": [
+   2,
+   42,
+   0
+  ],
+  "class:lava": [
+   2,
+   42,
+   0
+  ],
+  "shallow lava": [
+   2,
+   43,
+   0
+  ],
+  "shallow_lava": [
+   2,
+   43,
+   0
+  ],
+  "dark pit": [
+   2,
+   44,
+   0
+  ],
+  "dark_pit": [
+   2,
+   44,
+   0
+  ],
+  "dirt": [
+   2,
+   45,
+   0
+  ],
+  "patch of grass": [
+   2,
+   46,
+   0
+  ],
+  "grass": [
+   2,
+   46,
+   0
+  ],
+  "class:grass": [
+   2,
+   46,
+   0
+  ],
+  "compact rune": [
+   2,
+   47,
+   0
+  ],
+  "trap_traps": [
+   2,
+   47,
+   0
+  ],
+  "alarm": [
+   2,
+   48,
+   0
+  ],
+  "trap_alarm": [
+   2,
+   48,
+   0
+  ],
+  "wall opening trap": [
+   2,
+   49,
+   0
+  ],
+  "trap_open": [
+   2,
+   49,
+   0
+  ],
+  "flower": [
+   2,
+   50,
+   0
+  ],
+  "brake": [
+   2,
+   51,
+   0
+  ],
+  "museum": [
+   2,
+   52,
+   0
+  ],
+  "tree": [
+   2,
+   53,
+   0
+  ],
+  "class:tree": [
+   2,
+   53,
+   0
+  ],
+  "mountain chain": [
+   2,
+   54,
+   0
+  ],
+  "mountain": [
+   2,
+   54,
+   0
+  ],
+  "mountain_wall": [
+   2,
+   54,
+   0
+  ],
+  "building": [
+   2,
+   55,
+   0
+  ],
+  "building_0": [
+   2,
+   55,
+   0
+  ],
+  "building_1": [
+   2,
+   55,
+   0
+  ],
+  "building_2": [
+   2,
+   55,
+   0
+  ],
+  "building_3": [
+   2,
+   55,
+   0
+  ],
+  "building_4": [
+   2,
+   55,
+   0
+  ],
+  "building_5": [
+   2,
+   55,
+   0
+  ],
+  "building_6": [
+   2,
+   55,
+   0
+  ],
+  "building_7": [
+   2,
+   55,
+   0
+  ],
+  "building_8": [
+   2,
+   55,
+   0
+  ],
+  "building_9": [
+   2,
+   55,
+   0
+  ],
+  "building_10": [
+   2,
+   55,
+   0
+  ],
+  "building_11": [
+   2,
+   55,
+   0
+  ],
+  "building_12": [
+   2,
+   55,
+   0
+  ],
+  "building_13": [
+   2,
+   55,
+   0
+  ],
+  "building_14": [
+   2,
+   55,
+   0
+  ],
+  "building_15": [
+   2,
+   55,
+   0
+  ],
+  "building_16": [
+   2,
+   55,
+   0
+  ],
+  "building_17": [
+   2,
+   55,
+   0
+  ],
+  "building_18": [
+   2,
+   55,
+   0
+  ],
+  "building_19": [
+   2,
+   55,
+   0
+  ],
+  "building_20": [
+   2,
+   55,
+   0
+  ],
+  "building_21": [
+   2,
+   55,
+   0
+  ],
+  "building_22": [
+   2,
+   55,
+   0
+  ],
+  "building_23": [
+   2,
+   55,
+   0
+  ],
+  "building_24": [
+   2,
+   55,
+   0
+  ],
+  "building_25": [
+   2,
+   55,
+   0
+  ],
+  "building_26": [
+   2,
+   55,
+   0
+  ],
+  "building_27": [
+   2,
+   55,
+   0
+  ],
+  "building_28": [
+   2,
+   55,
+   0
+  ],
+  "building_29": [
+   2,
+   55,
+   0
+  ],
+  "building_30": [
+   2,
+   55,
+   0
+  ],
+  "building_31": [
+   2,
+   55,
+   0
+  ],
+  "gate of arena": [
+   2,
+   56,
+   0
+  ],
+  "arena_gate": [
+   2,
+   56,
+   0
+  ],
+  "town": [
+   2,
+   57,
+   0
+  ],
+  "entrance to dungeon": [
+   2,
+   58,
+   0
+  ],
+  "entrance": [
+   2,
+   58,
+   0
+  ],
+  "swamp": [
+   2,
+   59,
+   0
+  ],
+  "mirror": [
+   2,
+   60,
+   0
+  ],
+  "armageddon trap": [
+   2,
+   61,
+   0
+  ],
+  "trap_armageddon": [
+   2,
+   61,
+   0
+  ],
+  "piranha trap": [
+   2,
+   62,
+   0
+  ],
+  "trap_piranha": [
+   2,
+   62,
+   0
+  ],
+  "glass floor": [
+   2,
+   0,
+   1
+  ],
+  "glass_floor": [
+   2,
+   0,
+   1
+  ],
+  "open glass door": [
+   2,
+   1,
+   1
+  ],
+  "open_glass_door": [
+   2,
+   1,
+   1
+  ],
+  "broken glass door": [
+   2,
+   2,
+   1
+  ],
+  "broken_glass_door": [
+   2,
+   2,
+   1
+  ],
+  "glass door": [
+   2,
+   3,
+   1
+  ],
+  "closed_glass_door": [
+   2,
+   3,
+   1
+  ],
+  "locked glass door": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_1": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_2": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_3": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_4": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_5": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_6": [
+   2,
+   3,
+   1
+  ],
+  "locked_glass_door_7": [
+   2,
+   3,
+   1
+  ],
+  "jammed glass door": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_0": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_1": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_2": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_3": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_4": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_5": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_6": [
+   2,
+   3,
+   1
+  ],
+  "jammed_glass_door_7": [
+   2,
+   3,
+   1
+  ],
+  "glass wall": [
+   2,
+   4,
+   1
+  ],
+  "glass_wall": [
+   2,
+   4,
+   1
+  ],
+  "permanent glass wall": [
+   2,
+   5,
+   1
+  ],
+  "permanent_glass_wall": [
+   2,
+   5,
+   1
+  ],
+  "open curtain": [
+   2,
+   6,
+   1
+  ],
+  "open_curtain": [
+   2,
+   6,
+   1
+  ],
+  "curtain": [
+   2,
+   7,
+   1
+  ],
+  "closed_curtain": [
+   2,
+   7,
+   1
+  ],
+  "minor trap": [
+   2,
+   8,
+   1
+  ],
+  "rogue_trap_1": [
+   2,
+   8,
+   1
+  ],
+  "class:trap": [
+   2,
+   8,
+   1
+  ],
+  "major trap": [
+   2,
+   9,
+   1
+  ],
+  "rogue_trap_2": [
+   2,
+   9,
+   1
+  ],
+  "ultimate trap": [
+   2,
+   10,
+   1
+  ],
+  "rogue_trap_3": [
+   2,
+   10,
+   1
+  ],
+  "web": [
+   2,
+   11,
+   1
+  ],
+  "jeweler": [
+   2,
+   12,
+   1
+  ],
+  "mushroom store": [
+   2,
+   13,
+   1
+  ],
+  "shroomery": [
+   2,
+   13,
+   1
+  ],
+  "dragonskin emporium": [
+   2,
+   14,
+   1
+  ],
+  "dragonskin": [
+   2,
+   14,
+   1
+  ],
+  "toxic waste": [
+   2,
+   15,
+   1
+  ],
+  "deep_waste": [
+   2,
+   15,
+   1
+  ],
+  "poisonous acid": [
+   2,
+   16,
+   1
+  ],
+  "shallow_waste": [
+   2,
+   16,
+   1
+  ],
+  "semicolon of punishment": [
+   2,
+   17,
+   1
+  ],
+  "semi_pun": [
+   2,
+   17,
+   1
+  ],
+  "thunder-shadow": [
+   2,
+   18,
+   1
+  ],
+  "shadow_zap": [
+   2,
+   18,
+   1
+  ],
+  "bear trap": [
+   2,
+   19,
+   1
+  ],
+  "trap_bear": [
+   2,
+   19,
+   1
+  ],
+  "slush": [
+   2,
+   20,
+   1
+  ],
+  "snow": [
+   2,
+   21,
+   1
+  ],
+  "snow_floor": [
+   2,
+   21,
+   1
+  ],
+  "class:snow": [
+   2,
+   21,
+   1
+  ],
+  "ice slick": [
+   2,
+   22,
+   1
+  ],
+  "ice_floor": [
+   2,
+   22,
+   1
+  ],
+  "snow wall": [
+   2,
+   23,
+   1
+  ],
+  "snow_wall": [
+   2,
+   23,
+   1
+  ],
+  "ice wall": [
+   2,
+   24,
+   1
+  ],
+  "ice_wall": [
+   2,
+   24,
+   1
+  ],
+  "slippery slope": [
+   2,
+   25,
+   1
+  ],
+  "glacier": [
+   2,
+   25,
+   1
+  ],
+  "snow-covered tree": [
+   2,
+   26,
+   1
+  ],
+  "snow_tree": [
+   2,
+   26,
+   1
+  ],
+  "glacier_steep": [
+   2,
+   27,
+   1
+  ],
+  "icicle trap": [
+   2,
+   28,
+   1
+  ],
+  "trap_icicle": [
+   2,
+   28,
+   1
+  ],
+  "icy crevasse": [
+   2,
+   29,
+   1
+  ],
+  "crevasse": [
+   2,
+   29,
+   1
+  ],
+  "banana trap": [
+   2,
+   30,
+   1
+  ],
+  "trap_banana": [
+   2,
+   30,
+   1
+  ],
+  "open floor:var1": [
+   2,
+   31,
+   1
+  ],
+  "open floor:var2": [
+   2,
+   32,
+   1
+  ],
+  "open floor:var3": [
+   2,
+   33,
+   1
+  ]
+ },
+ "player": {
+  "default": [
+   3,
+   0,
+   0
+  ],
+  "warrior": [
+   3,
+   1,
+   0
+  ],
+  "troika": [
+   3,
+   1,
+   0
+  ],
+  "weaponmaster": [
+   3,
+   1,
+   0
+  ],
+  "berserker": [
+   3,
+   2,
+   0
+  ],
+  "mauler": [
+   3,
+   2,
+   0
+  ],
+  "rage-mage": [
+   3,
+   2,
+   0
+  ],
+  "paladin": [
+   3,
+   3,
+   0
+  ],
+  "blood-knight": [
+   3,
+   3,
+   0
+  ],
+  "cavalry": [
+   3,
+   3,
+   0
+  ],
+  "chaos-warrior": [
+   3,
+   3,
+   0
+  ],
+  "demigod": [
+   3,
+   3,
+   0
+  ],
+  "rune-knight": [
+   3,
+   3,
+   0
+  ],
+  "mage": [
+   3,
+   4,
+   0
+  ],
+  "blue-mage": [
+   3,
+   4,
+   0
+  ],
+  "gray-mage": [
+   3,
+   4,
+   0
+  ],
+  "high-mage": [
+   3,
+   4,
+   0
+  ],
+  "magic-eater": [
+   3,
+   4,
+   0
+  ],
+  "mirror-master": [
+   3,
+   4,
+   0
+  ],
+  "red-mage": [
+   3,
+   4,
+   0
+  ],
+  "sorcerer": [
+   3,
+   4,
+   0
+  ],
+  "time-lord": [
+   3,
+   4,
+   0
+  ],
+  "warrior-mage": [
+   3,
+   4,
+   0
+  ],
+  "yellow-mage": [
+   3,
+   4,
+   0
+  ],
+  "yeqrezh": [
+   3,
+   4,
+   0
+  ],
+  "necromancer": [
+   3,
+   5,
+   0
+  ],
+  "blood-mage": [
+   3,
+   5,
+   0
+  ],
+  "hex-mage": [
+   3,
+   5,
+   0
+  ],
+  "warlock": [
+   3,
+   5,
+   0
+  ],
+  "priest": [
+   3,
+   6,
+   0
+  ],
+  "rogue": [
+   3,
+   7,
+   0
+  ],
+  "lawyer": [
+   3,
+   7,
+   0
+  ],
+  "politician": [
+   3,
+   7,
+   0
+  ],
+  "scout": [
+   3,
+   7,
+   0
+  ],
+  "ninja": [
+   3,
+   8,
+   0
+  ],
+  "ninja-lawyer": [
+   3,
+   8,
+   0
+  ],
+  "ranger": [
+   3,
+   9,
+   0
+  ],
+  "archer": [
+   3,
+   9,
+   0
+  ],
+  "beastmaster": [
+   3,
+   9,
+   0
+  ],
+  "sniper": [
+   3,
+   9,
+   0
+  ],
+  "monk": [
+   3,
+   10,
+   0
+  ],
+  "force-trainer": [
+   3,
+   10,
+   0
+  ],
+  "mystic": [
+   3,
+   10,
+   0
+  ],
+  "mindcrafter": [
+   3,
+   11,
+   0
+  ],
+  "psion": [
+   3,
+   11,
+   0
+  ],
+  "wild-talent": [
+   3,
+   11,
+   0
+  ],
+  "samurai": [
+   3,
+   12,
+   0
+  ],
+  "duelist": [
+   3,
+   12,
+   0
+  ],
+  "bard": [
+   3,
+   13,
+   0
+  ],
+  "karrot": [
+   3,
+   13,
+   0
+  ],
+  "skillmaster": [
+   3,
+   13,
+   0
+  ],
+  "tourist": [
+   3,
+   13,
+   0
+  ],
+  "shapeshifter": [
+   3,
+   14,
+   0
+  ],
+  "beorning": [
+   3,
+   14,
+   0
+  ],
+  "doppelganger": [
+   3,
+   14,
+   0
+  ],
+  "monster": [
+   3,
+   14,
+   0
+  ],
+  "werewolf": [
+   3,
+   14,
+   0
+  ],
+  "tinkerer": [
+   3,
+   15,
+   0
+  ],
+  "alchemist": [
+   3,
+   15,
+   0
+  ],
+  "archaeologist": [
+   3,
+   15,
+   0
+  ],
+  "devicemaster": [
+   3,
+   15,
+   0
+  ],
+  "igor": [
+   3,
+   15,
+   0
+  ],
+  "weaponsmith": [
+   3,
+   15,
+   0
+  ]
+ },
+ "size": {
+  "wild rabbit": "tiny",
+  "blinking dot": "tiny",
+  "newt": "tiny",
+  "giant white mouse": "large",
+  "green worm mass": "tiny",
+  "floating eye": "tiny",
+  "grid bug": "tiny",
+  "insect swarm": "tiny",
+  "greater hell-beast": "huge",
+  "shrieker mushroom patch": "tiny",
+  "yellow mushroom patch": "tiny",
+  "yellow jelly": "tiny",
+  "white harpy": "large",
+  "grip, farmer maggot's dog": "tiny",
+  "wolf, farmer maggot's dog": "tiny",
+  "fang, farmer maggot's dog": "tiny",
+  "giant green frog": "large",
+  "slimy worm mass": "tiny",
+  "cave spider": "tiny",
+  "slimy ooze": "tiny",
+  "green jelly": "tiny",
+  "giant white louse": "large",
+  "piranha": "tiny",
+  "spotted mushroom patch": "tiny",
+  "silver jelly": "tiny",
+  "yellow worm mass": "tiny",
+  "clear worm mass": "tiny",
+  "radiation eye": "tiny",
+  "frosty jelly": "tiny",
+  "giant white rat": "large",
+  "swordfish": "tiny",
+  "white worm mass": "tiny",
+  "skeleton kobold": "tiny",
+  "giant leech": "large",
+  "barracuda": "tiny",
+  "slush pile": "tiny",
+  "slimy jelly": "tiny",
+  "disenchanter eye": "tiny",
+  "red worm mass": "tiny",
+  "purple mushroom patch": "tiny",
+  "rat-thing": "tiny",
+  "giant slug": "large",
+  "giant pink frog": "large",
+  "zombified kobold": "tiny",
+  "wood spider": "tiny",
+  "bloodshot eye": "tiny",
+  "pink jelly": "tiny",
+  "giant salamander": "large",
+  "carnivorous flying monkey": "large",
+  "giant grey rat": "large",
+  "black harpy": "large",
+  "skaven": "tiny",
+  "wounded bear": "large",
+  "portuguese man-o-war": "tiny",
+  "rock mole": "tiny",
+  "baby blue dragon": "large",
+  "baby white dragon": "large",
+  "baby green dragon": "large",
+  "baby black dragon": "large",
+  "baby red dragon": "large",
+  "war bear": "large",
+  "killer bee": "tiny",
+  "giant spider": "large",
+  "giant white tick": "large",
+  "borshin": "large",
+  "clear mushroom patch": "tiny",
+  "quiver slot": "tiny",
+  "giant piranha": "large",
+  "owlbear": "large",
+  "grizzly bear": "large",
+  "pseudo dragon": "large",
+  "giant fruit fly": "large",
+  "undead mass": "tiny",
+  "chaos shapechanger": "large",
+  "baby multi-hued dragon": "large",
+  "vorpal bunny": "tiny",
+  "hippocampus": "large",
+  "hippogriff": "large",
+  "grape jelly": "tiny",
+  "nether worm mass": "tiny",
+  "abyss worm mass": "tiny",
+  "skaven shaman": "tiny",
+  "gazer": "tiny",
+  "ixitxachitl": "tiny",
+  "air spirit": "large",
+  "spotted jelly": "tiny",
+  "drider": "tiny",
+  "ochre jelly": "tiny",
+  "software bug": "tiny",
+  "gibbering mouther": "tiny",
+  "hill giant": "large",
+  "flesh golem": "large",
+  "giant flea": "large",
+  "clay golem": "large",
+  "giant octopus": "large",
+  "magic mushroom patch": "tiny",
+  "wererat": "tiny",
+  "mi-go": "tiny",
+  "giant tarantula": "large",
+  "mirkwood spider": "tiny",
+  "frost giant": "large",
+  "griffon": "large",
+  "gelatinous cube": "tiny",
+  "fire giant": "large",
+  "hummerhorn": "tiny",
+  "hammerhead": "tiny",
+  "sphinx": "large",
+  "imp": "tiny",
+  "forest troll": "large",
+  "swamp thing": "large",
+  "water spirit": "large",
+  "giant pink scorpion": "large",
+  "earth spirit": "large",
+  "fire spirit": "large",
+  "shambling mound": "tiny",
+  "white shark": "tiny",
+  "chaos beastman": "large",
+  "stone giant": "large",
+  "stone golem": "large",
+  "ixitxachitl priest": "tiny",
+  "phase spider": "tiny",
+  "wyvern": "large",
+  "chimera": "large",
+  "quylthulg": "large",
+  "whale": "tiny",
+  "cloud giant": "large",
+  "globefish": "tiny",
+  "killer whale": "tiny",
+  "iron golem": "large",
+  "auto-roller": "large",
+  "giant yellow scorpion": "large",
+  "black ooze": "tiny",
+  "kouko": "large",
+  "great white shark": "tiny",
+  "lesser hell-beast": "large",
+  "silent watcher": "large",
+  "pukelman": "large",
+  "stone troll": "large",
+  "black": "tiny",
+  "troll priest": "large",
+  "wereworm": "tiny",
+  "vampiric ixitxachitl": "tiny",
+  "giant red tick": "large",
+  "white wraith": "large",
+  "algroth": "large",
+  "flamer of tzeentch": "tiny",
+  "headless": "large",
+  "gorgimera": "large",
+  "colbran": "large",
+  "corpser": "tiny",
+  "fiend of slaanesh": "tiny",
+  "seahorse": "tiny",
+  "cyclops": "large",
+  "giant purple worm": "large",
+  "ultimate dungeon cleaner": "large",
+  "ice troll": "large",
+  "dhole": "tiny",
+  "young blue dragon": "large",
+  "young white dragon": "large",
+  "young green dragon": "large",
+  "young bronze dragon": "large",
+  "aklash": "large",
+  "mithril golem": "large",
+  "skeleton troll": "large",
+  "jaws": "tiny",
+  "grave wight": "large",
+  "shadow drake": "large",
+  "manticore": "large",
+  "gorgon": "large",
+  "gug": "large",
+  "nexus quylthulg": "large",
+  "shelob, spider of darkness": "tiny",
+  "giant squid": "large",
+  "memory moss": "tiny",
+  "storm giant": "large",
+  "spectator": "tiny",
+  "biclops": "large",
+  "half-troll": "large",
+  "bert the stone troll": "large",
+  "bill the stone troll": "large",
+  "tom the stone troll": "large",
+  "cave troll": "large",
+  "barrow wight": "large",
+  "giant skeleton troll": "large",
+  "chaos drake": "large",
+  "law drake": "large",
+  "balance drake": "large",
+  "ethereal drake": "large",
+  "fasolt the giant": "large",
+  "water troll": "large",
+  "fire elemental": "large",
+  "water elemental": "large",
+  "night stalker": "large",
+  "gas spore": "tiny",
+  "bloodletter of khorne": "large",
+  "giant grey scorpion": "large",
+  "earth elemental": "large",
+  "air elemental": "large",
+  "doom drake": "large",
+  "eog golem": "large",
+  "leng spider": "tiny",
+  "smoke elemental": "large",
+  "olog": "large",
+  "acidic cytoplasm": "tiny",
+  "sea troll": "large",
+  "ooze elemental": "large",
+  "young black dragon": "large",
+  "mature white dragon": "large",
+  "rogrog the black troll": "large",
+  "mist giant": "large",
+  "grey wraith": "large",
+  "revenant": "large",
+  "young multi-hued dragon": "large",
+  "colossus": "large",
+  "young gold dragon": "large",
+  "mature blue dragon": "large",
+  "mature green dragon": "large",
+  "mature bronze dragon": "large",
+  "young red dragon": "large",
+  "ice elemental": "large",
+  "greater hell magic mushroom were-quylthulg": "large",
+  "chaos spawn": "tiny",
+  "mummified troll": "large",
+  "fire angel": "large",
+  "chaos butterfly": "tiny",
+  "flying polyp": "tiny",
+  "will o' the wisp": "large",
+  "shan": "tiny",
+  "magma elemental": "large",
+  "black pudding": "tiny",
+  "mature red dragon": "large",
+  "mature gold dragon": "large",
+  "crystal drake": "large",
+  "mature black dragon": "large",
+  "mature multi-hued dragon": "large",
+  "sky whale": "tiny",
+  "mother hydra": "large",
+  "ancient blue dragon": "huge",
+  "ancient bronze dragon": "huge",
+  "beholder": "large",
+  "emperor wight": "large",
+  "loge, spirit of fire": "large",
+  "black wraith": "large",
+  "nightgaunt": "large",
+  "baron of hell": "large",
+  "nether wraith": "large",
+  "moire, queen of rebma": "large",
+  "kavlax the many-headed": "large",
+  "ancient white dragon": "huge",
+  "ancient green dragon": "huge",
+  "chthonian": "tiny",
+  "eldrak": "large",
+  "ettin": "large",
+  "ancient black dragon": "huge",
+  "spawn of ubbo-sathla": "tiny",
+  "spirit troll": "large",
+  "war troll": "large",
+  "disenchanter worm mass": "tiny",
+  "rotting quylthulg": "large",
+  "lesser titan": "huge",
+  "minotaur": "large",
+  "death drake": "large",
+  "ancient red dragon": "huge",
+  "ancient gold dragon": "huge",
+  "great crystal drake": "huge",
+  "clubber demon": "large",
+  "giganto the gargantuan": "tiny",
+  "strygalldwir": "large",
+  "giant headless": "large",
+  "ubbo-sathla, the unbegotten source": "tiny",
+  "byakhee": "large",
+  "formless spawn of tsathoggua": "large",
+  "hunting horror": "large",
+  "undead beholder": "large",
+  "shadow demon": "large",
+  "charybdis": "tiny",
+  "zephyr lord": "large",
+  "juggernaut of khorne": "large",
+  "judge fear": "large",
+  "ancient multi-hued dragon": "huge",
+  "ethereal dragon": "large",
+  "quaker, master of earth": "large",
+  "utgard-loke": "large",
+  "shoggoth": "tiny",
+  "judge death": "large",
+  "ariel, queen of air": "large",
+  "drolem": "large",
+  "scatha the worm": "large",
+  "nazgul": "large",
+  "smaug the golden": "large",
+  "dracolich": "huge",
+  "greater titan": "huge",
+  "dracolisk": "huge",
+  "fastitocalon": "large",
+  "yibb-tstll the patient one": "large",
+  "ghatanothoa": "large",
+  "ent": "large",
+  "hru": "large",
+  "itangast the fire drake": "large",
+  "fafner the dragon": "large",
+  "glaurung, father of the dragons": "large",
+  "behemoth": "huge",
+  "nycadaemon": "large",
+  "greater balrog": "huge",
+  "nightwing": "large",
+  "maulotaur": "large",
+  "demonic quylthulg": "large",
+  "great storm wyrm": "huge",
+  "ulik the troll": "large",
+  "baphomet the minotaur lord": "large",
+  "eihort, the thing in the labyrinth": "tiny",
+  "great unclean one": "huge",
+  "khamul the easterling": "large",
+  "lesser kraken": "tiny",
+  "great ice wyrm": "huge",
+  "nightcrawler": "large",
+  "keeper of secrets": "large",
+  "shudde m'ell": "tiny",
+  "eye druj": "tiny",
+  "nidhogg the hel-drake": "large",
+  "great hell wyrm": "huge",
+  "hastur the unspeakable": "large",
+  "bloodthirster": "large",
+  "draconic quylthulg": "large",
+  "nyogtha, the thing that should not be": "tiny",
+  "ancalagon the black": "large",
+  "daoloth, the render of the veils": "large",
+  "nightwalker": "large",
+  "greater kraken": "tiny",
+  "jabberwock": "large",
+  "ultimate beholder": "large",
+  "leviathan": "huge",
+  "great wyrm of chaos": "huge",
+  "great wyrm of law": "huge",
+  "great wyrm of balance": "huge",
+  "shambler": "large",
+  "hypnos, lord of sleep": "huge",
+  "glaaki": "tiny",
+  "great wyrm of many colours": "huge",
+  "sky drake": "large",
+  "tiamat, celestial dragon of evil": "large",
+  "norsa": "large",
+  "rhan-tegoth": "tiny",
+  "master quylthulg": "large",
+  "greater draconic quylthulg": "large",
+  "greater rotting quylthulg": "large",
+  "omarax the eye tyrant": "tiny",
+  "tsathoggua, the sleeper of n'kai": "tiny",
+  "ungoliant, the unlight": "tiny",
+  "atlach-nacha, the spider god": "tiny",
+  "y'golonac": "large",
+  "warp demon": "large",
+  "unmaker": "large",
+  "cyberdemon": "large",
+  "emperor quylthulg": "large",
+  "qlzqqlzuup, the lord of flesh": "large",
+  "cthugha, the living flame": "large",
+  "witch-king of angmar": "large",
+  "cyaegha": "tiny",
+  "mephistopheles, lord of hell": "huge",
+  "ymir the ice giant": "large",
+  "loki the trickster": "large",
+  "star-spawn of cthulhu": "large",
+  "surtur the giant fire demon": "large",
+  "lungorthin, the balrog of white fire": "huge",
+  "shuma-gorath": "tiny",
+  "tulzscha, the green flame": "large",
+  "oremorj the cyberdemon lord": "large",
+  "yog-sothoth, the all-in-one": "tiny",
+  "great wyrm of power": "huge",
+  "shub-niggurath, black goat of the woods": "large",
+  "nodens, lord of the great abyss": "huge",
+  "nyarlathotep, the crawling chaos": "large",
+  "azathoth, seething nuclear chaos": "large",
+  "destroyer": "large",
+  "gothmog, the high captain of balrogs": "large",
+  "great cthulhu": "huge",
+  "morgoth, lord of darkness": "huge",
+  "quantum dot": "tiny",
+  "lourph": "tiny",
+  "caaws": "large",
+  "culverin": "tiny",
+  "boadile": "tiny",
+  "metal babble": "tiny",
+  "spectral wyrm": "huge",
+  "storm troll": "large",
+  "unstable worm mass": "tiny",
+  "ohmu": "tiny",
+  "vore": "tiny",
+  "great venom wyrm": "huge",
+  "djinni": "large",
+  "efreeti": "large",
+  "troll king": "large",
+  "sky golem": "large",
+  "fire troll": "large",
+  "bonsai kraken": "tiny",
+  "chaos mushroom": "tiny",
+  "cloud golem": "large",
+  "lava golem": "large",
+  "aquatic golem": "large",
+  "undead devilfish": "tiny",
+  "devilfish": "tiny",
+  "demogorgon": "large",
+  "internet exploder": "tiny",
+  "electric rat": "tiny",
+  "goomba": "tiny",
+  "king koopa": "large",
+  "aboleth": "tiny",
+  "lems the cyborg": "large",
+  "hoarmurath of dir": "large",
+  "lesser balrog": "huge",
+  "bone dragon": "large",
+  "biketal of fire": "large",
+  "jisisl of ice": "large",
+  "buzzy beetle": "tiny",
+  "red puyo": "tiny",
+  "blue puyo": "tiny",
+  "yellow puyo": "tiny",
+  "green puyo": "tiny",
+  "slime mold": "tiny",
+  "botei-building, the emperor": "large",
+  "bramd the ice dragon": "large",
+  "eibra the water dragon": "large",
+  "narse the black dragon": "large",
+  "mycen the gold dragon": "large",
+  "shooting star the red dragon": "large",
+  "nue": "large",
+  "dao": "large",
+  "marid": "large",
+  "bahamut, celestial dragon of good": "large",
+  "giant cockroach": "large",
+  "dwar, dog lord of waw": "huge",
+  "spider bomb": "tiny",
+  "bomb mosquito": "tiny",
+  "charon, boatman of the styx": "large",
+  "red helm, the king of bear": "large",
+  "mad bear": "large",
+  "wahha-man the golden": "large",
+  "minotaur of the labyrinth": "large",
+  "narwhal": "tiny",
+  "stone dragon": "large",
+  "steel dragon": "large",
+  "atlas, the titan": "huge",
+  "kronos, lord of the titans": "huge",
+  "mori troll": "large",
+  "lousy, the king of louses": "tiny",
+  "great wyrm of space-time": "huge",
+  "octopus of kshitigarbha": "tiny",
+  "great bile wyrm": "huge",
+  "trench wurm": "tiny",
+  "wutugu, the chief of southerings": "large",
+  "flying spaghetti monster": "tiny",
+  "spellwarp automaton": "large",
+  "talos, masterwork spellwarp automaton": "large",
+  "monkey clone": "large",
+  "zeus, king of the olympians": "large",
+  "poseidon, lord of seas and storm": "huge",
+  "hades, ruler of the underworld": "large",
+  "athena, the goddess of wisdom": "large",
+  "ares, the god of war": "large",
+  "hermes, the messenger god": "large",
+  "apollo, the sun god": "large",
+  "artemis, the moon goddess": "large",
+  "hephaestus, the smith god": "large",
+  "hera, queen of the gods": "large",
+  "demeter, the goddess of nature": "large",
+  "aphrodite, the goddess of love": "large",
+  "greater demonic quylthulg": "large",
+  "rock giant": "large",
+  "ice giant": "large",
+  "elder fire giant": "huge",
+  "typhoeus, the storm giant": "large",
+  "elder storm giant": "huge",
+  "marilith": "large",
+  "pumpkin man": "large",
+  "osyluth": "large",
+  "gelugon": "large",
+  "hezrou": "large",
+  "pit fiend": "large",
+  "glabrezu": "large",
+  "nalfeshnee": "large",
+  "barbazu": "large",
+  "vrock": "large",
+  "mothra": "tiny",
+  "king ghidora": "large",
+  "thanatos, god of death": "large",
+  "diamond dragon": "large",
+  "cacodemon": "large",
+  "flame spider": "tiny",
+  "nexus spider": "tiny",
+  "ice spider": "tiny",
+  "venom spider": "tiny",
+  "disintegrate spider": "tiny",
+  "undead spider": "tiny",
+  "hell spider": "tiny",
+  "dor": "tiny",
+  "beelzebub, lord of the flies": "tiny",
+  "lurking horror": "large",
+  "shadow fiend": "large",
+  "bronze golem": "large",
+  "bone golem": "large",
+  "pandemonium": "large",
+  "steam-powered mechanical dragon": "large",
+  "babbage analytical engine": "large",
+  "etheric dimensional phase automaton": "large",
+  "young silver dragon": "large",
+  "mature silver dragon": "large",
+  "ancient silver dragon": "huge",
+  "midnight dragon": "large",
+  "nightmare dragon": "large",
+  "giant land sloth": "large",
+  "beer elemental": "large",
+  "zoopi, the cube king": "tiny",
+  "festivus, the teenage offscreen ninja drolem": "large",
+  "cockatrice": "large",
+  "moe, the cyclops": "large",
+  "scrupiox, the nightcrawler": "large",
+  "anubis, keeper of the balance": "large",
+  "ammit, the devourer": "large",
+  "frost spirit": "large",
+  "polyphemus, the blind cyclops": "large",
+  "mathmag, the prince of whales": "tiny",
+  "shrieking eel": "tiny",
+  "seth, the disintegrator": "large",
+  "serpopard": "large",
+  "sha": "large",
+  "flying fishrooster": "large",
+  "giant moth": "large",
+  "akuvalt the deceiver": "large",
+  "sea giant": "large",
+  "aegir, god-king of the sea giants": "large",
+  "snow golem": "large",
+  "angelic quylthulg": "large",
+  "iku-turso": "large",
+  "arachnotron": "tiny",
+  "plague monk": "tiny",
+  "skaven assassin": "tiny",
+  "rat-ogre": "large",
+  "grey seer": "tiny",
+  "swamp rat": "tiny",
+  "plague rat": "tiny",
+  "nizukil, prince of rats": "tiny",
+  "spulga, the troll priestess": "large",
+  "pryftidustulyx, the communist dragon": "large",
+  "blue-ringed octopus": "tiny",
+  "box jellyfish": "tiny",
+  "giant funnel-web spider": "large",
+  "trapdoor spider": "tiny",
+  "drop bear": "large",
+  "tin golem": "large",
+  "adobe golem": "large",
+  "bunyip": "large",
+  "duck-quacked platypus": "large",
+  "giant yellow toad": "large",
+  "giant wombat": "large",
+  "mutant manta ray": "tiny",
+  "atomic elemental": "large",
+  "polar bear": "large",
+  "freyr, lord of plenty": "huge",
+  "odin, the all-father": "large",
+  "heimdall, guardian of bifrost": "large",
+  "thor, the thunderer": "large",
+  "tyr, the one-armed god": "large",
+  "vidarr, the silent avenger": "large",
+  "freyja, lady of the slain": "large",
+  "njord, lord of the vanir": "huge",
+  "frigg, queen of asgard": "large",
+  "skadi, the huntress": "large",
+  "ratatosk, the world-tree squirrel": "tiny",
+  "ullur, the archer-god": "large",
+  "magni, son of thor": "large",
+  "mahishasura, the buffalo demon": "large",
+  "agni, the threefold fire": "large",
+  "vayu, the embodied wind": "large",
+  "karthikeya, the six-headed warrior": "large",
+  "vishnu, the preserver": "large",
+  "lakshmi, the goddess of prosperity": "large",
+  "asura": "large",
+  "varuna, lord of water": "huge",
+  "ganesha, the elephant god": "large",
+  "yama, lord of the dead": "huge",
+  "shiva, the destroyer": "large",
+  "parvati, the goddess of hidden power": "large",
+  "durga, the goddess of war": "large",
+  "kali, mother of rage": "large",
+  "rakshasa": "large",
+  "swamp rabbit": "tiny",
+  "bloodfreezer": "large",
+  "brahma, the creating spirit": "large",
+  "saraswati, goddess of knowledge": "large",
+  "indra, the heavenly king of meru": "large"
+ }
+}
