@@ -325,6 +325,8 @@ document.addEventListener('mousedown', ev => {
   }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev); if (!cell) return;
+    // nowhere known to go: say so here instead of a "cannot travel" line in the log
+    if (!(cell.c && cell.c[0]) && (cell.dx || cell.dy) && !S.mons.some(m => m.dx === cell.dx && m.dy === cell.dy)) { showTip('<span class="sub">unexplored</span>', ev); ev.preventDefault(); return; }
     sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
   }
   // the plain text panel: clicking a line that offers a lettered choice presses that letter
