@@ -782,7 +782,10 @@ function draw() {
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
   const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
   // a panel opening eases in rather than snapping; one already open just updates
-  for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); const n = el._pop = (el._pop || 0) + 1; setTimeout(() => { if (el._pop === n) el.classList.remove('pop'); }, 220); }
+  // the ease-in is for opening only: once it has played, the class goes, or every redraw (a new panel element) would fade in again
+  // from nothing and flash whatever lies under it. And the start-up line has done its job once the game has drawn something.
+  if ((nh || inGame) && !built) { const w = $('#wait'); if (w && /Waking/.test(w.textContent)) w.remove(); }
 }
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
