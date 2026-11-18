@@ -11,6 +11,7 @@ function fxOnState(prev, cur) {
   const t = now(), same = prev.p.place === cur.p.place && prev.p.dlvl === cur.p.dlvl;
   const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
   fxSelf(prev, cur, same, near);
+  if (!same && cur.p.place !== 'Surface') fxBanner(cur.p.place || 'Somewhere new', cur.p.dlvl ? `Level ${cur.p.dlvl} · ${(cur.p.dlvl * 50).toLocaleString()} ft` : '');   // a new level or place: name it, as a film names its scenes
   if (!near) { FX.scroll = null; FX.mons = {}; FX.floats = []; FX.puffs = []; FX.lunge = {}; return; }
   if (mx || my) FX.scroll = { dx: mx, dy: my, t };
   if (mx || my) sndPlay('walk');
