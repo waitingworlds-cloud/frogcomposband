@@ -214,6 +214,12 @@ function miniCellAt(ev) {
   if (cx < 0 || cy < 0 || cx >= mw || cy >= mh) return null;
   return { dx: cx - (mw >> 1), dy: cy - (mh >> 1), c: S.map.c[cy * mw + cx] };
 }
+// an edge pointer under the mouse: the creature it points to
+function edgeAt(ev) {
+  const cv = $('#map'); if (!cv || !EDGE.length) return null;
+  const r = cv.getBoundingClientRect(), x = (ev.clientX - r.left) / SCALE, y = (ev.clientY - r.top) / SCALE;
+  const e = EDGE.find(e => Math.hypot(e.x - x, e.y - y) <= e.r); return e ? e.m : null;
+}
 function mapCellAt(ev) {
   const cv = $('#map'); if (!cv || !S || !S.map) return null;
   const r = cv.getBoundingClientRect(); const x = (ev.clientX - r.left) / SCALE, y = (ev.clientY - r.top) / SCALE;
@@ -319,6 +325,10 @@ document.addEventListener('mousemove', ev => {
     ev.target.style.cursor = f ? 'pointer' : 'default';
     return showTip(f ? `${esc(f)} <span class="sub">${dirOf(cell.dx, cell.dy)}</span><div class="hint">click: travel here</div>` : '', ev);
   }
+  if (ev.target.id === 'map' && playing() && !aimMode() && !lookMode()) {
+    const em = edgeAt(ev);
+    if (em) { ev.target.style.cursor = 'pointer'; if (hover) { hover = null; requestAnimationFrame(drawMap); } return showTip(`<b>${esc(cap(em.n.replace(/^(an?|the) /i, '')))}</b> <span class="sub">${dirOf(em.dx, em.dy)}${em.asleep ? ' · asleep' : ''}</span><div class="hint">beyond the edge of the view · click: target it</div>`, ev); }
+  }
   if (ev.target.id === 'map' && playing()) {
     MAPEV = ev; const cell = mapCellAt(ev);
     // the pointer says what a click will do: aim, attack, or walk
@@ -385,6 +395,7 @@ document.addEventListener('mousedown', ev => {
     if (!walkPath(cell.dx, cell.dy) && typeof exploreGoto === 'function' && exploreGoto(cell.dx, cell.dy)) return;
     sendRaw(`M 1 ${cell.dx} ${cell.dy}`); return;
   }
+  if (ev.target.id === 'map' && playing() && ev.button === 0 && !aimMode() && !lookMode()) { const em = edgeAt(ev); if (em) { ev.preventDefault(); sendRaw(`T ${em.dx} ${em.dy}`); return; } }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev); if (!cell) return;
     // nowhere known to go: say so here instead of a "cannot travel" line in the log

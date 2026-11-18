@@ -462,6 +462,7 @@ function walkPath(tx, ty) {
 const rnd = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
 function shade(hexc, k) { const n = parseInt(hexc.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * k))); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; }
 let TILE = 32;
+let EDGE = [];   // the edge pointers drawn last, for the pointer to find
 function drawMap() {
   const cv = $('#map'); if (!cv || !S.map) return;
   const W = cv.clientWidth, H = cv.clientHeight, d = SCALE * (devicePixelRatio || 1);
@@ -569,11 +570,12 @@ function drawMap() {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
   // creatures in sight but beyond the edge of the map view: a small pointer at the edge, towards them
+  EDGE = [];
   for (const m of S.mons) {
     if (m.pet || m.friendly) continue;
     const mx = ox + (pcx + m.dx + .5) * T, my = oy + (pcy + m.dy + .5) * T; if (mx >= 0 && my >= 0 && mx <= W && my <= H) continue;
     const cx = W / 2, cy = H / 2, vx = mx - cx, vy = my - cy, pad = 16, k = Math.min((W / 2 - pad) / Math.abs(vx || 1e-6), (H / 2 - pad) / Math.abs(vy || 1e-6));
-    const ex = cx + vx * k, ey = cy + vy * k, a = Math.atan2(vy, vx), r = Math.max(11, T * .36);
+    const ex = cx + vx * k, ey = cy + vy * k, a = Math.atan2(vy, vx), r = Math.max(11, T * .36); EDGE.push({ x: ex, y: ey, r: r * 1.6, m });
     g.save(); g.translate(ex, ey); g.fillStyle = 'rgba(8,9,10,.75)'; g.beginPath(); g.arc(0, 0, r * 1.15, 0, 7); g.fill(); g.rotate(a); g.fillStyle = m.asleep ? '#ecc983' : TH.danger; g.strokeStyle = '#0b0c0e'; g.lineWidth = 1.5;
     g.beginPath(); g.moveTo(r, 0); g.lineTo(-r * .7, r * .7); g.lineTo(-r * .35, 0); g.lineTo(-r * .7, -r * .7); g.closePath(); g.fill(); g.stroke(); g.restore();
   }
