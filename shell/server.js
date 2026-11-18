@@ -74,7 +74,9 @@ function start(opts = {}) {
   return new Promise(resolve => {
     tcp.listen(0, '127.0.0.1', () => {
       const gport = tcp.address().port;
-      web.listen(opts.port || 0, '127.0.0.1', () => {
+      // a fixed port keeps the page's origin the same from one launch to the next, so remembered settings (sound, zoom,
+      // screen style) survive; if another copy holds it, any free port will do
+      const ready = () => {
         const env = { ...process.env, FROG_SHELL_PORT: String(gport), FROG_SHELL_COLS: String(opts.cols || 110), FROG_SHELL_ROWS: String(opts.rows || 40) };
         spawnGame = () => {
           ended = false; hello = dict = lastState = lastMap = lastUi = null; rows.clear(); frameMeta = null; pending = [];
@@ -84,7 +86,10 @@ function start(opts = {}) {
         };
         if (game && !opts.noGame) spawnGame(); else spawnGame = null;
         resolve({ port: web.address().port, gport, quit: () => toGame('Q'), stop: () => { try { child && child.kill(); } catch (e) {} tcp.close(); web.close(); } });
-      });
+      };
+      const want = opts.port || 0;
+      web.once('error', e => { if (want && e.code === 'EADDRINUSE') web.listen(0, '127.0.0.1', ready); else throw e; });
+      web.listen(want, '127.0.0.1', ready);
     });
   });
 }
