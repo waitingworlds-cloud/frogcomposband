@@ -36,7 +36,7 @@ function exploreStop(why) { if (!EXP.on) return; EXP.on = false; clearInterval(E
 function exploreTick() {
   if (!EXP.on || !S || !S.map) return exploreStop();
   if (G.icky || G.ov || expAsk()) return exploreStop();   // a prompt or a -more- wants you
-  { const f = expFoes().sort((a, b) => a.dist - b.dist)[0]; if (f) return exploreStop(cap(f.n) + ' comes into view'); }
+  { const f = expFoes().sort((a, b) => a.dist - b.dist)[0]; if (f) { if (typeof sndPlay === 'function') sndPlay('warn'); return exploreStop(cap(f.n) + ' comes into view'); } }
   if (S.p.hp < EXP.hp) return exploreStop('You are hurt');
   EXP.hp = S.p.hp;
   for (const k of expItems()) if (!EXP.items.has(k)) return exploreStop('You see ' + k.split(',').slice(2).join(','));
