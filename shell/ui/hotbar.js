@@ -4,7 +4,6 @@
 // book, potion or spell by what it is each time, so it keeps working when the pack letters move.
 'use strict';
 const HB = { slots: Array(10).fill(null), who: null, mode: 'A' };
-try { if (localStorage.getItem('hb.mode') === 'B') HB.mode = 'B'; } catch (e) {}
 let LASTPICK = null;     // the item last chosen at one of the game's item prompts: { o, t }
 let LASTCMD = null;      // the command key last pressed in play: { k, raw, t }
 let SPELLPICK = null;    // after a hotbar cast opens the spell list, choose this spell: { n, t }
@@ -94,8 +93,7 @@ document.addEventListener('click', ev => { const h = ev.target.closest && ev.tar
 function hbCtx(ev) {
   const h = ev.target.closest && ev.target.closest('[data-hb]');
   if (h && playing()) { hbLoad(); const i = +h.dataset.hb, s = HB.slots[i]; if (!s) return ['Hotbar slot ' + HB_KEYS[i], [{ k: '', n: 'Drag a spell or an item here', dim: true, run: () => {} }]];
-    return [s.n, [{ k: 'u', n: s.t === 'o' ? s.verb : 'Cast', run: () => hbUse(i) }, { k: 'c', n: 'Clear this slot', run: () => { HB.slots[i] = null; hbSave(); schedule(); } },
-      { k: 'l', n: HB.mode === 'A' ? 'Bar on the map frame' : 'Bar under the map', run: () => { HB.mode = HB.mode === 'A' ? 'B' : 'A'; try { localStorage.setItem('hb.mode', HB.mode); } catch (e) {} built = false; schedule(); } }]]; }
+    return [s.n, [{ k: 'u', n: s.t === 'o' ? s.verb : 'Cast', run: () => hbUse(i) }, { k: 'c', n: 'Clear this slot', run: () => { HB.slots[i] = null; hbSave(); schedule(); } }]]; }
   const sp = ev.target.closest && ev.target.closest('.spc[data-sp]');
   if (sp && UI && UI.kind === 'spells') { const r = UI.rows.find(r => r.n === sp.dataset.sp); if (r) return [r.n, [{ k: 'm', n: 'Cast it', run: () => sendText(r.k) }, { k: 'h', n: 'Put on the hotbar', run: () => hbSet(-1, hbFromSpell(r)) }]]; }
   return null;
