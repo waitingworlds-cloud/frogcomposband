@@ -192,6 +192,12 @@ static void shell_command(char *line)
             o = &o_list[i];
             if (!o->k_idx || !(o->marked & OM_FOUND) || o->held_m_idx || o->loc.where != INV_FLOOR) return;
         }
+        else if (line[2] == 's')
+        {
+            /* an item on the shelves of the shop the player is in */
+            o = shell_shop_obj(atoi(line + 4));
+            if (!o) return;
+        }
         if (o || line[2] == 'm')
         {
             doc_ptr doc = doc_alloc(64);
@@ -252,7 +258,12 @@ static void shell_command(char *line)
             return;
         }
         if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
-        if (kind == 1 && !dx && !dy) { Term_keypress('\\'); Term_keypress('g'); }
+        if (kind == 1 && !dx && !dy)
+        {
+            /* clicking yourself: in a shop doorway, go back in; elsewhere pick up what is here */
+            Term_keypress('\\');
+            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : 'g');
+        }
         else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
         {
             Term_keypress('\\'); Term_keypress(';');

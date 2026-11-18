@@ -30,6 +30,8 @@ enum
 };
 
 extern shop_ptr shop_alloc(int which);
+extern shop_ptr shell_shop;
+extern obj_ptr shell_shop_obj(int slot);
 extern shop_ptr shop_load(savefile_ptr file);
 extern void     shop_free(shop_ptr shop);
 

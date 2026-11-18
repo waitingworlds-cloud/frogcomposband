@@ -71,7 +71,7 @@ function shopHtml() {
   const u = UI, rows = u.rows, two = rows.length > 13;
   const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
   const asking = /which item/i.test(msg);
-  const list = rows.map(r => { const ic = tvIcon(r.tv); return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${r.ok ? '' : 'cant'}" data-key="${asking ? '' : 'b'}${esc(r.k)}" data-tip="${asking ? 'choose' : 'buy'} this">
+  const list = rows.map(r => { const ic = tvIcon(r.tv); return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${r.ok ? '' : 'cant'}" data-key="${asking ? '' : 'b'}${esc(r.k)}"${r.sl ? ` data-desc="s:${r.sl}"` : ''} data-tip="${esc(r.n)}\n${asking ? 'click: choose this' : `click: buy · ${r.price.toLocaleString()} gold${r.ok ? '' : ' (more than you have)'}`}">
     <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
     <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
     <span class="price num">${r.price.toLocaleString()}</span></div>`; }).join('') || '<div class="sub" style="padding:20px">The shelves are empty.</div>';

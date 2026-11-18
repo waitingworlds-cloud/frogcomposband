@@ -22,7 +22,7 @@ function cellItems(cell) {
     if (objs.length) out.push({ k: 'g', n: objs.length > 1 ? 'Pick up items here' : 'Pick up ' + objs[0].n, run: () => sendText(cmd('g')) });
     if (/up stair|up staircase/.test(f)) out.push({ k: '<', n: 'Go up the stairs', run: () => sendText(cmd('<')) });
     if (/down stair|down staircase|trap ?door/.test(f)) out.push({ k: '>', n: 'Go down the stairs', run: () => sendText(cmd('>')) });
-    if (/shop|store|home|guild|entrance/.test(f) && !/floor/.test(f)) out.push({ k: '_', n: 'Enter', run: () => sendText(cmd('_')) });
+    if (cell.c && cell.c[0] && featClass(cell.c[0]) === 'shop' && f !== 'building') out.push({ k: '', n: 'Go into ' + (DICT.f[cell.c[0]] || [''])[0].replace(/^the /i, ''), run: () => sendRaw('M 1 0 0'), hot: true });
     out.push({ k: 'R', n: 'Rest as needed', run: () => sendText(cmd('R') + '&\r') });
     out.push({ k: 'i', n: 'Open your pack', run: () => sendText(cmd('i')) });
     out.push({ k: 'l', n: 'Look around', run: () => sendText(cmd('l')) });
@@ -80,7 +80,7 @@ function ctxOpen(title, items, ev) {
   if (!items.length) return;
   CTX = { items, sel: Math.max(0, items.findIndex(i => !i.dim)) };
   const el = $('#ctx');
-  el.innerHTML = `<div class="ctt">${esc(title)}</div>` + items.map((it, i) => `<div class="cti ${it.dim ? 'dim' : ''} ${it.hot ? 'hot' : ''}" data-ci="${i}"><span class="key">${esc(it.k)}</span>${esc(it.n)}</div>`).join('') + '<div class="cth">Esc to close</div>';
+  el.innerHTML = `<div class="ctt">${esc(title)}</div>` + items.map((it, i) => `<div class="cti ${it.dim ? 'dim' : ''} ${it.hot ? 'hot' : ''}" data-ci="${i}"><span class="key"${it.k ? '' : ' style="visibility:hidden"'}>${esc(it.k || 'x')}</span>${esc(it.n)}</div>`).join('') + '<div class="cth">Esc to close</div>';
   el.style.display = 'block'; showTip('', ev);
   const sw = innerWidth / SCALE, sh = VH, w = el.offsetWidth, h = el.offsetHeight;
   let x = ev.clientX / SCALE + 4, y = ev.clientY / SCALE + 4;

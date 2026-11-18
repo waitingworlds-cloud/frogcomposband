@@ -1453,6 +1453,10 @@ static void _wizard_stock(shop_ptr shop);
 static void _shuffle_stock(shop_ptr shop);
 static int  _stock_base(shop_ptr shop);
 
+/* the shop the player is standing in, so the interface can ask for a stocked item's description */
+shop_ptr shell_shop = NULL;
+obj_ptr shell_shop_obj(int slot) { return shell_shop && slot > 0 ? inv_obj(shell_shop->inv, slot) : NULL; }
+
 void shop_ui(shop_ptr shop)
 {
     _ui_context_t context = {0};
@@ -1462,7 +1466,9 @@ void shop_ui(shop_ptr shop)
 
     context.shop = shop;
     context.top = 1;
+    shell_shop = shop;
     _loop(&context);
+    shell_shop = NULL;
     store_hack = FALSE;
 }
 
@@ -1663,6 +1669,7 @@ static void _display(_ui_context_ptr context)
             lab[0] = slot_label(slot - context->top + 1); lab[1] = 0;
             shell_ui_row();
             shell_ui_str("k", lab);
+            shell_ui_int("sl", slot);
             shell_ui_str("n", name);
             shell_ui_int("tv", obj->tval);
             shell_ui_int("ki", obj->k_idx);
