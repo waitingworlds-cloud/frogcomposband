@@ -81,7 +81,7 @@ function shopHtml() {
       <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(u.name)}</div><div class="sub">${esc(u.owner)}, ${/^[aeiou]/i.test(u.race) ? 'an' : 'a'} ${esc(u.race.toLowerCase())}, keeps this shop · pays up to ${u.purse.toLocaleString()} for one item</div></div>
       <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${u.gold.toLocaleString()}</div></div></div>
     <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
-    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}${qtyKeys()}</div>
+    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${lookKeys(esc(msg))}${qtyKeys()}</div>
     <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
 }
 
@@ -103,7 +103,7 @@ function homeHtml() {
       <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(mus ? 'The Museum' : 'Your Home')}</div><div class="sub">${mus ? 'Donations are final, and shown here for good' : 'Safe storage. Nothing here is ever lost or stolen'} · ${u.count} ${u.count === 1 ? 'item' : 'items'}${rows.length ? ` · ${lb(tot)} lb on this page` : ''}</div></div>
       <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${S && S.p ? S.p.au.toLocaleString() : ''}</div></div></div>
     <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
-    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}${qtyKeys()}</div>
+    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${lookKeys(esc(msg))}${qtyKeys()}</div>
     <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
 }
 
