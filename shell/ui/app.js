@@ -507,6 +507,8 @@ function drawMap() {
   for (const m of S.mons) {
     const mo = fxMon(m.i), mx = ox + (pcx + m.dx + mo[0]) * T, my = oy + (pcy + m.dy + mo[1]) * T;
     if (m.hp < 100 || m.target) { g.fillStyle = '#000a'; g.fillRect(mx + 2, my - 5, T - 4, 3); g.fillStyle = m.hp > 75 ? '#a9c98c' : m.hp > 45 ? '#ffc46a' : TH.danger; g.fillRect(mx + 2, my - 5, (T - 4) * m.hp / 100, 3); }
+    { const th = threat(m); if (th) { const r = Math.max(5, T * .17), cx = mx + T - r * .9, cy = my + r * .9; g.fillStyle = th === 'deadly' ? '#5a1410e6' : '#4a3410e6'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill(); g.strokeStyle = th === 'deadly' ? '#ff5a3c' : '#c8902a'; g.lineWidth = 1.2; g.stroke();
+      g.fillStyle = th === 'deadly' ? '#ffb0a0' : '#ffd890'; g.font = `700 ${Math.round(r * 1.3)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(th === 'deadly' ? '☠' : '!', cx, cy + .5); } }   // much deeper than you: marked at its shoulder
     if (m.target) { g.strokeStyle = TH.danger; g.lineWidth = 2; const k = 8; [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([ax, ay, dx, dy]) => { g.beginPath(); g.moveTo(mx + ax + dx * k, my + ay); g.lineTo(mx + ax, my + ay); g.lineTo(mx + ax, my + ay + dy * k); g.stroke(); }); }
   }
   // the game's cursor (looking, targeting): corner brackets that breathe, and a sight line when a target is being picked
