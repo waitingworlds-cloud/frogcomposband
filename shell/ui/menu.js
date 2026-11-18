@@ -36,6 +36,7 @@ function menuHtml() {
   // only menus: a few choices, and not a page of running text or a table
   const filled = rows.filter(r => r.s.trim()).length;
   if ((n < 3 && !(n === 2 && filled <= 4)) || prose > 4 || n < filled * .3) return '';   // two choices count in a small box (which hand?)
+  { const c = menuCards(rows, b); if (c) return c; }
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
   let fs = Math.floor(Math.min((VH - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
@@ -58,4 +59,23 @@ function menuHtml() {
   const car = pg && G.cy === pg.foot ? '' : caret && top ? caret.replace(/top:(\d+)px/, (m, v) => `top:${v - lh}px`) : caret;
   PAGER = pg;
   return `<div class="pane npanel menup">${pg ? `<div class="pgh">${pagerHead(pg)}</div>` : ''}<div class="mbody" style="font-size:${fs}px;--lh:${lh}px;width:${nw + 1}ch">${out}${car}</div>${pg ? `<div class="pgf">${pagerFoot(pg)}</div>` : ''}</div>`;
+}
+
+// a plain list of choices, one per line (the options menu and its kind): shown as cards like the start screen.
+// Anything with more on a line than a key and its name keeps the text layout above.
+function menuCards(rows, b) {
+  const items = rows.filter(r => r.toks.length), other = rows.filter(r => !r.toks.length && r.s.trim());
+  if (items.length < 4 || items.length > 30 || other.length > 4) return '';
+  if (!items.every(r => r.toks.length === 1 && !r.s.slice(b.x0, r.toks[0].at).trim() && !r.s.slice(r.toks[0].end).trim() && r.toks[0].end - r.toks[0].at < 48)) return '';
+  const first = rows.findIndex(r => r.s.trim()), title = rows[first] && !rows[first].toks.length ? rows[first] : null;
+  const lastItem = rows.indexOf(items[items.length - 1]);
+  if (other.some(r => r !== title && rows.indexOf(r) < lastItem)) return '';   // words between the choices: not a plain list
+  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim());
+  let groups = [[]];
+  rows.slice(title ? first + 1 : 0, lastItem + 1).forEach(r => { if (r.toks.length) groups[groups.length - 1].push(r); else if (groups[groups.length - 1].length) groups.push([]); });
+  groups = groups.filter(g => g.length);
+  const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
+  return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
+    ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}</div>` : ''}</div>`;
 }
