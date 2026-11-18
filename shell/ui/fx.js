@@ -12,6 +12,7 @@ function fxOnState(prev, cur) {
   const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
   fxSelf(prev, cur, same, near);
   if (!same && cur.p.place !== 'Surface') fxBanner(cur.p.place || 'Somewhere new', cur.p.dlvl ? `Level ${cur.p.dlvl} · ${(cur.p.dlvl * 50).toLocaleString()} ft` : '');   // a new level or place: name it, as a film names its scenes
+  if (same && typeof rectText === 'function' && cur.reff) fxAura(cur, rectText(cur.reff).filter(Boolean).map(r => r.text).join('|'));
   if (!near) { FX.scroll = null; FX.mons = {}; FX.floats = []; FX.puffs = []; FX.lunge = {}; return; }
   if (mx || my) FX.scroll = { dx: mx, dy: my, t };
   if (mx || my) sndPlay('walk');
@@ -167,6 +168,21 @@ function fxSpell(lx, ly, ch, c) {
   if (ch === '*' && !FX.boomed) { FX.boomed = 1; if (typeof sndPlay === 'function') sndPlay('boom'); }
   fxBurst(lx + .5, ly + .5, FX.lastEl, c, ch === '*', t);
   fxKick();
+}
+// what is upon us, shown each turn as a few motes around the player: never a running animation
+const AURA = [[/Pois/i, '#7dff6a', 'up', 2], [/Cut|Graze|Wound|Bleed|Gash/i, '#d0302a', 'drop', 1], [/Fast|Haste|Speed/i, '#e8f4ff', 'streak', 2],
+  [/Bless|Hero|Berserk|Shero/i, '#ffd36b', 'up', 2], [/Afraid|Terror|Fear/i, '#b08aff', 'up', 1], [/Stun|Knocked/i, '#fff07a', 'orbit', 2], [/Conf|Halluc/i, '#ff8ad8', 'orbit', 2],
+  [/Slow/i, '#8a8f96', 'drop', 1], [/Invuln|Wraith|Shield/i, '#9fd6ff', 'orbit', 1]];
+function fxAura(cur, txt) {
+  if (!FX.on || !txt) return; const x = cur.px + .5, y = cur.py + .5, t = now(); let any = 0;
+  for (const [re, c, kind, n] of AURA) { if (!re.test(txt)) continue; any = 1;
+    for (let i = 0; i < n; i++) {
+      if (kind === 'up') fxPart(x + rnd1() * .35, y + .25, rnd1() * .12, -.6 - Math.random() * .5, 650 + Math.random() * 300, 3.2, c, 'mote');
+      else if (kind === 'drop') FX.parts.length < 700 && FX.parts.push({ x: x + rnd1() * .25, y: y, vx: rnd1() * .2, vy: .2, t, life: 500, size: 3.4, c, kind: 'drop', g: 2.5, solid: true });
+      else if (kind === 'streak') fxPart(x + rnd1() * .3, y + rnd1() * .3, -Math.sign(rnd1() || 1) * (2.5 + Math.random()), 0, 260, 2.8, c, 'spark');
+      else { const a = Math.random() * 6.283; fxPart(x + Math.cos(a) * .4, y - .35 + Math.sin(a) * .12, -Math.sin(a) * 1.2, Math.cos(a) * .4, 480, 3.2, c, 'mote'); }
+    } }
+  if (any) fxKick();
 }
 // a blow lands: drops fly off the far side of the square, with a few bright chips at the point of contact
 function fxImpact(x, y, at, n, dx, dy) {
