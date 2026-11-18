@@ -168,7 +168,7 @@ function cellTip(cell) {
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
   t.innerHTML = html; t.style.display = 'block';
-  const sw = innerWidth / SCALE, sh = 1080, w = t.offsetWidth, h = t.offsetHeight;
+  const sw = innerWidth / SCALE, sh = VH, w = t.offsetWidth, h = t.offsetHeight;
   let x = ev.clientX / SCALE + 18, y = ev.clientY / SCALE + 20;
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
   t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';

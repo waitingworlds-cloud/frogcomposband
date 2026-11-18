@@ -82,7 +82,7 @@ function ctxOpen(title, items, ev) {
   const el = $('#ctx');
   el.innerHTML = `<div class="ctt">${esc(title)}</div>` + items.map((it, i) => `<div class="cti ${it.dim ? 'dim' : ''} ${it.hot ? 'hot' : ''}" data-ci="${i}"><span class="key">${esc(it.k)}</span>${esc(it.n)}</div>`).join('') + '<div class="cth">Esc to close</div>';
   el.style.display = 'block'; showTip('', ev);
-  const sw = innerWidth / SCALE, sh = 1080, w = el.offsetWidth, h = el.offsetHeight;
+  const sw = innerWidth / SCALE, sh = VH, w = el.offsetWidth, h = el.offsetHeight;
   let x = ev.clientX / SCALE + 4, y = ev.clientY / SCALE + 4;
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 4; if (y + h > sh - 8) y = Math.max(8, sh - h - 8);
   el.style.left = Math.max(4, x) + 'px'; el.style.top = Math.max(4, y) + 'px';

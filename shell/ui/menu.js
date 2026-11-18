@@ -34,7 +34,7 @@ function menuHtml() {
   // only menus: a few choices, and not a page of running text or a table
   if (n < 3 || prose > 4 || n < rows.filter(r => r.s.trim()).length * .3) return '';
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
-  let fs = Math.floor(Math.min((1080 - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
+  let fs = Math.floor(Math.min((VH - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
   let out = '';
   rows.forEach((r, i) => {

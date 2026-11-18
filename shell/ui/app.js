@@ -6,10 +6,13 @@ let PAL = [], DICT = { r: [], f: [], k: [] }, S = null, built = false;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ---------- layout scale: the design is 1080 units tall, any width ---------- */
+let VH = 1080;
 let SCALE = 1, VW = 1920;
 function fit() {
-  SCALE = innerHeight / 1080; VW = Math.max(1500, innerWidth / SCALE);
-  const st = $('#stage'); st.style.transform = `scale(${SCALE})`; st.style.width = VW + 'px';
+  // fit 1080 units of height, unless the window is too narrow for the 1700-unit-wide layout: then fit the width and grow the map taller
+  SCALE = Math.min(innerHeight / 1080, innerWidth / 1700); VW = innerWidth / SCALE; VH = innerHeight / SCALE;
+  const st = $('#stage'); st.style.transform = `scale(${SCALE})`; st.style.width = VW + 'px'; st.style.height = VH + 'px';
+  document.body.classList.toggle('narrow', VW < 1820);   // tight windows: the shortcut hints stack so the message log keeps its room
   draw();
 }
 addEventListener('resize', fit);
@@ -476,7 +479,7 @@ function drawTerm(float) {
     while (x1 > x0 && blankCol(x1)) x1--; while (x0 < x1 && blankCol(x0)) x0++;
     if (x0 === x1 && y0 === y1 && blankRow(y0)) return false;
   }
-  const cv = $('#termc'), availW = VW - 120, availH = 1080 - 110, nw = x1 - x0 + 1, nh = y1 - y0 + 1;
+  const cv = $('#termc'), availW = VW - 120, availH = VH - 110, nw = x1 - x0 + 1, nh = y1 - y0 + 1;
   let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
   cv.style.width = cw * nw + 'px'; cv.style.height = chh * nh + 'px'; cv.width = Math.round(cw * nw * d); cv.height = Math.round(chh * nh * d);
