@@ -128,12 +128,20 @@ function liveHtml() {
     flush();
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
-  return lookKeys(out);
+  return lookKeys(out) + qtyKeys();
+}
+// "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
+function qtyKeys() {
+  const m = /Quantity \((\d+)-(\d+)\)/.exec((G.s[0] || '').replace(/\x01/g, ' ')); if (!m) return '';
+  const lo = +m[1], hi = +m[2], opts = [[lo, 'one'], [Math.max(lo, Math.floor(hi / 2)), 'half'], [hi, 'all']].filter((o, i, a) => a.findIndex(p => p[0] === o[0]) === i);
+  return '<span class="lkeys">' + opts.map(([n, w]) => `<span class="lk" data-qty="${n}"><span class="key">${n}</span>${w}</span>`).join('') + '<span class="lk" data-key="\r"><span class="key">Enter</span>ok</span><span class="lk" data-key="Esc"><span class="key">Esc</span>cancel</span></span>';
 }
 // the look and target prompts end in a bare key list, [r,x,q,p,o,j,+,-,?,<dir>]: give each key a cap and a word, and make it a button
 const LOOK_WORDS = { r: 'recall', x: 'items here', q: 'done', t: 'target', p: 'you', o: 'free look', m: 'creatures', j: 'travel here', '(': 'travel here', '+': 'next', '-': 'previous', '?': 'help' };
 function lookKeys(h) {
   h = h.replace(/-more-/, '<span class="lk more" data-key=" "><span class="key">Space</span>more</span>');
+  // a yes or no question still waiting (no answer after it yet) gets two buttons
+  if (/\[y\/n\]\s*(<\/span>)?\s*$/.test(h)) h += '<span class="lkeys"><span class="lk" data-key="y"><span class="key">y</span>yes</span><span class="lk" data-key="n"><span class="key">n</span>no</span></span>';
   return h.replace(/\[((?:[a-z?+\-(]|&lt;dir&gt;)(?:,(?:[a-z?+\-(]|&lt;dir&gt;))+)\]/, (all, list) => {
     const ks = [...new Set(list.split(','))]; if (!ks.includes('q') && !ks.includes('r')) return all;
     return '<span class="lkeys">' + ks.map(k => k === '&lt;dir&gt;' ? '<span class="lk dirk"><span class="key">⇆</span>move</span>' : `<span class="lk" data-key="${k}"><span class="key">${k === 'q' ? 'Esc' : k}</span>${LOOK_WORDS[k] || ''}</span>`).join('') + '</span>';
@@ -609,7 +617,8 @@ function draw() {
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
-    bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
+    const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
+    setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : '';
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
   const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
@@ -622,6 +631,7 @@ function draw() {
 }
 document.addEventListener('click', e => {
   const ks = e.target.closest('[data-ks]'); if (ks) { trigger(parseInt(ks.dataset.ks, 16), {}); return; }
+  const q = e.target.closest('[data-qty]'); if (q) { sendText('\b'.repeat(8) + '\x7f'.repeat(8) + q.dataset.qty + '\r'); return; }
   const k = e.target.closest('[data-key]'); if (k) { const v = k.dataset.key; if (v === 'Esc' || v === '\x1b') sendBytes([27]); else sendText(v.replace(/\n/g, '\r')); }   // HTML turns a stored Return into a newline: give the game its Return back
 });
 document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
