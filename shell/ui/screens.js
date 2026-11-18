@@ -207,15 +207,16 @@ function showTip(html, ev) {
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
   t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
 }
-let hover = null, atHover = '', DESC = {}, DESC_ASKED = {}, descHover = '', descEv = null;
+let loreT = 0, loreKey = '', hover = null, atHover = '', DESC = {}, DESC_ASKED = {}, descHover = '', descEv = null;
 function descIn(m) {
   const rows = m.rows.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
     const s = r.s.replace(/\s+$/, ''); for (let x = 0; x < s.length; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h; });
   while (rows.length && !rows[rows.length - 1]) rows.pop();
   DESC[m.key] = `<div class="dsc">${rows.join('\n')}</div>`;
+  if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }
   if (descHover === m.key && descEv) { const de = descEv.target.closest && descEv.target.closest('[data-desc]'); $('#tip').classList.add('wide'); showTip(DESC[m.key] + (de ? descHint(de) : ''), descEv); }
 }
-function descHint(de) { const t = (de.dataset.tip || '').split('\n')[1] || (de.dataset.worn ? 'right-click: actions · drag onto the map to drop' : ''); return t ? `<div class="hint">${esc(t)}</div>` : ''; }
+function descHint(de) { const t = (de.dataset.tip || '').split('\n')[1] || (de.dataset.worn ? 'right-click: actions · drag onto the map to drop' : de.classList.contains('mob') ? de.dataset.tip : ''); return t ? `<div class="hint">${esc(t)}</div>` : ''; }
 document.addEventListener('mousemove', ev => {
   const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
   if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }   // a creature or item in the side lists: show where it is
@@ -235,8 +236,20 @@ document.addEventListener('mousemove', ev => {
     const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
     return showTip(out.join('<br>'), ev);
   }
-  if (ev.target.id === 'map' && playing()) { const cell = mapCellAt(ev); if (!hover || !cell || hover.dx !== cell.dx || hover.dy !== cell.dy) { hover = cell; requestAnimationFrame(drawMap); } return showTip(cell ? cellTip(cell) : '', ev); }
+  if (ev.target.id === 'map' && playing()) {
+    const cell = mapCellAt(ev);
+    if (!hover || !cell || hover.dx !== cell.dx || hover.dy !== cell.dy) {
+      hover = cell; requestAnimationFrame(drawMap); clearTimeout(loreT); loreKey = '';
+      // resting the pointer on a creature for a moment opens what you know of it
+      const m = cell && S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
+      if (m && !aimMode() && !lookMode()) loreT = setTimeout(() => { loreKey = 'm:' + m.r; descHover = loreKey; if (DESC[loreKey]) { $('#tip').classList.add('wide'); showTip(cellTip(cell) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', descEv); } else if (!DESC_ASKED[loreKey]) { DESC_ASKED[loreKey] = 1; sendRaw('D m ' + m.r); } }, 650);
+    }
+    if (loreKey && DESC[loreKey]) { descHover = loreKey; $('#tip').classList.add('wide'); return showTip((cell ? cellTip(cell) : '') + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[loreKey] + '</div>', ev); }
+    if (loreKey) descHover = loreKey;
+    return showTip(cell ? cellTip(cell) : '', ev);
+  }
   if (hover) { hover = null; requestAnimationFrame(drawMap); }
+  clearTimeout(loreT); loreKey = '';
   showTip('', ev);
 });
 document.addEventListener('mouseleave', () => { hover = null; showTip('', {}); });

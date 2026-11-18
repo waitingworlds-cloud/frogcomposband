@@ -259,7 +259,7 @@ function groupMons() {
 }
 function mobsHtml(g) {
   if (!g.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing in view</div>';
-  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+  return g.slice(0, 9).map(m => `<div data-at="${m.dx},${m.dy}" data-desc="m:${m.r}" data-tip="click: make it your target · right-click: actions" class="mob ${m.uniq ? 'uniq' : ''} ${m.target ? 'tgt' : ''} ${m.los ? '' : 'far'}"><div class="g"><canvas class="mobc" data-r="${m.r}"></canvas></div>
   <div class="row" style="gap:8px;min-width:0"><span class="n nowrap">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}${m.cnt > 1 ? ` <b class="num" style="font-size:13px">×${m.cnt}</b>` : ''}</span><span class="st">${m.st}</span></div><div class="dir">${dirOf(m.dx, m.dy)}</div>
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
@@ -267,7 +267,7 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function targetHtml() {
   const m = S.mons.find(x => x.target); if (!m) return '';
   const r = DICT.r[m.r] || [];
-  return card('Target', `<div class="row" style="gap:12px;align-items:flex-start"><div class="big"><canvas class="mobc" data-r="${m.r}"></canvas></div>
+  return card('Target', `<div class="row" style="gap:12px;align-items:flex-start" data-desc="m:${m.r}"><div class="big"><canvas class="mobc" data-r="${m.r}"></canvas></div>
   <div class="grow"><div style="font-weight:600;font-size:17px;color:var(--em3);line-height:1.15">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</div><div class="st">${m.uniq ? 'unique · ' : ''}level ${r[3] ?? '?'} · ${m.asleep ? 'asleep' : m.afraid ? 'afraid' : 'awake'}</div>
    <div class="row" style="gap:8px;margin-top:6px"><div class="hpb ${hpc(m.hp)} grow" style="height:8px"><i style="width:${m.hp}%"></i></div><span class="num" style="font-size:12px">${esc(m.health)}</span></div></div></div>
   <div class="row" style="gap:12px;margin-top:8px;font-size:14px;color:#b3ac9f"><span class="row" style="gap:6px"><span class="key">*</span>next</span><span class="row" style="gap:6px"><span class="key">l</span>look</span><span class="row" style="gap:6px"><span class="key">/</span>full lore</span><span style="margin-left:auto" class="dir">${dirOf(m.dx, m.dy)}</span></div>`, 'tgtcard');

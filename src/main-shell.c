@@ -183,15 +183,17 @@ static void shell_command(char *line)
         if (!character_generated) return;
         if (line[2] == 'p') { for (i = 1; i <= pack_max() && !o; i++) if (slot_label(i) == line[4]) o = pack_obj(i); }
         else if (line[2] == 'e') { for (i = 1; i <= equip_max() && !o; i++) if (slot_label(i) == line[4]) o = equip_obj(i); }
-        if (o)
+        else if (line[2] == 'm') { i = atoi(line + 4); if (i <= 0 || i >= max_r_idx) return; }
+        if (o || line[2] == 'm')
         {
             doc_ptr doc = doc_alloc(64);
             int y, x, n;
-            obj_display_doc(o, doc);
+            if (o) obj_display_doc(o, doc);
+            else mon_display_doc(&r_info[atoi(line + 4)], doc);
             n = doc_line_count(doc);
-            if (n > 40) n = 40;
+            if (n > 48) n = 48;
             o_raw("{\"t\":\"desc\",");
-            { char k[4]; k[0] = line[2]; k[1] = ':'; k[2] = line[4]; k[3] = 0; o_kstr("key", k); }
+            { char k[16]; my_strcpy(k, line + 2, sizeof(k)); k[1] = ':'; o_kstr("key", k); }
             o_raw("\"rows\":[");
             for (y = 0; y < n; y++)
             {
