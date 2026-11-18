@@ -203,6 +203,14 @@ function deathHtml() {
 }
 
 /* ---------- mouse ---------- */
+// a point on the area map (the small map in the corner) as a square, from the player
+function miniCellAt(ev) {
+  const cv = $('#mini'); if (!cv || !S || !S.map) return null;
+  const r = cv.getBoundingClientRect(), W = cv.clientWidth, H = cv.clientHeight, x = (ev.clientX - r.left) / SCALE, y = (ev.clientY - r.top) / SCALE;
+  const mw = S.map.w, mh = S.map.h, sc = Math.min(W / mw, H / mh), cx = Math.floor((x - (W - mw * sc) / 2) / sc), cy = Math.floor((y - (H - mh * sc) / 2) / sc);
+  if (cx < 0 || cy < 0 || cx >= mw || cy >= mh) return null;
+  return { dx: cx - (mw >> 1), dy: cy - (mh >> 1), c: S.map.c[cy * mw + cx] };
+}
 function mapCellAt(ev) {
   const cv = $('#map'); if (!cv || !S || !S.map) return null;
   const r = cv.getBoundingClientRect(); const x = (ev.clientX - r.left) / SCALE, y = (ev.clientY - r.top) / SCALE;
@@ -270,6 +278,11 @@ document.addEventListener('mousemove', ev => {
     const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
     return showTip(out.join('<br>'), ev);
   }
+  if (ev.target.id === 'mini' && playing()) {
+    const cell = miniCellAt(ev), f = cell && cell.c && cell.c[0] ? cap((DICT.f[cell.c[0]] || [''])[0]) : '';
+    ev.target.style.cursor = f ? 'pointer' : 'default';
+    return showTip(f ? `${esc(f)} <span class="sub">${dirOf(cell.dx, cell.dy)}</span><div class="hint">click: travel here</div>` : '', ev);
+  }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev);
     // the pointer says what a click will do: aim, attack, or walk
@@ -322,6 +335,11 @@ document.addEventListener('mousedown', ev => {
     if (aimMode() === 'dir') { if (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1) sendText(dirKey(cell.dx, cell.dy)); return; }
     if (!cell.dx && !cell.dy) return;
     sendRaw(`T ${cell.dx} ${cell.dy}`); setTimeout(() => sendText('t'), 40); return;
+  }
+  if (ev.target.id === 'mini' && playing() && ev.button === 0 && !aimMode() && !lookMode()) {
+    // the area map: click a known square to travel there
+    const cell = miniCellAt(ev); ev.preventDefault(); if (!cell || !(cell.c && cell.c[0]) || (!cell.dx && !cell.dy)) return;
+    sendRaw(`M 1 ${cell.dx} ${cell.dy}`); return;
   }
   if (ev.target.id === 'map' && playing()) {
     const cell = mapCellAt(ev); if (!cell) return;
