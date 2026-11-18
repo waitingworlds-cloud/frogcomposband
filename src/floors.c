@@ -56,6 +56,10 @@ void init_saved_floors(bool force)
         /* Failed! */
         if (fd < 0)
         {
+#ifdef USE_SHELL
+            /* the shell runs one game per folder; leftovers come from a crash */
+            force = TRUE;
+#endif
             if (!force)
             {
                 msg_print("Error: There are old temporal files.");

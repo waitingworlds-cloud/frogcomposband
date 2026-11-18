@@ -1228,11 +1228,11 @@ static int _smith_object(object_type *o_ptr)
     assert(!_doc);
     _doc = doc_alloc(72);
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
 
     result = _smith_object_aux(o_ptr);
 
-    Term_load();
+    ui_popup_end();
     doc_free(_doc);
     _doc = NULL;
     return result;

@@ -1,0 +1,226 @@
+// Screens with their own layout (drawn from data the game sends), and mouse play.
+'use strict';
+let UI = null, UIback = null;   // the game's current native screen, or null
+
+const TVCAT = tv => tv >= 90 && tv <= 109 ? 'Spellbooks' : tv === 75 || tv === 77 ? 'Potions' : tv === 70 || tv === 69 ? 'Scrolls' : tv === 55 || tv === 65 || tv === 66 ? 'Devices'
+  : tv >= 16 && tv <= 18 ? 'Ammunition' : tv >= 19 && tv <= 23 ? 'Weapons' : tv >= 30 && tv <= 38 ? 'Armour' : tv === 39 ? 'Light' : tv === 40 || tv === 45 ? 'Jewellery'
+  : tv === 80 ? 'Food' : tv === 127 ? 'Treasure' : 'Other things';
+const lb = w => (w / 10).toFixed(1);
+
+// is the game's own pop-up for this screen still the top thing on the grid? (something else may have opened over it)
+function uiOnTop() {
+  if (!UI) return false;
+  if (UI.kind === 'items') { const last = plain(UI.prompt).trim().split('\n').pop().trim(); return (G.s[G.cy] || '').replace(/\x01/g, ' ').includes(last.slice(0, 14)); }
+  if (UI.kind === 'shop') return !G.ov;
+  if (UI.kind === 'char') return gridHas(/\[Character Sheet/);
+  if (UI.kind === 'lmap') return G.icky && !gridHas(/-more-/);
+  if (UI.kind === 'spells') return gridHas(/Lvl\s+(SP|HP|Cost)/);
+  return true;
+}
+
+function itemsHtml() {
+  const u = UI, tab = u.tabs.find(t => t.on) || u.tabs[0], equip = tab && tab.loc === 1;
+  let rows = '', lastCat = '', n = 0, cats = 0;
+  for (const it of u.items) {
+    const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
+    if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
+    const ic = o ? tvIcon(o.tv) : 'ring'; n++;
+    rows += `<div class="tr ${oq(o)}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${icon(ic)}</div>
+      <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
+      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
+  }
+  if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
+  // long lists: tighten the rows so the whole page fits
+  const room = 800 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
+  const tabs = u.tabs.map(t => `<div class="${t.on ? 'on' : ''}">${esc(t.name)}</div>`).join('');
+  return `<div class="pane npanel inv" style="--rh:${rh}px;width:800px">
+    <div class="tabs">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
+    <div class="nrows">${rows}</div>
+    <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(u.prompt.replace(/\n+/g, "\n"))}</span><span class="grow"></span>
+      ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
+  </div>`;
+}
+
+let uiSel = '', spHover = '';
+function gridHas(re) { for (let y = 0; y < G.h; y++) if (re.test((G.s[y] || '').replace(/\x01/g, ' '))) return true; return false; }
+function spellsHtml() {
+  const u = UI, rows = u.rows, big = rows.length <= 14;
+  const prompt = (G.s[0] || '').replace(/\x01/g, ' ').trim();
+  const cur = rows.find(r => r.n === spHover) || rows.find(r => r.n === uiSel) || (u.sel >= 0 ? rows[u.sel] : null);
+  const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
+  const cards = rows.map((r, i) => {
+    const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
+    return `<div class="spc ${r.dim || !r.ok ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}">
+      <span class="key kb">${esc(r.k)}</span>
+      <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? 'level ' + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
+      ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
+      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''}">${icon('potion')}<b>${r.cost}</b></span>` : ''}
+      ${f != null ? `<span class="ring" style="--p:${Math.min(100, f)};--rc:${fc}"><span class="rv">${f}%</span></span>` : ''}</div>`;
+  }).join('');
+  const detail = cur ? `<div class="spd"><div class="spn" style="font-size:24px">${esc(cur.n)}</div><div class="grow" style="font-size:17px;line-height:1.35;color:#d9d2c4">${esc(cur.desc || '')}${cur.info ? `<div style="color:#ffcf9e;margin-top:4px">${esc(cur.info)}</div>` : ''}</div>
+     <div class="facts" style="grid-template-columns:auto auto;gap:4px 22px">${cur.cost != null ? `<div><span class="lbl">costs</span><b>${cur.cost} ${unit}</b></div>` : ''}${cur.fail != null ? `<div><span class="lbl">fails</span><b>${cur.fail}%</b></div>` : ''}${cur.lvl != null ? `<div><span class="lbl">level</span><b>${cur.lvl}</b></div>` : ''}</div></div>`
+    : `<div class="spd"><div class="sub">Point at a spell to read what it does.</div></div>`;
+  return `<div class="pane npanel" style="width:${rows.length > 28 ? 1500 : 1180}px">
+    <div class="tabs"><div class="on">${esc(u.realm || 'Spells')}</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${u.unit === 'au' ? '' : u.unit === 'HP' ? `you have ${S.p.hp} life` : `you have ${S.p.sp} mana`}</span></div>
+    <div class="spg" style="grid-template-columns:repeat(${rows.length > 28 ? 3 : 2},1fr)">${cards}</div>${detail}
+    <div class="nfoot"><span class="live">${esc(prompt)}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
+}
+
+function shopHtml() {
+  const u = UI, rows = u.rows, two = rows.length > 13;
+  const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
+  const asking = /which item/i.test(msg);
+  const list = rows.map(r => { const ic = tvIcon(r.tv); return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${r.ok ? '' : 'cant'}" data-key="${asking ? '' : 'b'}${esc(r.k)}" data-tip="${asking ? 'choose' : 'buy'} this">
+    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${icon(ic)}</div>
+    <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
+    <span class="price num">${r.price.toLocaleString()}</span></div>`; }).join('') || '<div class="sub" style="padding:20px">The shelves are empty.</div>';
+  const cmds = [['b', 'buy'], ['s', u.nosell ? 'give' : 'sell'], ['x', 'examine'], ['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
+  return `<div class="pane npanel shopp" style="width:${two ? 1400 : 860}px">
+    <div class="row" style="gap:18px;align-items:flex-end;border-bottom:1px solid #000;box-shadow:0 1px 0 #4a4e54;padding-bottom:10px">
+      <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(u.name)}</div><div class="sub">${esc(u.owner)}, ${/^[aeiou]/i.test(u.race) ? 'an' : 'a'} ${esc(u.race.toLowerCase())}, keeps this shop · pays up to ${u.purse.toLocaleString()} for one item</div></div>
+      <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${u.gold.toLocaleString()}</div></div></div>
+    <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
+    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${esc(msg)}</div>
+    <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
+}
+
+const LMC = { wall: '#5a5e64', door: '#a06a34', dooropen: '#a06a34', up: '#7fd0f0', down: '#7fd0f0', water: '#2f5f86', lava: '#b8441c', tree: '#2f5a2a', grass: '#3c5530', shop: '#ffb070', rubble: '#6c665c', pit: '#101113', trap: '#c84a36', snow: '#9aa4ad', floor: '#33373c', other: '#3d4046' };
+function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 640 / u.h, 14)); return { s, W: Math.round(u.w * s), H: Math.round(u.h * s) }; }
+function lmapHtml() {
+  const u = UI, g = lmapGeo(), pois = [];
+  let known = 0;
+  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); if (cls === 'up' || cls === 'down' || cls === 'shop') pois.push({ n: (DICT.f[f] || [''])[0], cls, x: i % u.w, y: (i / u.w) | 0 }); });
+  pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
+  const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
+  const leg = [['#ffb070', 'You'], ['#ff5a3c', 'Creature in sight'], ['#7fd0f0', 'Stairs'], ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
+  return `<div class="pane npanel" style="width:${Math.max(900, g.W + 60)}px">
+    <div class="tabs"><div class="on">Level map</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${esc(u.place)}${u.dlvl ? `, level ${u.dlvl} · ${u.dlvl * 50} ft` : ''}</span></div>
+    <div style="display:flex;justify-content:center;margin:12px 0 8px"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
+    <div class="row" style="gap:20px;flex-wrap:wrap;font-size:14px;color:#b3ac9f">${leg.map(([c, n]) => `<span class="row" style="gap:7px"><i style="width:11px;height:11px;background:${c};display:inline-block"></i>${n}</span>`).join('')}</div>
+    ${list.length && !u.wild ? `<div class="catr" style="margin-top:6px">go to</div><div class="row" style="gap:8px;flex-wrap:wrap">${list.map(p => `<div class="grp" style="font-size:17px;padding:6px 12px;cursor:pointer" data-go="${p.x - u.px},${p.y - u.py}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>` : ''}
+    <div class="nfoot"><span class="sub">${u.wild ? 'The wilderness map.' : 'Click anywhere you have explored to walk there.'}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
+}
+function lmapDraw() {
+  const cv = $('#lmapc'); if (!cv || !UI || UI.kind !== 'lmap') return;
+  const u = UI, g = lmapGeo(), d = SCALE * (devicePixelRatio || 1); cv.width = Math.round(g.W * d); cv.height = Math.round(g.H * d);
+  const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); const s = g.s;
+  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c, cx = (i % u.w) * s, cy = ((i / u.w) | 0) * s;
+    if (f) { x.fillStyle = LMC[featClass(f)] || LMC.other; x.fillRect(cx, cy, s + .4, s + .4); }
+    if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
+  x.fillStyle = '#ffb070'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#000'; x.lineWidth = 1; x.strokeRect(u.px * s - 2.5, u.py * s - 2.5, s + 5, s + 5);
+}
+let NATIVE_SIDE = false;
+const SKL = ['very bad', 'bad', 'poor', 'fair', 'good', 'very good', 'excellent', 'superb', 'heroic', 'legendary'];
+function charHtml() {
+  const u = UI, p = S.p, sk = u.rows.filter(r => r.t === 'skill'), res = u.rows.filter(r => r.t === 'res');
+  const tile = (v, l) => `<div class="tile ch"><div class="ch"><b>${v}</b><span class="lbl">${l}</span></div></div>`;
+  const h = Math.floor(u.play / 3600), m = Math.floor(u.play / 60) % 60;
+  const bars = d => { let i = SKL.indexOf(d.toLowerCase().replace(/\[.*$/, '').trim()); if (i < 0) i = 9; const n = Math.max(1, Math.round((i + 1) * .8)); return `<span class="sbar">${Array.from({ length: 8 }, (_, k) => `<i class="${k < n ? 'on' : ''} ${i >= 8 ? 'hero' : ''}"></i>`).join('')}</span>`; };
+  return `<div class="pane npanel charp" style="width:660px">
+    <div class="tabs"><div class="on">Character</div></div>
+    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(p.race)} ${esc(p.cls)}</span></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${[u.sex, p.pers + ' personality', p.realm ? p.realm + ' realm' : ''].filter(Boolean).map(t => `<span class="grp" style="font-size:15px;padding:4px 10px">${esc(t)}</span>`).join('')}</div>
+    <div class="catr">progress</div>
+    <div class="ptiles">${tile(u.kills.toLocaleString(), 'kills')}${tile(u.uniques, 'uniques slain')}${tile(u.arts < 0 ? 'n/a' : u.arts, 'artifacts found')}${tile(u.maxdepth ? u.maxdepth * 50 + ' ft' : 'none', 'deepest dive')}${tile('Day ' + p.day, 'at ' + p.hour + ':' + String(p.min).padStart(2, '0'))}${tile(h + 'h ' + String(m).padStart(2, '0') + 'm', 'played')}</div>
+    <div class="row" style="gap:10px;margin:10px 2px 0"><span class="lbl">experience</span><div class="xp grow"><i style="width:${u.adv > 0 ? Math.min(100, u.exp / u.adv * 100) : 100}%"></i></div><span class="num" style="font-size:14px">${u.exp.toLocaleString()}${u.adv > 0 ? ' / ' + u.adv.toLocaleString() : ''}</span></div>
+    ${u.exp < u.maxexp ? `<div class="sub" style="color:#ffc46a;font-size:14px">experience drained: your best was ${u.maxexp.toLocaleString()}</div>` : ''}
+    <div class="catr">skills</div>
+    ${sk.map(r => `<div class="row skl"><span class="grow">${esc(r.n)}</span>${bars(r.d)}<span style="width:110px;text-align:right;color:${readable(col(r.col))}">${esc(r.d)}</span></div>`).join('')}
+    <div class="catr">resistances</div>
+    <div class="resg">${res.map(r => `<div class="rs ${r.pct > 0 ? 'on' : r.pct < 0 ? 'bad' : ''}"><span>${esc(r.n)}</span><b>${r.pct ? r.pct + '%' : '–'}</b></div>`).join('')}</div>
+    <div class="sub" style="font-size:14px;margin-top:8px">The full sheet is on the right. Arrow keys and Page Down scroll it.</div></div>`;
+}
+function nativeAfter() { lmapDraw(); }
+
+function nativeHtml() {
+  NATIVE_SIDE = false;
+  if (!(G.ov || G.icky)) return '';
+  if (!UI || !UI.kind || !uiOnTop()) return menuHtml();
+  if (UI.kind === 'items') return itemsHtml();
+  if (UI.kind === 'spells') return spellsHtml();
+  if (UI.kind === 'shop') return shopHtml();
+  if (UI.kind === 'lmap') return lmapHtml();
+  if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
+  return UI.kind === 'char' ? '' : menuHtml();
+}
+
+/* ---------- mouse ---------- */
+function mapCellAt(ev) {
+  const cv = $('#map'); if (!cv || !S || !S.map) return null;
+  const r = cv.getBoundingClientRect(); const x = (ev.clientX - r.left) / SCALE, y = (ev.clientY - r.top) / SCALE;
+  const W = cv.clientWidth, H = cv.clientHeight, T = TILE;
+  const dx = Math.floor((x - W / 2 + T / 2) / T), dy = Math.floor((y - H / 2 + T / 2) / T);
+  const mw = S.map.w, mh = S.map.h, cx = (mw >> 1) + dx, cy = (mh >> 1) + dy;
+  return { dx, dy, c: cx >= 0 && cy >= 0 && cx < mw && cy < mh ? S.map.c[cy * mw + cx] : 0 };
+}
+const playing = () => S && S.map && !G.icky && !G.ov;
+function cellTip(cell) {
+  const c = cell.c; if (!c) return '';
+  const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
+  if (!cell.dx && !cell.dy) out.push('<b>You</b>');
+  if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
+  for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
+  if (c[0]) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[c[0]] || [''])[0])}</span>`);
+  if (!out.length) return '';
+  const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
+  return out.join('<br>') + `<div class="hint">${!cell.dx && !cell.dy ? 'click: pick up' : far ? 'click: walk here' : m ? 'click: attack' : 'click: step'}${m || S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) ? ' · right-click: details' : ''}</div>`;
+}
+function showTip(html, ev) {
+  const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
+  t.innerHTML = html; t.style.display = 'block';
+  const sw = innerWidth / SCALE, sh = 1080, w = t.offsetWidth, h = t.offsetHeight;
+  let x = ev.clientX / SCALE + 18, y = ev.clientY / SCALE + 20;
+  if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
+  t.style.left = Math.max(4, x) + 'px'; t.style.top = Math.max(4, y) + 'px';
+}
+let hover = null;
+document.addEventListener('mousemove', ev => {
+  const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
+  const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
+  if (tipEl) return showTip(esc(tipEl.dataset.tip), ev);
+  if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
+    const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];
+    const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
+    return showTip(out.join('<br>'), ev);
+  }
+  if (ev.target.id === 'map' && playing()) { const cell = mapCellAt(ev); if (!hover || !cell || hover.dx !== cell.dx || hover.dy !== cell.dy) { hover = cell; requestAnimationFrame(drawMap); } return showTip(cell ? cellTip(cell) : '', ev); }
+  if (hover) { hover = null; requestAnimationFrame(drawMap); }
+  showTip('', ev);
+});
+document.addEventListener('mouseleave', () => { hover = null; showTip('', {}); });
+document.addEventListener('mousedown', ev => {
+  const go = ev.target.closest && ev.target.closest('[data-go]');
+  if (go) { const [dx, dy] = go.dataset.go.split(','); sendRaw(`M 3 ${dx} ${dy}`); return; }
+  if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap' && !UI.wild) {
+    const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);
+    const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); return;
+  }
+  if (ev.target.id === 'map' && playing()) {
+    const cell = mapCellAt(ev); if (!cell) return;
+    sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
+  }
+  // the plain text panel: clicking a line that offers a lettered choice presses that letter
+  if (ev.target.id === 'termc' && TERMGEO && ev.button === 0) {
+    const r = ev.target.getBoundingClientRect(), gx = TERMGEO.x0 + Math.floor((ev.clientX - r.left) / SCALE / TERMGEO.cw), gy = TERMGEO.y0 + Math.floor((ev.clientY - r.top) / SCALE / TERMGEO.chh);
+    const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
+    while ((m = re.exec(s))) { const at = m.index + m[1].length; if (at <= gx + 1) best = m[2]; else if (!best) best = m[2]; }
+    if (best) sendText(best);
+  }
+});
+document.addEventListener('contextmenu', ev => ev.preventDefault());
+// the wheel over the map zooms it
+document.addEventListener('wheel', ev => {
+  if (ev.target.id !== 'map') return;
+  const steps = [20, 24, 28, 32, 40, 48, 56, 64]; let i = steps.indexOf(TILE); if (i < 0) i = 3;
+  i = Math.max(0, Math.min(steps.length - 1, i + (ev.deltaY < 0 ? 1 : -1))); TILE = steps[i];
+  try { localStorage.setItem('tile', TILE); } catch (e) {}
+  askView(); schedule();
+}, { passive: true });
+try { const t = +localStorage.getItem('tile'); if (t >= 20 && t <= 64) TILE = t; } catch (e) {}
+// tell the game how much map we can show
+let lastView = '';
+function askView() {
+  const cv = $('#map'); if (!cv) return;
+  const w = Math.ceil(cv.clientWidth / TILE) + 3 | 1, h = Math.ceil(cv.clientHeight / TILE) + 3 | 1, v = `V ${w} ${h}`;
+  if (v !== lastView && w > 5 && h > 5) { lastView = v; sendRaw(v); }
+}

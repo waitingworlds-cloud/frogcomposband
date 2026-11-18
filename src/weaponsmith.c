@@ -2302,14 +2302,14 @@ static void _smith_object(object_type *o_ptr)
     assert(!_doc);
     _doc = doc_alloc(72);
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
 
     if (object_is_ammo(o_ptr))
         _smith_ammo(o_ptr);
     else
         _smith_weapon_armor(o_ptr);
 
-    Term_load();
+    ui_popup_end();
     doc_free(_doc);
     _doc = NULL;
 }

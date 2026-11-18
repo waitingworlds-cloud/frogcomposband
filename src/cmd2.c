@@ -4040,6 +4040,28 @@ void travel_end(void)
 void do_cmd_travel(void)
 {
     int x, y;
+#ifdef USE_SHELL
+    {
+        /* a mouse click on the map arrives as this command with the square already chosen */
+        extern bool shell_take_click(int *kind, int *x, int *y);
+        int kind;
+        if (shell_take_click(&kind, &x, &y))
+        {
+            cave_type *c_ptr;
+            if (!in_bounds(y, x)) return;
+            c_ptr = &cave[y][x];
+            if (kind == 2)
+            {
+                if (c_ptr->m_idx && m_list[c_ptr->m_idx].ml) mon_display(&r_info[m_list[c_ptr->m_idx].ap_r_idx]);
+                else if (c_ptr->o_idx && (o_list[c_ptr->o_idx].marked & OM_FOUND)) obj_display(&o_list[c_ptr->o_idx]);
+                return;
+            }
+            if (!(c_ptr->info & CAVE_MARK) && !player_can_see_bold(y, x)) return;
+            travel_begin(TRAVEL_MODE_NORMAL, x, y);
+            return;
+        }
+    }
+#endif
     if (!tgt_pt(&x, &y, -1)) return;
     travel_begin(TRAVEL_MODE_NORMAL, x, y);
 }

@@ -17,7 +17,7 @@
  */
 
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(ACORN)
+#if (!defined(MACINTOSH) && !defined(WINDOWS) && !defined(ACORN)) || defined(USE_SHELL)
 
 
 /*
@@ -129,10 +129,25 @@ static void init_stuff(void)
 
 #else /* AMIGA / VM */
 
+#ifdef WINDOWS
+	/* The "lib" folder sits beside the program */
+	{
+		extern unsigned long __stdcall GetModuleFileNameA(void *, char *, unsigned long);
+		char *sl;
+		configpath[0] = 0;
+		GetModuleFileNameA(NULL, configpath, 400);
+		sl = strrchr(configpath, '\\');
+		if (sl) sl[1] = 0; else configpath[0] = 0;
+		my_strcat(configpath, "lib\\", sizeof(configpath));
+		my_strcpy(libpath, configpath, sizeof(libpath));
+		my_strcpy(datapath, configpath, sizeof(datapath));
+	}
+#else
 	/* Use the angband_path, or a default */
 	my_strcpy(configpath, DEFAULT_CONFIG_PATH, sizeof(configpath));
 	my_strcpy(libpath, DEFAULT_LIB_PATH, sizeof(libpath));
 	my_strcpy(datapath, DEFAULT_DATA_PATH, sizeof(datapath));
+#endif
 
 	/* Make sure they're terminated */
 	configpath[511] = '\0';
@@ -610,6 +625,19 @@ int main(int argc, char *argv[])
 		if (0 == init_xaw(argc, argv))
 		{
 			ANGBAND_SYS = "xaw";
+			done = TRUE;
+		}
+	}
+#endif
+
+#ifdef USE_SHELL
+	/* The "main-shell.c" front end: used when FROG_SHELL_PORT is set */
+	if (!done && (!mstr || (streq(mstr, "shell"))))
+	{
+		extern errr init_shell(int, char**);
+		if (0 == init_shell(argc, argv))
+		{
+			ANGBAND_SYS = "x11"; /* reuse the X11 key maps */
 			done = TRUE;
 		}
 	}

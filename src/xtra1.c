@@ -5922,3 +5922,10 @@ bool heavy_armor(void)
     if (player_is_ninja) return (monk_arm_wgt > (125 + (p_ptr->lev * 2)));
     return (monk_arm_wgt > (100 + (p_ptr->lev * 4)));
 }
+
+/* Where the status effect lines of the side bar are drawn (used by main-shell.c) */
+rect_t ui_effects_rect(void)
+{
+    rect_t r = ui_char_info_rect();
+    return rect(r.x + COL_EFFECTS, r.y + ROW_EFFECTS, r.cx, COUNT_EFFECTS);
+}

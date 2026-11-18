@@ -1029,7 +1029,7 @@ static bool _prompt_spell(object_type *spellbook, _spell_info_ptr chosen_spell, 
     _doc = doc_alloc(72);
 
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
     for (;;)
     {
         doc_clear(_doc);
@@ -1071,7 +1071,7 @@ static bool _prompt_spell(object_type *spellbook, _spell_info_ptr chosen_spell, 
             }
         }
     }
-    Term_load();
+    ui_popup_end();
 
     vec_free(spells);
     doc_free(_doc);
@@ -1519,13 +1519,13 @@ void skillmaster_gain_skill(void)
     _doc = doc_alloc(80);
 
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
     if (_gain_type_ui() == UI_OK)
     {
         p_ptr->update |= PU_BONUS | PU_HP | PU_MANA;
         p_ptr->redraw |= PR_EFFECTS | PR_HP | PR_MANA;
     }
-    Term_load();
+    ui_popup_end();
 
     doc_free(_doc);
     _doc = NULL;

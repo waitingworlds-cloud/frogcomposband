@@ -132,7 +132,7 @@ int obj_prompt(obj_prompt_ptr prompt)
     }
 
     context.doc = doc_alloc(MIN(80, ui_map_rect().cx));
-    Term_save();
+    ui_popup_begin();
     for (;;)
     {
         obj_prompt_tab_ptr tab = vec_get(context.tabs, context.tab);
@@ -216,7 +216,8 @@ int obj_prompt(obj_prompt_ptr prompt)
             }
         }
     }
-    Term_load();
+    ui_popup_end();
+    shell_ui_end();
     _context_unmake(&context);
     return result;
 }
@@ -374,6 +375,9 @@ static void _display(obj_prompt_context_ptr context)
 
     doc_insert(context->doc, "</style>");
     _sync_doc(context->doc);
+#ifdef USE_SHELL
+    { extern void shell_ui_items(vptr ctx); shell_ui_items(context); }
+#endif
 }
 
 static int _find_tab(vec_ptr tabs, int loc)

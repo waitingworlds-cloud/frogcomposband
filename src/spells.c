@@ -361,6 +361,11 @@ static void _list_spells(power_info* spells, int ct, int max_cost, char *labels,
         col_height = _col_height(8);
     }
 
+    shell_ui_open("spells");
+    shell_ui_str("realm", power ? "Powers" : "");
+    shell_ui_str("unit", poli ? "au" : "");
+    shell_ui_int("have", max_cost);
+    shell_ui_int("sel", -1);
     Term_erase(display.x, display.y, display.cx);
     if (col_height == ct)
     {
@@ -412,6 +417,26 @@ static void _list_spells(power_info* spells, int ct, int max_cost, char *labels,
             letter = '0' + i - 52;
 
         sprintf(temp, "  %c) ", letter);
+        {
+            char lab[2];
+            variant dsc;
+            lab[0] = letter; lab[1] = 0;
+            var_init(&dsc);
+            (spell->fn)(SPELL_DESC, &dsc);
+            shell_ui_row();
+            shell_ui_str("k", lab);
+            shell_ui_str("n", var_get_string(&name));
+            shell_ui_int("lvl", spell->level);
+            shell_ui_int("cost", poli ? politician_get_cost(spell) : spell->cost);
+            shell_ui_int("fail", spell->fail);
+            shell_ui_str("info", spell->level <= p_ptr->lev ? var_get_string(&info) : "");
+            shell_ui_str("desc", var_get_string(&dsc));
+            shell_ui_int("col", attr);
+            if (show_stats && spells[i].stat != A_NONE) shell_ui_str("stat", stat_names_reduced[spells[i].stat]);
+            if (spell->fail == 100 || spell->cost > max_cost || spell->level > p_ptr->lev) shell_ui_int("dim", 1);
+            else shell_ui_int("ok", 1);
+            var_clear(&dsc);
+        }
 
         if (!poli)
         {
@@ -465,7 +490,7 @@ static void _list_spells(power_info* spells, int ct, int max_cost, char *labels,
     Term_erase(display.x, display.y + col_height + 1 - skipped, display.cx);
     var_clear(&name);
     var_clear(&info);
-    var_clear(&color);
+    var_clear(&color);    shell_ui_close();
 }
 
 static bool _describe_spell(spell_info *spell, int col_height)
@@ -486,6 +511,8 @@ static bool _describe_spell(spell_info *spell, int col_height)
         for (i = 0; i < 7; i++)
             Term_erase(display.x, display.y + col_height + i + 2, display.cx);
 
+        (spell->fn)(SPELL_NAME, &info);
+        shell_ui_sel(var_get_string(&info));
         /* Get the description, and line break it (max 5 lines) */
         (spell->fn)(SPELL_DESC, &info);
         roff_to_buf(var_get_string(&info), 62, tmp, sizeof(tmp));

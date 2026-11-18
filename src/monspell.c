@@ -5333,7 +5333,7 @@ static void _prompt_plr_aux(mon_spell_cast_ptr cast, vec_ptr spells)
 
     doc = doc_alloc(MIN(72, ui_map_rect().cx));
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
     for (;;)
     {
         doc_clear(doc);
@@ -5359,7 +5359,7 @@ static void _prompt_plr_aux(mon_spell_cast_ptr cast, vec_ptr spells)
             }
         }
     }
-    Term_load();
+    ui_popup_end();
     doc_free(doc);
 }
 static void _set_target(mon_spell_cast_ptr cast, int m_idx)
@@ -5469,7 +5469,7 @@ static vec_ptr _prompt_spell_group(mon_race_ptr race)
 
     doc = doc_alloc(MIN(72, ui_map_rect().cx));
     msg_line_clear();
-    Term_save();
+    ui_popup_begin();
     for (;;)
     {
        doc_clear(doc);
@@ -5522,7 +5522,7 @@ static vec_ptr _prompt_spell_group(mon_race_ptr race)
             }
         }
     }
-    Term_load();
+    ui_popup_end();
     doc_free(doc);
     vec_free(groups);
     return spells;
