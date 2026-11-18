@@ -546,7 +546,7 @@ function drawMap() {
     const x0 = ox + (pcx + .5) * T, y0 = oy + (pcy + .5) * T, x1 = ox + (pcx + hover.dx + .5) * T, y1 = oy + (pcy + hover.dy + .5) * T;
     g.save(); g.strokeStyle = 'rgba(255,176,112,.85)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
     // a ball or a storm: the ground it will cover, about two squares round the reticle
-    if (/ball|storm|burst|cloud|explosion|breath|blast|nova|wave/i.test(CAST.n) && Date.now() - CAST.t < 30000) {
+    if (/ball|storm|burst|cloud|explosion|breath|blast|nova|wave/i.test(CAST.n) && Date.now() - CAST.t < 15000) {
       g.save(); g.setLineDash([]); g.fillStyle = 'rgba(255,90,60,.10)'; g.strokeStyle = 'rgba(255,138,90,.55)'; g.lineWidth = 1.5;
       for (let ddy = -2; ddy <= 2; ddy++) for (let ddx = -2; ddx <= 2; ddx++) { if (Math.max(Math.abs(ddx), Math.abs(ddy)) + Math.min(Math.abs(ddx), Math.abs(ddy)) / 2 > 2.5) continue; const bx = ox + (pcx + hover.dx + ddx) * T, by = oy + (pcy + hover.dy + ddy) * T; g.fillRect(bx + 1, by + 1, T - 2, T - 2); }
       g.beginPath(); g.arc(x1, y1, T * 2.5, 0, 7); g.stroke(); g.restore();
