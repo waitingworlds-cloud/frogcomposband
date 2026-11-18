@@ -33,6 +33,7 @@ function fxOnState(prev, cur) {
       if (melee) FX.lunge.p = { dx: m.dx, dy: m.dy, t };
       POST.hit = { x: ax, y: ay, t: at, w: crit ? 1.3 : .7 }; if (crit && !beats) { beats++; postBeat('crit', ax, ay, at); sndPlay('crit'); }
       fxImpact(ax, ay, at, crit ? 14 : 7, melee ? Math.sign(m.dx) : 0, melee ? Math.sign(m.dy) : 0);
+      if (!melee && FX.lastEl && t - FX.lastProj < 700) fxBurst(ax + .5, ay + .5, FX.lastEl, FX.lastC, false, at);
       FX.flash[m.i] = at; FX.floats.push({ x: ax, y: ay, s: o.rh != null ? '-' + lost : '-' + (o.hp - m.hp) + '%', c: '#ffd9a8', t: at, small: 1, px: Math.sign(m.dx) * .28 });
     }
   }
@@ -57,6 +58,7 @@ function fxOnState(prev, cur) {
     const hit = foes.length ? t + HIT_MS : t;
     for (const m of foes) if (!FX.lunge[m.i]) FX.lunge[m.i] = { dx: -m.dx, dy: -m.dy, t };
     FX.floats.push({ x: cur.px, y: cur.py, s: String(d), c: '#ff6a55', t: hit, big: 1, up: .55 });
+    if (FX.lastEl && t - FX.lastProj < 700) fxBurst(cur.px + .5, cur.py + .5, FX.lastEl, FX.lastC, false, hit);   // struck by a spell: it clings to us for a moment
     fxImpact(cur.px, cur.py, hit, Math.min(14, 5 + Math.round(-d / Math.max(1, cur.p.mhp) * 30)), foes.length ? -Math.sign(foes[0].dx) : 0, foes.length ? -Math.sign(foes[0].dy) : 0);
     const frac = Math.min(1, -d / Math.max(1, cur.p.mhp));
     FX.shake = { t: hit, amp: 2 + frac * 16, ms: 150 + frac * 250 };
@@ -155,8 +157,8 @@ function fxSpell(lx, ly, ch, c) {
     const who = [[S.px, S.py]].concat(S.mons.map(m => [S.px + m.dx, S.py + m.dy])).map(([x, y]) => [x, y, Math.hypot(x - lx, y - ly)]).filter(w => w[2] <= 1.5).sort((a, b) => a[2] - b[2])[0];
     if (who) fxCast(who[0], who[1], c);
   }
-  FX.lastProj = t;
-  fxBurst(lx + .5, ly + .5, (G && G.gf) || fxElem(c), c, ch === '*', t);
+  FX.lastProj = t; FX.lastEl = (G && G.gf) || fxElem(c); FX.lastC = c;
+  fxBurst(lx + .5, ly + .5, FX.lastEl, c, ch === '*', t);
   fxKick();
 }
 // a blow lands: drops fly off the far side of the square, with a few bright chips at the point of contact
