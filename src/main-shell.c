@@ -55,6 +55,14 @@ static byte old_a[SHELL_MAX_H][SHELL_MAX_W];
 static char old_c[SHELL_MAX_H][SHELL_MAX_W];
 static bool old_valid = FALSE;
 static bool want_state = FALSE;
+static int click_kind = 0, click_x = 0, click_y = 0;
+bool shell_take_click(int *kind, int *x, int *y)
+{
+    if (!click_kind) return FALSE;
+    *kind = click_kind; *x = click_x; *y = click_y;
+    click_kind = 0;
+    return TRUE;
+}
 static int view_w = 61, view_h = 41;   /* squares of map sent around the player */
 static bool dict_sent = FALSE;
 static int  want_w = 0, want_h = 0;
@@ -115,6 +123,16 @@ static void o_close(char c)
     o_need(2);
     obuf[olen++] = c;
 }
+/* the interface has gone: keep the character safe, then leave */
+static void shell_lost(void)
+{
+    static bool once = FALSE;
+    shell_sock = INVALID_SOCKET;
+    if (once) return;
+    once = TRUE;
+    if (character_generated && !p_ptr->is_dead && !character_saved) exit_game_panic();
+    quit(NULL);
+}
 static void o_send(void)
 {
     int done = 0;
@@ -124,7 +142,7 @@ static void o_send(void)
     while (done < olen)
     {
         int n = send(shell_sock, obuf + done, olen - done, 0);
-        if (n <= 0) { shell_sock = INVALID_SOCKET; quit("shell: connection lost"); }
+        if (n <= 0) shell_lost();
         done += n;
     }
     olen = 0;
@@ -152,6 +170,41 @@ static void shell_command(char *line)
             int k = hexv(p[0]) * 16 + hexv(p[1]);
             if (k) Term_keypress(k);
             p += 2;
+        }
+    }
+    else if (line[0] == 'Q')
+    {
+        /* the window is closing: save and leave, as the game's own Exit menu does */
+        if (character_generated && !p_ptr->is_dead)
+        {
+            if (can_save)
+            {
+                forget_lite();
+                forget_view();
+                clear_mon_lite();
+                Term_key_push(SPECIAL_KEY_QUIT);
+            }
+            else exit_game_panic();
+        }
+        else quit(NULL);
+    }
+    else if (line[0] == 'M' && line[1] == ' ')
+    {
+        /* a mouse click on the map, as squares away from the player. Only taken while the
+         * game waits for a command, so it can never answer some other question by mistake */
+        int kind = 0, dx = 0, dy = 0;
+        if (sscanf(line + 2, "%d %d %d", &kind, &dx, &dy) != 3) return;
+        if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
+        if (kind == 1 && !dx && !dy) { Term_keypress('\\'); Term_keypress('g'); }
+        else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
+        {
+            Term_keypress('\\'); Term_keypress(';');
+            Term_keypress('0' + (dy < 0 ? 7 : dy > 0 ? 1 : 4) + dx + 1);
+        }
+        else if (kind == 1 || kind == 2)
+        {
+            click_kind = kind; click_x = px + dx; click_y = py + dy;
+            Term_keypress('\\'); Term_keypress('`');
         }
     }
     else if (line[0] == 'V' && line[1] == ' ')
@@ -196,7 +249,7 @@ static bool shell_pump(bool wait)
         if (n <= 0) return got;
 
         n = recv(shell_sock, ibuf + ilen, sizeof(ibuf) - 1 - ilen, 0);
-        if (n <= 0) { shell_sock = INVALID_SOCKET; quit(NULL); }
+        if (n <= 0) shell_lost();
         ilen += n;
 
         start = 0;
@@ -269,6 +322,82 @@ static void o_obj(obj_ptr o, char label)
     if (!obj_is_known(o)) o_kint("unk", 1);
     o_close('}');
     o_raw(",");
+}
+
+/* ------------------------------------------------- screens with a native layout */
+#include "obj_prompt.h"
+/* The item prompt (inventory, equipment, quiver, floor): called each time the game redraws it */
+void shell_ui_items(vptr ctx)
+{
+    obj_prompt_context_ptr context = (obj_prompt_context_ptr)ctx;
+    obj_prompt_tab_ptr tab;
+    obj_p filter = context->prompt->filter;
+    int i, start, stop;
+
+    if (shell_sock == INVALID_SOCKET) return;
+    o_raw("{\"t\":\"ui\",\"kind\":\"items\",");
+    o_kstr("prompt", context->prompt->prompt ? context->prompt->prompt : "Choice:");
+    o_kint("fail", (context->prompt->flags & INV_SHOW_FAIL_RATES) ? 1 : 0);
+    o_raw("\"tabs\":[");
+    for (i = 0; i < vec_length(context->tabs); i++)
+    {
+        tab = vec_get(context->tabs, i);
+        o_raw("{");
+        o_kstr("name", inv_name(tab->inv));
+        o_kint("loc", inv_loc(tab->inv));
+        o_kint("ct", tab->ct);
+        if (i == context->tab) o_kint("on", 1);
+        o_close('}');
+        o_raw(",");
+    }
+    o_close(']');
+    o_raw(",");
+    tab = vec_get(context->tabs, context->tab);
+    o_kint("page", tab->page + 1);
+    o_kint("pages", tab->page_ct);
+    o_kint("wgt", inv_weight(tab->inv, NULL));
+    start = tab->page * context->page_size + 1;
+    stop = (tab->page + 1) * context->page_size;
+    if (inv_loc(tab->inv) == INV_EQUIP) stop = equip_max();
+    else if (!filter) filter = obj_exists;
+    o_raw("\"items\":[");
+    for (i = start; i <= stop && i <= inv_max(tab->inv); i++)
+    {
+        obj_ptr o = inv_obj(tab->inv, i);
+        char lab[2];
+        if (filter && !o) continue;
+        if (o && filter && !filter(o)) continue;
+        lab[0] = inv_slot_label(tab->inv, i); lab[1] = 0;
+        if (!lab[0]) lab[0] = ' ';
+        o_raw("{");
+        o_kstr("k", lab);
+        if (inv_loc(tab->inv) == INV_EQUIP) o_kstr("slot", equip_describe_slot(i));
+        if (o)
+        {
+            if (context->prompt->flags & INV_SHOW_FAIL_RATES)
+            {
+                if (object_is_aware(o) && (obj_is_identified_fully(o) || (o->known_xtra & OFL_DEVICE_FAIL)))
+                {
+                    int fail;
+                    if (obj_is_device(o) || o->tval == TV_SCROLL) fail = device_calc_fail_rate(o);
+                    else { effect_t effect = obj_get_effect(o); fail = effect_calc_fail_rate(&effect); }
+                    o_kint("failr", fail);
+                }
+            }
+            o_raw("\"o\":"); o_obj(o, lab[0]);
+        }
+        o_close('}');
+        o_raw(",");
+    }
+    o_close(']');
+    o_raw("}");
+    o_send();
+}
+void shell_ui_end(void)
+{
+    if (shell_sock == INVALID_SOCKET) return;
+    o_raw("{\"t\":\"ui\",\"kind\":\"\"}");
+    o_send();
 }
 
 static void send_state(void)

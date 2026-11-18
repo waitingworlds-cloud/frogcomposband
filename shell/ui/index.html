@@ -20,8 +20,20 @@
 .doll .slot{cursor:pointer}
 body{cursor:default;user-select:none}
 #wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 34px Fell;letter-spacing:.08em;color:#ffb070}
+#native{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:21;background:#08090a8c}
+#native.on{display:flex}
+.npanel{max-height:1010px;box-shadow:0 0 0 1px #000,0 0 0 2px #2a2d31,0 0 0 3px #7a7f86,0 0 0 4px #3a3d42,0 0 0 8px #1a1c1f,0 0 0 9px #000,inset 0 0 50px #000a,0 24px 70px #000d}
+.npanel .tr{height:var(--rh,38px);cursor:pointer;grid-template-columns:26px 36px 1fr 70px 70px;font-size:18px}
+.npanel .tr:hover{background:linear-gradient(90deg,#ff8a3c2a,transparent);box-shadow:inset 3px 0 0 var(--em),0 1px 0 #2e3135}
+.npanel .tr .slot{height:calc(var(--rh,38px) - 5px);width:calc(var(--rh,38px) - 5px)}
+.npanel .tr small{font:italic 400 14px Spectral;color:#8f8a80;margin-left:10px}
+.npanel .nfoot{display:flex;gap:18px;align-items:center;padding-top:12px;font-size:15px;color:#b3ac9f}.npanel .nfoot .live{font-size:19px}.npanel .nfoot .row{gap:7px;cursor:pointer}
+.npanel .tabs div{font-size:25px}
+#tip{position:absolute;display:none;z-index:40;max-width:340px;padding:8px 13px 9px;font:500 16px/1.35 Spectral,serif;color:#e9e3d6;background:linear-gradient(#1c1e21,#101113);border:1px solid #000;box-shadow:0 0 0 1px #4a4e54,0 10px 30px #000c;pointer-events:none}
+#tip .hint{margin-top:5px;font:500 12px Inter;color:#8f8a80;letter-spacing:.02em}#tip .sub{font-size:14px}
+[data-key]{cursor:pointer}
 </style></head>
 <body class="main">
-<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="app.js"></script>
+<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><canvas id="termc"></canvas></div></div><div id="native"></div><div id="tip"></div></div>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="app.js"></script><script src="screens.js"></script>
 </body></html>

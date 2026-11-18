@@ -60,19 +60,22 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
   }
   else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
+  else if (m.t === 'ui') { UI = m.kind ? m : null; schedule(); }
   else if (m.t === 'bye') { $('#app').innerHTML = '<div id="wait">The game has closed. You can close this window.</div>'; built = false; S = null; $('#term').classList.remove('on'); }
 }
 let pend = false, ftimer = 0, BASE = null;
+const setHtml = (el, h) => { if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; };
 function schedule() { if (!pend) { pend = true; requestAnimationFrame(() => { pend = false; draw(); }); } }
 
 /* ---------- helpers over the text grid ---------- */
 const CCH = 'dwsorgbuDWvyRGBULPICtSmMTOVcnKpi';
 // the game's own colour tags inside a message
+const plain = s => String(s).replace(/<[^<>]*>/g, '');
 function rich(str) {
   let out = '', open = 0;
   String(str).split(/(<[^<>]*>)/).forEach(t => {
-    const m = /^<color:(.)>$/.exec(t);
-    if (m) { const i = CCH.indexOf(m[1]); out += (open ? '</span>' : '') + `<span style="color:${readable(col(i < 0 ? 1 : i))}">`; open = 1; }
+    const m = /^<color:([^>]+)>$/.exec(t);
+    if (m) { const i = m[1].length === 1 ? CCH.indexOf(m[1]) : m[1] === 'keypress' ? 3 : 1; out += (open ? '</span>' : '') + `<span style="color:${readable(col(i < 0 ? 1 : i))}">`; open = 1; }
     else if (t === '</color>') { if (open) out += '</span>'; open = 0; }
     else if (/^<\/?(style|indent|tab|topic|link|var)[^>]*>$/.test(t)) return;
     else out += esc(t);
@@ -151,7 +154,7 @@ function dollHtml() {
 }
 let lastEff = '';
 function effectsHtml() {
-  if ((G.icky || G.ov) && lastEff) return lastEff;
+  if (G.icky || G.ov) return lastEff || '<div class="sub" style="font-size:14px">nothing unusual</div>';
   const out = [];
   for (const r of rectText(S.reff)) if (r) out.push(r);
   // the status bar packs several short words into one line, each in its own colour
@@ -354,9 +357,10 @@ function drawMap() {
     if (m.target) { g.strokeStyle = TH.danger; g.lineWidth = 2; const k = 8; [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([ax, ay, dx, dy]) => { g.beginPath(); g.moveTo(mx + ax + dx * k, my + ay); g.lineTo(mx + ax, my + ay); g.lineTo(mx + ax, my + ay + dy * k); g.stroke(); }); }
   }
   // the game's cursor (looking, targeting)
-  if (G.cv && !G.icky && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
+  if (G.cv && !G.icky && !G.ov && G.cx >= rm[0] && G.cx < rm[0] + rm[2] && G.cy >= rm[1] && G.cy < rm[1] + rm[3] && !(G.cx === S.gx && G.cy === S.gy)) {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
+  if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
   const vg = g.createRadialGradient(px, py, T * 6, px, py, Math.max(W, H) * .8); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,5,6,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
   drawMini(pcx, pcy, Math.ceil(W / T), Math.ceil(H / T));
 }
@@ -409,15 +413,17 @@ function draw() {
   $('#stage').style.setProperty('--vw', VW + 'px');
   if (inGame) {
     if (!built) buildMain();
-    $('#L').innerHTML = leftHtml(); $('#R').innerHTML = rightHtml(); $('#C').innerHTML = consoleHtml(); $('#plaque').innerHTML = plaqueHtml();
-    const pt = $('#port'); if (pt) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
-    document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
-    drawMap();
+    const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml());
+    const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
+    if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
+    askView(); drawMap();
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  const t = $('#term'); let show = false;
-  if (!inGame) show = drawTerm(false);
+  const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : ''; let show = false;
+  setHtml(nat, nh); nat.classList.toggle('on', !!nh);
+  if (nh) show = false;
+  else if (!inGame) show = drawTerm(false);
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
 }

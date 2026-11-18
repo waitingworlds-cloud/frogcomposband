@@ -17,7 +17,7 @@
  */
 
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(ACORN)
+#if (!defined(MACINTOSH) && !defined(WINDOWS) && !defined(ACORN)) || defined(USE_SHELL)
 
 
 /*
@@ -129,10 +129,25 @@ static void init_stuff(void)
 
 #else /* AMIGA / VM */
 
+#ifdef WINDOWS
+	/* The "lib" folder sits beside the program */
+	{
+		extern unsigned long __stdcall GetModuleFileNameA(void *, char *, unsigned long);
+		char *sl;
+		configpath[0] = 0;
+		GetModuleFileNameA(NULL, configpath, 400);
+		sl = strrchr(configpath, '\\');
+		if (sl) sl[1] = 0; else configpath[0] = 0;
+		my_strcat(configpath, "lib\\", sizeof(configpath));
+		my_strcpy(libpath, configpath, sizeof(libpath));
+		my_strcpy(datapath, configpath, sizeof(datapath));
+	}
+#else
 	/* Use the angband_path, or a default */
 	my_strcpy(configpath, DEFAULT_CONFIG_PATH, sizeof(configpath));
 	my_strcpy(libpath, DEFAULT_LIB_PATH, sizeof(libpath));
 	my_strcpy(datapath, DEFAULT_DATA_PATH, sizeof(datapath));
+#endif
 
 	/* Make sure they're terminated */
 	configpath[511] = '\0';

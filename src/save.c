@@ -1595,17 +1595,19 @@ bool load_player(void)
     if (!savefile[0]) return (TRUE);
 
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(VM)
+#if !defined(MACINTOSH) && (!defined(WINDOWS) || defined(USE_SHELL)) && !defined(VM)
 
     /* XXX XXX XXX Fix this */
 
     /* Verify the existance of the savefile */
     if (access(savefile, 0) < 0)
     {
+#ifndef USE_SHELL
         /* Give a message */
         msg_print("Savefile does not exist.");
 
         msg_print(NULL);
+#endif
 
         /* Allow this */
         return (TRUE);

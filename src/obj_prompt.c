@@ -217,6 +217,9 @@ int obj_prompt(obj_prompt_ptr prompt)
         }
     }
     ui_popup_end();
+#ifdef USE_SHELL
+    { extern void shell_ui_end(void); shell_ui_end(); }
+#endif
     _context_unmake(&context);
     return result;
 }
@@ -374,6 +377,9 @@ static void _display(obj_prompt_context_ptr context)
 
     doc_insert(context->doc, "</style>");
     _sync_doc(context->doc);
+#ifdef USE_SHELL
+    { extern void shell_ui_items(vptr ctx); shell_ui_items(context); }
+#endif
 }
 
 static int _find_tab(vec_ptr tabs, int loc)

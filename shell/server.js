@@ -10,7 +10,7 @@ function start(opts = {}) {
   const exe = process.platform === 'win32' ? 'frogcomposband.exe' : 'frogcomposband';
   const game = opts.game || [path.join(root, exe), path.join(root, 'src', exe)].find(p => fs.existsSync(p));
   const clients = new Set();
-  let hello = null, dict = null, lastState = null, gameSock = null, child = null, pending = [];
+  let hello = null, dict = null, lastState = null, lastUi = null, gameSock = null, child = null, pending = [];
   const rows = new Map(); let frameMeta = null;   // full copy of the text grid for late joiners
 
   const push = line => { for (const r of clients) r.write(`data: ${line}\n\n`); };
@@ -26,7 +26,7 @@ function start(opts = {}) {
         const line = buf.slice(0, i); buf = buf.slice(i + 1);
         if (!line) continue;
         const t = line.slice(6, 8);          // {"t":"X
-        if (t === 'he') hello = line; else if (t === 'di') dict = line; else if (t === 's"') lastState = line;
+        if (t === 'he') hello = line; else if (t === 'di') dict = line; else if (t === 's"') lastState = line; else if (t === 'ui') lastUi = line;
         else if (t === 'f"') { try { const f = JSON.parse(line); if (!frameMeta || frameMeta.w !== f.w || frameMeta.h !== f.h) rows.clear(); for (const r of f.rows) rows.set(r.y, r); f.rows = []; frameMeta = f; } catch (e) {} }
         push(line);
       }
@@ -45,10 +45,11 @@ function start(opts = {}) {
       if (dict) res.write(`data: ${dict}\n\n`);
       if (frameMeta) res.write(`data: ${JSON.stringify({ ...frameMeta, rows: [...rows.values()] })}\n\n`);
       if (lastState) res.write(`data: ${lastState}\n\n`);
+      if (lastUi) res.write(`data: ${lastUi}\n\n`);
       return;
     }
     if (u.pathname === '/in' && req.method === 'POST') {
-      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^[XRVM] [0-9a-fA-F -]+$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
+      let b = ''; req.on('data', d => b += d); req.on('end', () => { for (const l of b.split('\n')) if (/^([XRVM] [0-9a-fA-F -]+|Q)$/.test(l)) toGame(l); res.writeHead(204); res.end(); });
       return;
     }
     let f = path.normalize(path.join(uiDir, u.pathname === '/' ? 'index.html' : u.pathname));
@@ -65,7 +66,7 @@ function start(opts = {}) {
           child = spawn(game, ['-mshell', ...(opts.args || [])], { cwd: root, env, stdio: ['ignore', 'inherit', 'inherit'] });
           child.on('exit', () => { push('{"t":"bye"}'); if (opts.onExit) opts.onExit(); });
         }
-        resolve({ port: web.address().port, gport, stop: () => { try { child && child.kill(); } catch (e) {} tcp.close(); web.close(); } });
+        resolve({ port: web.address().port, gport, quit: () => toGame('Q'), stop: () => { try { child && child.kill(); } catch (e) {} tcp.close(); web.close(); } });
       });
     });
   });
