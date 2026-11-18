@@ -242,8 +242,9 @@ function cellTip(cell) {
   if (!out.length) return '';
   const far = Math.abs(cell.dx) > 1 || Math.abs(cell.dy) > 1;
   const bow = m && (cell.dx || cell.dy) && (S.equip || []).some(e => e.slot === 'Shooting' && e.o) ? ' · shift-click: fire' : '';
+  const blocked = !m && (cell.dx || cell.dy) && !digHere(cell) && c[0] ? ({ wall: 'no way through', pit: 'you need to fly to cross it' })[featClass(c[0])] || '' : '';   // say so instead of offering a step that bumps
   const stair = !cell.dx && !cell.dy && !S.floor.some(o => !o.dx && !o.dy) && c[0] ? featClass(c[0]) : '';
-  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : digHere(cell) === 'dig' ? 'click: tunnel' : digHere(cell) === 'hard' ? 'too hard to dig with what you have' : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
+  return out.join('<br>') + `<div class="hint">${stair === 'down' ? 'click: go down' : stair === 'up' ? 'click: go up' : !cell.dx && !cell.dy ? 'click: pick up' : digHere(cell) === 'dig' ? 'click: tunnel' : digHere(cell) === 'hard' ? 'too hard to dig with what you have' : blocked ? blocked : far ? (S.floor.some(o => o.dx === cell.dx && o.dy === cell.dy) && !m ? 'click: walk over and pick up' : 'click: walk here') + ((w => w ? ` (${w.length} steps)` : '')(m ? null : walkPath(cell.dx, cell.dy))) : m ? 'click: attack' : 'click: step'}${bow} · right-click: actions</div>`;
 }
 // after each turn, a tip resting on the map follows what is now under the pointer (a hurt creature, a square you moved off)
 let MAPEV = null;
