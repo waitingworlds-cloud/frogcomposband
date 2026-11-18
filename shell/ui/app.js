@@ -25,7 +25,12 @@ const KP = { Numpad0: 0xFFB0, Numpad1: 0xFFB1, Numpad2: 0xFFB2, Numpad3: 0xFFB3,
 const hex = bytes => bytes.map(b => (b & 255).toString(16).padStart(2, '0')).join('');
 let sendQ = Promise.resolve();
 function sendRaw(line) { sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {})); }
-function sendBytes(bytes) { if (bytes.length) sendRaw('X ' + hex(bytes)); }
+// the spell last picked from the spell list, so aiming it can show how wide it bursts
+let CAST = { n: '', t: 0 };
+function sendBytes(bytes) {
+  if (bytes.length === 1 && typeof UI !== 'undefined' && UI && UI.kind === 'spells' && typeof uiOnTop === 'function' && uiOnTop()) { const r = UI.rows.find(r => r.k === String.fromCharCode(bytes[0])); if (r) CAST = { n: r.n, t: Date.now() }; }
+  if (bytes.length) sendRaw('X ' + hex(bytes));
+}
 function sendText(str) { sendBytes([...str].map(c => c.charCodeAt(0))); }
 function trigger(ks, e) {
   const m = (e.ctrlKey ? 'N' : '') + (e.shiftKey ? 'S' : '') + (e.altKey ? 'O' : '');
@@ -540,6 +545,12 @@ function drawMap() {
   } else if (am === 'aim' && hover && (hover.dx || hover.dy)) {   // aiming: a line from you to the square, and a reticle on it
     const x0 = ox + (pcx + .5) * T, y0 = oy + (pcy + .5) * T, x1 = ox + (pcx + hover.dx + .5) * T, y1 = oy + (pcy + hover.dy + .5) * T;
     g.save(); g.strokeStyle = 'rgba(255,176,112,.85)'; g.lineWidth = 2; g.setLineDash([T * .22, T * .18]); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+    // a ball or a storm: the ground it will cover, about two squares round the reticle
+    if (/ball|storm|burst|cloud|explosion|breath|blast|nova|wave/i.test(CAST.n) && Date.now() - CAST.t < 30000) {
+      g.save(); g.setLineDash([]); g.fillStyle = 'rgba(255,90,60,.10)'; g.strokeStyle = 'rgba(255,138,90,.55)'; g.lineWidth = 1.5;
+      for (let ddy = -2; ddy <= 2; ddy++) for (let ddx = -2; ddx <= 2; ddx++) { if (Math.max(Math.abs(ddx), Math.abs(ddy)) + Math.min(Math.abs(ddx), Math.abs(ddy)) / 2 > 2.5) continue; const bx = ox + (pcx + hover.dx + ddx) * T, by = oy + (pcy + hover.dy + ddy) * T; g.fillRect(bx + 1, by + 1, T - 2, T - 2); }
+      g.beginPath(); g.arc(x1, y1, T * 2.5, 0, 7); g.stroke(); g.restore();
+    }
     const r = T * .42; g.strokeStyle = TH.danger; g.lineWidth = 2; g.beginPath(); g.arc(x1, y1, r, 0, 7); g.stroke();
     for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { g.beginPath(); g.moveTo(x1 + a * r * .55, y1 + b * r * .55); g.lineTo(x1 + a * r * 1.3, y1 + b * r * 1.3); g.stroke(); }
     g.restore();
