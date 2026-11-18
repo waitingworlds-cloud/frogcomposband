@@ -205,6 +205,7 @@ document.addEventListener('mousedown', ev => {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);
     const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); return;
   }
+  if (ev.target.id === 'map' && S && /-more-/.test(G.s[0] || '') && ev.button === 0) { ev.preventDefault(); sendText(' '); return; }   // more to read: a click reads on
   if (ev.target.id === 'map' && playing() && lookMode() && G.lk && ev.button === 0) {
     // looking: walk the look cursor to the clicked square (free look first, then a step at a time)
     const cell = mapCellAt(ev); if (!cell) return; ev.preventDefault();
@@ -233,6 +234,7 @@ document.addEventListener('mousedown', ev => {
     const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
     while ((m = re.exec(s))) { const at = m.index + m[1].length; if (at <= gx + 1) best = m[2]; else if (!best) best = m[2]; }
     if (best) sendText(best);
+    else if (/press any (other )?key|press space/i.test(G.s.join('\n'))) sendText(' ');   // a page that waits for any key: a click will do
   }
 });
 document.addEventListener('contextmenu', ev => ev.preventDefault());

@@ -18,6 +18,19 @@
 #banner .lkeys{display:flex;flex-wrap:wrap;gap:4px 12px;margin:7px 0 1px;font:13px/1 Georgia,serif;color:#b8a48c}
 #banner .lk{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:2px 5px 2px 2px;border-radius:4px;pointer-events:auto}
 #banner .lk:hover{background:#2a1c12;color:#f4dcb8}#banner .dirk{cursor:default}
+.tscr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 58%,#2a1408 0%,#120b07 38%,#060606 75%);overflow:hidden}
+.tglow{position:absolute;left:50%;top:60%;width:1100px;height:420px;transform:translate(-50%,-50%);background:radial-gradient(ellipse,#ff7a2a33,#ff7a2a00 65%);animation:tglow 4s ease-in-out infinite alternate}
+@keyframes tglow{from{opacity:.55}to{opacity:1}}
+.tmobs{position:relative;display:flex;align-items:flex-end;gap:6px;margin-bottom:30px}
+.tmob{width:96px;height:96px;image-rendering:pixelated;filter:drop-shadow(0 10px 8px #000c);transform:translateY(calc(abs(var(--i)) * 7px)) scale(calc(1 - abs(var(--i)) * .06));opacity:calc(1 - abs(var(--i)) * .12)}
+.tscr h1{position:relative;margin:0;font:400 104px/1 Fell,Spectral,serif;letter-spacing:.04em;background:linear-gradient(#ffe2b0,#ff9a4a 55%,#b4471c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #000) drop-shadow(0 0 28px #ff6a1a55)}
+.tver{position:relative;margin-top:10px;font:italic 20px Spectral,Georgia,serif;color:#a8927a;letter-spacing:.06em}
+.tbtns{position:relative;display:flex;gap:18px;margin-top:46px}
+.tbtn{display:inline-flex;align-items:center;gap:12px;padding:12px 26px 12px 14px;font:600 22px Cinzel,Georgia,serif;letter-spacing:.1em;text-transform:uppercase;color:#e8d6bc;background:linear-gradient(#24170f,#140d09);border:1px solid #4a3222;border-radius:6px;cursor:pointer;box-shadow:0 8px 24px #000a,inset 0 1px 0 #ffffff10}
+.tbtn:hover{border-color:#ff9a4a;color:#fff1dc;box-shadow:0 8px 24px #000a,0 0 18px #ff7a2a44}
+.tbtn.main{border-color:#8a4a22}
+.tbtn .key{font-size:13px}
+.ttip{position:relative;margin-top:30px;font:15px Georgia,serif;color:#6e6052;font-style:italic}
 .pgh:empty,.pgf:empty{display:none}
 .pgh{display:flex;align-items:center;gap:14px;margin:-4px 0 12px;padding:0 0 10px;border-bottom:1px solid #3a2a1c;font:600 15px/1 Cinzel,Georgia,serif;letter-spacing:.08em;color:#f0c890;text-transform:uppercase}
 .pgh .pgn{font:400 13px/1 Georgia,serif;letter-spacing:0;text-transform:none;color:#a89580;font-style:italic}

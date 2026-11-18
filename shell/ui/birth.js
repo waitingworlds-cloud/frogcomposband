@@ -59,6 +59,21 @@ function birthParse() {
   }
   return out;
 }
+/* the title screen: the game's news page waits for a key. Here it is a proper front door */
+const TITLE_MOBS = ['giant green frog', "grip, farmer maggot's dog", 'cave troll', 'smeagol', 'morgoth, lord of darkness', 'lich', '5-headed hydra', 'mature red dragon', 'giant pink frog'];
+function titleHtml() {
+  if (S && S.p) return '';
+  const all = G.s.join('\n'); if (!/Press Any Other Key to Play/.test(all)) return '';
+  const v = (/FrogComposband ([^\s]+)( \([^)]*\))?/.exec(all) || []);
+  return `<div class="tscr"><div class="tglow"></div>
+    <div class="tmobs">${TITLE_MOBS.map((n, i) => `<canvas class="tmob" data-n="${esc(n)}" style="--i:${i - 4}"></canvas>`).join('')}</div>
+    <h1>FrogComposband</h1><div class="tver">${esc((v[1] || '') + (v[2] || ''))}</div>
+    <div class="tbtns"><span class="tbtn main" data-key=" "><span class="key">Enter</span>Play</span><span class="tbtn" data-key="?"><span class="key">?</span>Credits</span></div>
+    <div class="ttip">Full keyboard play · click to walk · right-click anything for its actions · F6 sound</div></div>`;
+}
+function titleAfter() {
+  document.querySelectorAll('.tmob').forEach(c => { const S2 = 96, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(S2 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; sprite(g, 'mon', c.dataset.n, 0, 0, S2); sprite.flat = false; });
+}
 function birthHtml() {
   topicsLoad();
   if (G.ov) return '';

@@ -119,6 +119,7 @@ function liveHtml() {
 // the look and target prompts end in a bare key list, [r,x,q,p,o,j,+,-,?,<dir>]: give each key a cap and a word, and make it a button
 const LOOK_WORDS = { r: 'recall', x: 'items here', q: 'done', t: 'target', p: 'you', o: 'free look', m: 'creatures', j: 'travel here', '(': 'travel here', '+': 'next', '-': 'previous', '?': 'help' };
 function lookKeys(h) {
+  h = h.replace(/-more-/, '<span class="lk more" data-key=" "><span class="key">Space</span>more</span>');
   return h.replace(/\[((?:[a-z?+\-(]|&lt;dir&gt;)(?:,(?:[a-z?+\-(]|&lt;dir&gt;))+)\]/, (all, list) => {
     const ks = [...new Set(list.split(','))]; if (!ks.includes('q') && !ks.includes('r')) return all;
     return '<span class="lkeys">' + ks.map(k => k === '&lt;dir&gt;' ? '<span class="lk dirk"><span class="key">⇆</span>move</span>' : `<span class="lk" data-key="${k}"><span class="key">${k === 'q' ? 'Esc' : k}</span>${LOOK_WORDS[k] || ''}</span>`).join('') + '</span>';
@@ -581,8 +582,8 @@ function draw() {
     const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
     bn.innerHTML = live + (live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : ''); bn.className = live ? 'on' : '';
   }
-  PAGER = null; BROWSE = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : birthHtml(); let show = false;
-  const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); nat.classList.toggle('on', !!nh);
+  PAGER = null; BROWSE = null; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
+  const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
