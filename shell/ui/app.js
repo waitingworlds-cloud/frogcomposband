@@ -59,7 +59,7 @@ function onMsg(m) {
     G.cx = m.cx; G.cy = m.cy; G.cv = m.cv; G.icky = m.icky; G.ov = m.ov;
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
   }
-  else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
+  else if (m.t === 's') { if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && UI.kind === 'shop' && m.kind !== 'shop') UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
@@ -250,6 +250,7 @@ function drawMobCanvas(cv, rIdx, size) {
 }
 // a creature until real sprites exist: its letter on a dark disc, in the game's own colour
 function drawToken(g, x, y, T, r, uniq) {
+  if (sprite(g, 'mon', r[0], x, y, T)) return;
   const ch = String.fromCharCode(r[1]), c = col(r[2]);
   g.save(); g.translate(x, y);
   g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(T / 2, T * .86, T * .3, T * .09, 0, 0, 7); g.fill();
@@ -257,6 +258,24 @@ function drawToken(g, x, y, T, r, uniq) {
   g.font = `700 ${Math.round(T * .56)}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = c; g.fillText(ch, T / 2, T / 2 + T * .03);
   g.restore();
 }
+
+/* ---------- tileset (optional): shell/ui/tiles/atlas.json, see tiles/README.md ---------- */
+let TS = null;
+function loadTiles() {
+  fetch('tiles/atlas.json').then(r => r.ok ? r.json() : null).then(j => {
+    if (!j || !j.images || !j.images.length) return; let left = j.images.length; j.img = j.images.map(n => { const im = new Image(); im.onload = im.onerror = () => { if (--left === 0) { TS = j; fclassClear(); schedule(); } }; im.src = 'tiles/' + n; return im; });
+  }).catch(() => {});
+}
+const tkey = s => String(s || '').toLowerCase().replace(/[&~#]/g, '').replace(/\s+/g, ' ').trim().replace(/^(an?|the) /, '');
+// draw a named sprite into a T-sized square; false when the set has none
+function sprite(g, kind, name, x, y, T, alt) {
+  if (!TS || !TS[kind]) return false;
+  const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
+  const im = TS.img[e[0]], t = TS.tile; if (!im || !im.naturalWidth) return false;
+  const w = (e[3] || 1) * t, h = (e[4] || 1) * t, k = T / t;   // sprites may be taller or wider than one square; they stand on the bottom middle
+  g.drawImage(im, e[1] * t, e[2] * t, w, h, x + (T - w * k) / 2, y + T - h * k, w * k, h * k); return true;
+}
+function fclassClear() { for (const k in fclass) delete fclass[k]; }
 
 /* ---------- map ---------- */
 const TH = { void: '#040506', wallTop: '#4a4f56', wallTopDim: '#2e3237', wallFace: '#2a2e33', wallFaceDim: '#1b1e22', mortar: '#0b0c0e', floorA: '#6c6a66', floorB: '#666460', floorDim: '#3d3e40',
@@ -292,7 +311,9 @@ function drawMap() {
   const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = TH.void; g.fillRect(0, 0, W, H);
   const T = TILE, mw = S.map.w, mh = S.map.h, cells = S.map.c, rm = S.rmap;
   const pcx = mw >> 1, pcy = mh >> 1;
-  const ox = Math.round(W / 2 - (pcx + .5) * T), oy = Math.round(H / 2 - (pcy + .5) * T);
+  const [scx, scy] = fxScroll(), [shx, shy] = fxShake();
+  const ox = Math.round(W / 2 - (pcx + .5) * T + scx * T + shx), oy = Math.round(H / 2 - (pcy + .5) * T + scy * T + shy);
+  const monAt = {}; for (const m of S.mons) monAt[m.dx + ',' + m.dy] = m;
   const cellAt = (x, y) => (x < 0 || y < 0 || x >= mw || y >= mh) ? 0 : cells[y * mw + x];
   const isWall = c => c && c[0] && featClass(c[0]) === 'wall';
   const x0 = Math.max(0, Math.floor(-ox / T)), x1 = Math.min(mw - 1, Math.ceil((W - ox) / T)), y0 = Math.max(0, Math.floor(-oy / T)), y1 = Math.min(mh - 1, Math.ceil((H - oy) / T));
@@ -309,8 +330,9 @@ function drawMap() {
     if (!c) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
     const f = c[0], fl = c[1], lit = !!(fl & 1), cls = f ? featClass(f) : 'floor';
     const fd = DICT.f[f] || ['', 46, 1], fcol = col(fd[2]), v = rnd(x + S.px, y + S.py);
-    if (!f && !c[2] && !c[3]) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
+    if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
     if (!f) { /* something seen on ground we have not mapped */ }
+    else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } }
     else
     if (cls === 'wall') {
       const below = cellAt(x, y + 1), open = below && below[0] && !isWall(below);
@@ -340,24 +362,26 @@ function drawMap() {
       else if (cls === 'tree') { g.fillStyle = lit ? '#2f5a2a' : '#1c3219'; g.beginPath(); g.arc(sx + T / 2, sy + T * .42, T * .34, 0, 7); g.fill(); g.fillStyle = '#3a2a1a'; g.fillRect(sx + T / 2 - 2, sy + T * .68, 4, T * .24); }
       else if (f && cls === 'other' && String.fromCharCode(fd[1]) !== '.' && String.fromCharCode(fd[1]) !== ' ') later.push([sx, sy, String.fromCharCode(fd[1]), readable(col(fd[2])), lit ? 1 : .6, 4]);
     }
-    if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1]); }
-    if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2]);
-    else if (fl & 4) later.push([sx, sy, 0, null, 1, 3]);
+    if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, k[0]]); }
+    if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
+    else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
     if (fx) later.push([sx, sy, ch, col(at), 1, 0]);
   }
   // player light
-  const px = ox + (pcx + .5) * T, py = oy + (pcy + .5) * T; g.globalCompositeOperation = 'lighter';
+  const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
-  for (const [sx, sy, what, c, al, kind] of later) {
+  for (let [sx, sy, what, c, al, kind, nm] of later) {
     g.globalAlpha = al;
-    if (kind === 2) drawToken(g, sx, sy, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
-    else if (kind === 3) drawMob(g, MOBS['@'], sx, sy, T);
+    if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
+    if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
+      const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
+    else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls)) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
     else { g.font = `700 ${Math.round(T * (kind ? .62 : .66))}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 3; g.strokeStyle = '#0b0a09'; g.lineJoin = 'round'; g.strokeText(what, sx + T / 2, sy + T / 2 + 1); g.fillStyle = c; g.fillText(what, sx + T / 2, sy + T / 2 + 1); }
     g.globalAlpha = 1;
   }
   // target brackets and health
   for (const m of S.mons) {
-    const mx = ox + (pcx + m.dx) * T, my = oy + (pcy + m.dy) * T;
+    const mo = fxMon(m.i), mx = ox + (pcx + m.dx + mo[0]) * T, my = oy + (pcy + m.dy + mo[1]) * T;
     if (m.hp < 100 || m.target) { g.fillStyle = '#000a'; g.fillRect(mx + 2, my - 5, T - 4, 3); g.fillStyle = m.hp > 75 ? '#a9c98c' : m.hp > 45 ? '#ffc46a' : TH.danger; g.fillRect(mx + 2, my - 5, (T - 4) * m.hp / 100, 3); }
     if (m.target) { g.strokeStyle = TH.danger; g.lineWidth = 2; const k = 8; [[0, 0, 1, 1], [T, 0, -1, 1], [0, T, 1, -1], [T, T, -1, -1]].forEach(([ax, ay, dx, dy]) => { g.beginPath(); g.moveTo(mx + ax + dx * k, my + ay); g.lineTo(mx + ax, my + ay); g.lineTo(mx + ax, my + ay + dy * k); g.stroke(); }); }
   }
@@ -366,6 +390,7 @@ function drawMap() {
     const ux = ox + (G.cx - S.gx + pcx) * T, uy = oy + (G.cy - S.gy + pcy) * T; g.strokeStyle = '#ffcf9e'; g.lineWidth = 2; g.strokeRect(ux + 1, uy + 1, T - 2, T - 2); g.fillStyle = 'rgba(255,176,112,.18)'; g.fillRect(ux, uy, T, T);
   }
   if (hover && playing()) { const hx = ox + (pcx + hover.dx) * T, hy = oy + (pcy + hover.dy) * T; g.strokeStyle = 'rgba(255,207,158,.75)'; g.lineWidth = 1.5; g.strokeRect(hx + .5, hy + .5, T - 1, T - 1); }
+  fxDraw(g, (x, y) => [ox + (pcx + x - S.px) * T, oy + (pcy + y - S.py) * T], T);
   const vg = g.createRadialGradient(px, py, T * 6, px, py, Math.max(W, H) * .8); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(4,5,6,.55)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
   drawMini(pcx, pcy, Math.ceil(W / T), Math.ceil(H / T));
 }
@@ -414,7 +439,7 @@ let TERMGEO = null;
 function draw() {
   if (!G.w) return;
   const inGame = !!(S && S.p && S.map);
-  document.body.className = 'main';
+  document.body.classList.add('main');
   $('#stage').style.setProperty('--vw', VW + 'px');
   if (inGame) {
     if (!built) buildMain();
@@ -437,4 +462,4 @@ function draw() {
 document.addEventListener('click', e => {
   const k = e.target.closest('[data-key]'); if (k) sendText(k.dataset.key);
 });
-document.fonts.ready.then(() => { fit(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });
+document.fonts.ready.then(() => { fit(); loadTiles(); const es = new EventSource('/events'); es.onmessage = ev => { try { onMsg(JSON.parse(ev.data)); } catch (err) { console.error(err); } }; });

@@ -555,7 +555,7 @@ static void send_state(void)
                     if (c->info & CAVE_GLOW) fl |= 2;
                     if (c->m_idx && m_list[c->m_idx].ml) m = m_list[c->m_idx].ap_r_idx;
                     if (c->o_idx && (o_list[c->o_idx].marked & OM_FOUND)) o = o_list[c->o_idx].k_idx;
-                    if (y == py && x == px) fl |= 4;
+                    if (y == py && x == px) { fl |= 5; f = c->mimic ? c->mimic : c->feat; }
                 }
                 if (m || o) o_fmt("[%d,%d,%d,%d],", f, fl, m, o);
                 else if (f || fl) o_fmt("[%d,%d],", f, fl);
@@ -580,6 +580,7 @@ static void send_state(void)
         o_kint("r", m->ap_r_idx);
         o_kstr("n", buf);
         o_kint("hp", m->maxhp > 0 ? (long)m->hp * 100 / m->maxhp : 100);
+        o_kint("rh", m->hp);
         o_kstr("health", mon_health_desc(m));
         o_kint("dx", m->fx - px); o_kint("dy", m->fy - py);
         o_kint("dist", m->cdis);
