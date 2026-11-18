@@ -37,7 +37,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -69,7 +69,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
+  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
@@ -302,7 +302,7 @@ function consoleHtml() {
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
   <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 ? ' none' : ''}" data-key="${k}" data-tip="${ACT_TIPS[k]}${cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
-  <div class="hints">${HINTS.map(([k, n]) => `<div class="row" data-key="${k === 'Esc' ? '\x1b' : k}"><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
+  <div class="hints">${HINTS.map(([k, n]) => `<div class="row" data-key="${k === 'Esc' ? '\x1b' : k}"${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
   const p = S.p, t = `${p.hour}:${String(p.min).padStart(2, '0')}`;
