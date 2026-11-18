@@ -634,7 +634,7 @@ function drawTerm(float) {
   if (rcv && !rcv._ok) {
     const c = rcv, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', rc[1], 0, 0, 72); sprite.flat = false;
   }
-  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : '');
+  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : /^\s*Window Flags/.test((G.s[y0] || '').replace(/\x01/g, ' ')) ? '<span class="pgw">these pick what the game\'s extra text windows show; this interface already shows it all in its own panels, so they change nothing here</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>back</span>' : '');
   const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
   let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
