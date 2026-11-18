@@ -27,7 +27,7 @@ function fxOnState(prev, cur) {
   // detection: a wide wave rolls out from you, coloured by what it found
   { const said0 = fresh.join(' '), dm = /You sense (the presence of |no )([a-z]+)/i.exec(said0) || /You (?:feel|are aware of) the presence of ([a-z]+)/i.exec(said0);
     if (dm && same) { const what = dm[dm.length - 1], c = /monst|creat|evil|undead|life|mind/i.test(what) ? '#ff9a6a' : /obj|treas|gold|magic|item/i.test(what) ? '#ffd36b' : '#9fd6ff', x = cur.px + .5, y = cur.py + .5;
-      FX.rings.push({ x, y, t, life: 950, r0: .4, r1: 14, c, w: 6 }); FX.rings.push({ x, y, t: t + 160, life: 900, r0: .3, r1: 10, c: '#ffffff', w: 2.5 }); fxPart(x, y, 0, 0, 500, 9, c, 'glow'); fxKick(); } }
+      FX.rings.push({ x, y, t, life: 950, r0: .4, r1: 14, c, w: 6 }); FX.rings.push({ x, y, t: t + 160, life: 900, r0: .3, r1: 10, c: '#ffffff', w: 2.5 }); fxPart(x, y, 0, 0, 500, 9, c, 'glow'); if (typeof sndPlay === 'function') sndPlay('shimmer'); fxKick(); } }
   const said = fresh.join(' '), crit = /(good|great|superb|\*GREAT\*|\*SUPERB\*) hit|backstab|cruelly attack|ruthlessly sneak|critical/i.test(said);
   let beats = 0;
   const seen = {};
