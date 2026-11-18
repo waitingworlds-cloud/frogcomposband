@@ -68,6 +68,19 @@ function fxOnState(prev, cur) {
     const h = document.getElementById('hurt'); if (h) { h.style.setProperty('--a', (.25 + frac * .6).toFixed(2)); h.classList.remove('go'); void h.offsetWidth; h.classList.add('go'); }
   } else if (d > 0 && d >= Math.max(2, cur.p.mhp * .03)) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + d, c: '#a9e08c', t, big: 1, up: .55 }), (d >= cur.p.mhp * .15 && postBeat('heal', cur.px, cur.py, t));
   const ds = cur.p.sp - prev.p.sp; if (ds < 0 && cur.p.msp > 0) FX.floats.push({ x: cur.px, y: cur.py, s: String(ds), c: '#7fd0f0', t: t + 60, small: 1, px: -.75, up: -.35 });
+  // picked something up: its name rises off us; gold too
+  if (prev.pack && cur.pack && !cur.icky) {
+    const had = {}; for (const o of prev.pack) had[o.ki] = (had[o.ki] || 0) + (o.num || 1);
+    // what came off our body is not a find
+    const eqn = (L, k) => (L || []).filter(e => e.o && e.o.ki === k).reduce((a, e) => a + (e.o.num || 1), 0);
+    for (const e of prev.equip || []) if (e.o) had[e.o.ki] = (had[e.o.ki] || 0) + Math.max(0, eqn(prev.equip, e.o.ki) - eqn(cur.equip, e.o.ki)) / Math.max(1, (prev.equip || []).filter(q => q.o && q.o.ki === e.o.ki).length);
+    const got = []; const seenK = {};
+    for (const o of cur.pack) { if (seenK[o.ki]) continue; seenK[o.ki] = 1; const n = cur.pack.filter(q => q.ki === o.ki).reduce((a, q) => a + (q.num || 1), 0) - (had[o.ki] || 0);
+      const nm = String(o.n).replace(/\s*\{.*\}\s*$/, ''), tot = cur.pack.filter(q => q.ki === o.ki).reduce((a, q) => a + (q.num || 1), 0);
+      if (n > 0) got.push(n === tot ? '+ ' + nm.replace(/^(an?|the) /i, '') : `+${n} (${nm})`); }
+    got.slice(0, 2).forEach((g, i) => FX.floats.push({ x: cur.px, y: cur.py, s: g.length > 30 ? g.slice(0, 29) + '…' : g, c: '#f1e3c4', t: t + i * 260, small: 1, up: .9 }));
+  }
+  const gold = cur.p.au - prev.p.au; if (gold > 0 && !cur.icky) FX.floats.push({ x: cur.px, y: cur.py, s: '+' + gold.toLocaleString() + ' gold', c: '#ffcf6a', t: t + 80, small: 1, up: .6, px: .6 });
   if (cur.p.lev > prev.p.lev) postBeat('level', cur.px, cur.py, t + 120);
   if (cur.p.lev > prev.p.lev) fxBanner('Level ' + cur.p.lev, 'You grow stronger');
   for (const o of prev.mons) if (o.uniq && !seen[o.i] && o.los && (o.hp < 100 || o.dist <= 1) && cur.p.hp > 0 && /slain|destroyed/i.test(said)) fxBanner(String(o.n).replace(/^(an?|the) /i, ''), 'has fallen');
