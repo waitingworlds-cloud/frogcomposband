@@ -11,6 +11,9 @@ function fxOnState(prev, cur) {
   const t = now(), same = prev.p.place === cur.p.place && prev.p.dlvl === cur.p.dlvl;
   const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
   fxSelf(prev, cur, same, near);
+  // death: the world drains of colour and the fall is named
+  document.body.classList.toggle('dying', cur.p.hp < 0);
+  if (cur.p.hp < 0 && prev.p.hp >= 0) { fxBanner('You die', 'the light goes out', 'death'); FX.shake = { t, amp: 10, ms: 600 }; }
   if (!same && cur.p.place !== 'Surface') fxBanner(cur.p.place || 'Somewhere new', cur.p.dlvl ? `Level ${cur.p.dlvl} · ${(cur.p.dlvl * 50).toLocaleString()} ft` : '');   // a new level or place: name it, as a film names its scenes
   if (same && typeof rectText === 'function' && cur.reff) fxAura(cur, rectText(cur.reff).filter(Boolean).map(r => r.text).join('|'));
   if (!near) { FX.scroll = null; FX.mons = {}; FX.floats = []; FX.puffs = []; FX.lunge = {}; return; }
@@ -284,7 +287,7 @@ function fxDraw(g, toXY, T) {
 }
 
 // a large line across the map for the rare big moments (a new level, a unique slain); never blocks input
-function fxBanner(title, sub) {
+function fxBanner(title, sub, kind) {
   let el = document.getElementById('bigmsg'); if (!el) { el = document.createElement('div'); el.id = 'bigmsg'; document.getElementById('stage').appendChild(el); }
-  el.innerHTML = `<b>${esc(title)}</b><span>${esc(sub || '')}</span>`; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+  el.innerHTML = `<b>${esc(title)}</b><span>${esc(sub || '')}</span>`; el.className = kind || ''; void el.offsetWidth; el.classList.add('go');
 }

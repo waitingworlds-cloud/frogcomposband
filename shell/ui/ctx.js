@@ -20,8 +20,8 @@ function cellItems(cell) {
   const out = [];
   if (here) {
     if (objs.length) out.push({ k: 'g', n: objs.length > 1 ? 'Pick up items here' : 'Pick up ' + objs[0].n, run: () => sendText(cmd('g')) });
-    if (/up stair|up staircase/.test(f)) out.push({ k: '<', n: 'Go up the stairs', run: () => sendText(cmd('<')) });
-    if (/down stair|down staircase|trap ?door/.test(f)) out.push({ k: '>', n: 'Go down the stairs', run: () => sendText(cmd('>')) });
+    if (/up stair|up staircase|shaft up|way up/.test(f)) out.push({ k: '<', n: 'Go up the stairs', run: () => sendText(cmd('<')) });
+    if (/down stair|down staircase|trap ?door|entrance to|shaft down|way down/.test(f)) out.push({ k: '>', n: /entrance/.test(f) ? 'Enter the dungeon' : 'Go down the stairs', run: () => sendText(cmd('>')) });
     if (cell.c && cell.c[0] && featClass(cell.c[0]) === 'shop' && f !== 'building') out.push({ k: '', n: 'Go into ' + (DICT.f[cell.c[0]] || [''])[0].replace(/^the /i, ''), run: () => sendRaw('M 1 0 0'), hot: true });
     out.push({ k: 'R', n: 'Rest as needed', run: () => sendText(cmd('R') + '&\r') });
     out.push({ k: 'i', n: 'Open your pack', run: () => sendText(cmd('i')) });
