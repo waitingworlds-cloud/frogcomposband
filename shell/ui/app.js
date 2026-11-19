@@ -41,6 +41,7 @@ function travelRetry() {
 let CAST = { n: '', t: 0 };
 function sendBytes(bytes) {
   if (bytes.length === 1 && typeof UI !== 'undefined' && UI && UI.kind === 'spells' && typeof uiOnTop === 'function' && uiOnTop()) { const r = UI.rows.find(r => r.k === String.fromCharCode(bytes[0])); if (r) CAST = { n: r.n, t: Date.now() }; }
+  if (typeof hbNote === 'function') hbNote(bytes);
   if (bytes.length) sendRaw('X ' + hex(bytes));
 }
 function sendText(str) { sendBytes([...str].map(c => c.charCodeAt(0))); }
@@ -54,7 +55,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -86,7 +87,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); }
+  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
   else if (m.t === 'ui') {
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
@@ -372,7 +373,7 @@ function consoleHtml() {
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
   const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  <div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>
+  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
@@ -383,7 +384,7 @@ const MC = ['tl', 'tr', 'bl', 'br'].map(p => `<svg class="mcorner ${p}" viewBox=
   <path fill="url(#mc)" stroke="#000" d="M8 .5H53.500L47 14H22L14 22V47L.5 53.500V8z"/><path fill="none" stroke="#ff8a3c" stroke-opacity=".75" d="M43 9.500H20L9.500 20V43"/><path fill="#ff8a3c" stroke="#000" d="M14 9l5 5-5 5-5-5z"/></svg>`).join('');
 
 function buildMain() {
-  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div>${MC}</div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
+  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div>${MC}<div id="hbplate"></div></div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
   built = true;
 }
 function drawMobCanvas(cv, rIdx, size) {
@@ -561,6 +562,7 @@ function drawMap() {
       else if (cls === 'tree') { g.fillStyle = lit ? '#2f5a2a' : '#1c3219'; g.beginPath(); g.arc(sx + T / 2, sy + T * .42, T * .34, 0, 7); g.fill(); g.fillStyle = '#3a2a1a'; g.fillRect(sx + T / 2 - 2, sy + T * .68, 4, T * .24); }
       else if (f && cls === 'other' && String.fromCharCode(fd[1]) !== '.' && String.fromCharCode(fd[1]) !== ' ') later.push([sx, sy, String.fromCharCode(fd[1]), readable(col(fd[2])), lit ? 1 : .6, 4]);
     }
+    if (cls === 'water' || cls === 'lava') ambCell(g, cls, sx, sy, T, S.px + x - pcx, S.py + y - pcy, lit);
     if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, objArt(c[3])]); }
     if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
     else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
@@ -570,11 +572,12 @@ function drawMap() {
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
   if (lon) lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy);
+  ambMotes(g, px, py, T, W, H);
   for (let [sx, sy, what, c, al, kind, nm] of later) {
     if (lon && kind !== 0 && kind !== 2 && kind !== 3) { const lx = Math.round((sx - ox) / T), ly = Math.round((sy - oy) / T); if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) al *= .45 + .55 * Math.min(1, lightAt(lx, ly, mw) * 1.5); }
     g.globalAlpha = al;
     if (kind === 1 && sprite(g, 'obj', nm, sx, sy, T)) { g.globalAlpha = 1; continue; }
-    if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1]) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
+    if (kind === 2) { const mo = nm ? fxMon(nm.i) : [0, 0], lu = nm ? fxLunge(nm.i) : [0, 0], mx2 = sx + (mo[0] + lu[0]) * T, my2 = sy + (mo[1] + lu[1] + ambBob(nm, nm && nm.i)) * T; drawToken(g, mx2, my2, T, DICT.r[what] || ['?', 63, 1, 0, 0]);
       const fl2 = nm ? fxFlash(nm.i) : 0; if (fl2 && spriteFlash(g, DICT.r[what], mx2, my2, T, fl2)) { /* drawn */ } else if (fl2) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = fl2 * .85; g.fillStyle = '#fff'; g.beginPath(); g.arc(mx2 + T / 2, my2 + T / 2, T * .42, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over'; } }
     else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T;
       // a thin ring at your feet, so you find yourself at a glance on a dark or busy map
@@ -764,7 +767,7 @@ function draw() {
   $('#stage').style.setProperty('--vw', VW + 'px');
   if (inGame) {
     if (!built) buildMain();
-    const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml());
+    const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
     const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();

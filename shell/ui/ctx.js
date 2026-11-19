@@ -114,10 +114,11 @@ function ctxKey(e) {
 
 /* ---------- following up on the game's prompts ---------- */
 function ctxOnUi(m) {
+  hbOnUi(m); lvlOnUi(m);
   if (!PICK) return;
   if (Date.now() - PICK.t > 4000) { PICK = null; return; }
   if (m.kind !== 'items') return;
-  const hit = m.items.find(it => it.o && it.o.n === PICK.name && it.k.trim());
+  const hit = m.items.find(it => it.o && (PICK.ki != null ? it.o.ki === PICK.ki : it.o.n === PICK.name) && it.k.trim());
   if (hit) { PICK = null; sendText(hit.k); return; }
   if (m.tabs && m.tabs.length > 1 && PICK.tabbed < m.tabs.length - 1) { PICK.tabbed++; sendText('/'); return; }
   PICK = null;   // not offered here: leave the choice to you
@@ -131,7 +132,7 @@ function ctxOnFrame() {
 
 /* ---------- mouse ---------- */
 function ctxTarget(ev) {
-  const t = ev.target;
+  const t = ev.target, hb = hbCtx(ev); if (hb) return hb;
   if (t.id === 'map' && playing()) { const cell = mapCellAt(ev); if (!cell) return null; const m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
     const f = featName(cell.c), title = !cell.dx && !cell.dy ? 'You' : m ? cap(m.n.replace(/^(an?|the) /i, '')) : cap(f || 'here');
     return [title, cellItems(cell)]; }
@@ -143,7 +144,8 @@ function ctxTarget(ev) {
   const row = t.closest && t.closest('.inv .tr[data-key]');
   if (row && UI && UI.kind === 'items') { const it = UI.items.find(i => i.k === row.dataset.key); if (it && it.o) {
       const tab = UI.tabs.find(x => x.on) || UI.tabs[0], isWorn = tab && tab.loc === 1;
-      return [it.o.n, objItems(it.o, isWorn).map(a => ({ ...a, run: () => { sendText('\x1b'); setTimeout(a.run, 60); } }))]; } }
+      const hs = !isWorn && hbFromObj(it.o);
+      return [it.o.n, objItems(it.o, isWorn).map(a => ({ ...a, run: () => { sendText('\x1b'); setTimeout(a.run, 60); } })).concat(hs ? [{ k: 'h', n: 'Put on the hotbar', run: () => hbSet(-1, hs) }] : [])]; } }
   return null;
 }
 document.addEventListener('mousedown', ev => {
@@ -172,6 +174,7 @@ function dragWhat(t) {
 }
 const inRect = (el, x, y) => { if (!el) return false; const r = el.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
 function dropTarget(x, y) {
+  const hb = hbDropAt(x, y); if (hb >= 0) return !DRAG.worn && hbFromObj(DRAG.o) ? { hb, n: 'Slot ' + HB_KEYS[hb] } : null;
   if (DRAG.panel && inRect(DRAG.panel, x, y)) return null;
   if (inRect($('.doll'), x, y)) { const tv = DRAG.o.tv; return !DRAG.worn && ((tv >= 19 && tv <= 23) || (tv >= 30 && tv <= 45)) ? { c: 'w', n: 'Wear' } : null; }
   if (inRect($('#map'), x, y)) return { c: 'd', n: 'Drop' };
@@ -195,6 +198,7 @@ document.addEventListener('mouseup', ev => {
   if (!d.on) return;
   window.__noClick = Date.now();
   const t = (DRAG = d, dropTarget(ev.clientX, ev.clientY)); DRAG = null; if (!t) return;
+  if (t.hb != null) { hbSet(t.hb, hbFromObj(d.o)); return; }
   if (d.panel) { sendText('\x1b'); setTimeout(() => cmdPick(t.c, d.o.n), 60); } else cmdPick(t.c, d.o.n);
 }, true);
 // a drag is not a click
