@@ -190,7 +190,7 @@ function shopAskHtml(msg, W, buy, sell) {
   if ((m = /(\w+) which item/i.exec(msg))) {
     const put = /sell|give|drop|donate|leave/i.test(m[1]);
     SHOP.ask = { tab: put ? 'sell' : 'buy', t: Date.now(), row: null };
-    return `<div class="shask"><div class="shaskh">${esc(cap(m[1].toLowerCase()))} what?</div><div class="hint">Click it in the list, or press its letter.</div><div class="askb">${cancel}</div></div>`;
+    return `<div class="shask"><div class="shaskh">${/^reserve$/i.test(m[1]) ? 'Hold which item?' : esc(cap(m[1].toLowerCase())) + ' what?'}</div><div class="hint">Click it in the list, or press its letter.</div><div class="askb">${cancel}</div></div>`;
   }
   const q = shopAskQ(msg);
   if (q) {
@@ -207,7 +207,11 @@ function shopAskHtml(msg, W, buy, sell) {
   }
   if ((m = /Really (buy|sell|give|donate) (.*) for (\d+) gp\? \[y\/n\]\s*$/i.exec(msg))) { const r = SHOP.ask && SHOP.ask.row && SHOP.ask.row !== 'none' ? SHOP.ask.row : null, v = m[1].toLowerCase();
     return `<div class="shask">${r ? `<div class="shhead"><div class="slot big t-${tvIcon(r.tv)}">${artHtml(r.ki, 84) || icon(tvIcon(r.tv))}</div><div class="grow"><div class="spn shname">${esc(cap(m[2].replace(/^an? /, '').replace(/\s*[\[({].*$/, '')))}</div></div></div>` : ''}<div class="shaskh">${esc(cap(v))} ${esc(r ? 'it' : m[2])}?</div><div class="shask2">${v === 'buy' ? 'It costs' : 'You get'} ${(+m[3]).toLocaleString()} gold.</div><div class="askb">${btn('y', cap(v), 'go')}${btn('n', 'No')}</div></div>`; }
-  if ((m = /^(?:.*\d\s+)?(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg.replace(/^Quantity \([^)]*\):\s*\d*\s*/, '')))) return `<div class="shask"><div class="shaskh">${esc(m[1])}</div><div class="askb">${btn('y', 'Yes', 'go')}${btn('n', 'No')}</div></div>`;
+  if (/buy the entire inventory of this store\? \[y\/n\]\s*$/i.test(msg)) return `<div class="shask"><div class="shaskh">Buy everything on the shelves?</div><div class="shask2">You get every whole stack you can afford, from the top of the list down.</div><div class="askb">${btn('y', 'Buy it all', 'go')}${btn('n', 'No')}</div></div>`;
+  // the two paid services, said plainly, with the price and whether you can afford it
+  if ((m = /(Shuffle stock|Reserve (.+?)) for (\d+) gp\? \[y\/n\]\s*$/i.exec(msg))) { const cost = +m[3], gold = (UI && UI.gold != null ? UI.gold : S && S.p ? S.p.au : 0) || 0, short = gold && cost > gold;
+    return `<div class="shask"><div class="shaskh">${m[2] ? 'Have ' + esc(m[2].replace(/^\d+ /, '')) + ' held for you?' : 'Ask for new stock?'}</div><div class="shask2">${m[2] ? 'It stays on the shelf until you come back to buy it.' : 'The shopkeeper clears the shelves and brings out other wares.'} It costs ${cost.toLocaleString()} gold${short ? ', more than you carry' : ''}.</div><div class="askb">${btn('y', 'Pay ' + cost.toLocaleString(), 'go')}${btn('n', 'No')}</div></div>`; }
+  if ((m = /^(?:.*\d\s+)?(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg.replace(/^Quantity \([^)]*\):\s*\d*\s*/, ''))) && (m[1].length >= 12 || (m = /^()(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg)) && (m[1] = m[2]))) return `<div class="shask"><div class="shaskh">${esc(m[1])}</div><div class="askb">${btn('y', 'Yes', 'go')}${btn('n', 'No')}</div></div>`;
   if (/-more-/.test(msg)) return `<div class="shask"><div class="shaskh lite">${esc(msg.replace(/\s*-more-\s*/g, ' ').trim())}</div><div class="askb">${btn(' ', 'Continue', 'go', 'Space')}</div></div>`;
   return `<div class="shask"><div class="dsch">${W.home ? 'the game asks' : 'the shopkeeper asks'}</div><div class="live" style="font-size:20px">${lookKeys(esc(msg))}${qtyKeys()}</div><div class="hint">Answer with the keys, or click an item in the list. Esc cancels.</div></div>`;
 }
