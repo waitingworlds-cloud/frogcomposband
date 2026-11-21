@@ -434,7 +434,7 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 .bwho.tight{gap:6px}.bwho.tight .bwc{padding:6px 12px 6px 8px}.bwho.tight .bwc .ptart{width:54px;height:54px}.bwho.tight .bwc .ptx b{font-size:21px}.bwho.tight .bwc .ptx>span{-webkit-line-clamp:1}
 
 .ptx b.two{white-space:normal;line-height:1.02;font-size:19px;padding:2px 0 1px}
-.ptl:not(.big) .ptnow{position:static;align-self:flex-start;margin-top:3px;white-space:nowrap}
+.ptl.small .ptnow{position:static;align-self:flex-start;margin-top:3px;white-space:nowrap}.ptl:not(.big):not(.small) .pt.now .ptx b{padding-right:74px}
 
 .srow .price .wth{font:italic 400 13px Spectral,Georgia,serif;color:#8f8a80;margin-right:2px}
 
