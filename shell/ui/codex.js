@@ -322,3 +322,20 @@ function mobCardHtml(y0, y1, x0, x1, skip) {
   const body = loreRows(list);
   return `<div class="mbc"><div class="mbh">${has ? `<canvas class="ptart" data-k="mon" data-n="${esc(k)}"></canvas>` : `<span class="ptart em">${esc(m[2])}</span>`}<div><b>${esc(cap(m[1]))}</b><span>What you have learned of this creature</span></div></div><div class="mbl">${body || '<p class="sub">You know nothing of it yet. Fight it or watch it to learn more.</p>'}</div></div>`;
 }
+
+// an item's write-up opened from the journal: its picture, name and weight head a card; wrapped lines read as prose, facts and tables keep their lines
+function itemCardHtml(y0, y1, x0, x1, skip) {
+  const txt = y => rowText(y).replace(/\x01/g, ' ').slice(x0, x1 + 1).replace(/\s+$/, '');
+  let hy = -1, m = null; for (let y = y0; y <= y1; y++) { if (skip[y] || !txt(y).trim()) continue; m = /^\s*(\S.*?)\s{2,}(\d+(?:\.\d)?) lbs?$/.exec(txt(y)); hy = y; break; }
+  if (!m) return '';
+  const seg = y => { const s = txt(y), a = G.a[y] || [], i0 = s.search(/\S/); let h = '', cur = -1, run = ''; const fl = () => { if (run) h += cur <= 1 ? esc(run) : `<span style="color:${readable(col(cur))}">${esc(run)}</span>`; run = ''; };
+    for (let x = i0; x < s.length; x++) { const at = (a[x0 + x] || 0) & 31; if (s[x] !== ' ' && at !== cur) { fl(); cur = at; } run += s[x]; } fl(); return h; };
+  const out = []; let para = null, prev = '';
+  for (let y = hy + 1; y <= y1; y++) { if (skip[y]) continue; const s = txt(y), t = s.trim();
+    if (!t) { para = null; prev = ''; continue; }
+    if (/\S {3,}\S/.test(t)) { out.push(`<pre class="ict">${seg(y)}</pre>`); para = null; prev = ''; continue; }
+    if (/^[A-Z][A-Za-z ]{0,14}:\s/.test(t) && t.length < 50) { out.push(`<div class="icf">${seg(y)}</div>`); para = null; prev = ''; continue; }
+    if (para && prev.length >= 52) para.h += ' ' + seg(y); else { para = { h: seg(y) }; out.push(para); } prev = s; }
+  const nm = m[1], ki = codexKind(nm.replace(/^(an?|the|\d+) /i, '')) ?? codexKind(nm), art = ki != null ? artHtml(ki, 96) : '';
+  return `<div class="mbc itc"><div class="mbh">${art || `<span class="ptart em">${esc(nm.replace(/^(an?|the) /i, '').charAt(0).toUpperCase())}</span>`}<div><b>${typeof nameHtml === 'function' ? nameHtml(cap(nm)) : esc(cap(nm))}</b><span>${esc(m[2])} lb</span></div></div><div class="mbl">${out.map(p => typeof p === 'string' ? p : `<p>${p.h}</p>`).join('')}</div></div>`;
+}
