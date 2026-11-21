@@ -23,6 +23,7 @@ typedef struct msg_s msg_t, *msg_ptr;
 
 extern void     msg_on_startup(void);
 extern void     msg_on_shutdown(void);
+extern void     msg_wipe(void);
 extern void     msg_on_load(savefile_ptr file);
 extern void     msg_on_save(savefile_ptr file);
 

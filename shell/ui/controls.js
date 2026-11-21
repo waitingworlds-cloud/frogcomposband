@@ -2,13 +2,13 @@
 'use strict';
 const CONTROLS = [
   ['Mouse', [
-    ['click a square', 'walk there (dots show the way)'], ['click a creature', 'attack it, or walk to it'], ['click yourself', 'pick up, or take the stairs you stand on'],
+    ['click a square', 'walk there (dots show the way)'], ['click a creature', 'attack it, or walk to it'], ['the button under the map', 'what you can do where you stand: pick up, stairs, doors'], ['double-click stairs', 'walk there and take them'],
     ['click an item', 'walk over and pick it up'], ['right-click anything', 'everything you can do with it'], ['point at a creature', 'what you know of it, in Recall'], ['rest the pointer on an item', 'what it does'],
     ['wheel over the map', 'zoom in and out'], ['drag an item onto the map', 'drop it'], ['click the area map', 'travel there'], ['click your name', 'character sheet'], ['click an edge arrow', 'target the creature off view'],
-    ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['prompts and menus', 'every key shown is a button'], ['drag a spell or item onto the hotbar', 'then one click uses it'], ['drag a hotbar slot off the bar', 'clear it'],
+    ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['questions', 'every answer is a button; arrows change a number'], ['drag a spell or item onto the hotbar', 'then one click uses it'], ['drag a hotbar slot off the bar', 'clear it'],
   ]],
   ['Keys', [
-    ['x', 'explore until something turns up (original keys)'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'], ['Shift+F7', 'living map: ripples, flicker, sway'],
+    ['x', 'explore until something turns up (original keys)'], ['i e m C M ~', 'pack, gear, spells, character, map, journal: tabs of one window'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'], ['Shift+F7', 'living map: ripples, flicker, sway'],
     ['F8', 'retro moments'], ['F9', 'screen style (Shift+F9 back)'], ['Ctrl + / Ctrl −', 'interface size'], ['F11', 'full screen'], ['Ctrl+1 … Ctrl+0', 'hotbar slots'], ['?', "the game's own help"],
   ]],
 ];
@@ -30,8 +30,8 @@ function controlsKey(e) {
 }
 
 // Esc with nothing open: a small game menu. Every entry is the game's own key, so nothing here is new to learn
-const GMENU = [['C', 'Character sheet', 'C'], ['i', 'Pack', 'i'], ['e', 'Equipment', 'e'], ['M', 'Level map', 'M'], ['~', 'Knowledge', '~'], ['Ctrl+P', 'Message history', '\x10'],
-  ['=', 'Options', '='], ['?', 'Game help', '?'], ['F1', 'Mouse and new keys', 'F1'], ['Ctrl+S', 'Save', '\x13'], ['Ctrl+X', 'Save and quit', '\x18']];
+const GMENU = [['C', 'Character', 'C'], ['i', 'Pack', 'i'], ['e', 'Gear', 'e'], ['M', 'Map', 'M'], ['~', 'Journal', '~'], ['Ctrl+P', 'Messages', '\x10'],
+  ['=', 'Options', '='], ['?', 'Help', '?'], ['F1', 'Mouse and keys', 'F1'], ['X', 'Every command', 'X'], ['Ctrl+S', 'Save', '\x13'], ['Ctrl+X', 'Save and quit', '\x18']];
 function gmenuToggle(force) {
   let el = document.getElementById('gmenu');
   if (el && force !== true) { el.remove(); return; }
@@ -42,7 +42,7 @@ function gmenuToggle(force) {
     <div class="nfoot"><span class="grow"></span><span class="row" data-gmclose="1"><span class="key">Esc</span>back to the game</span></div></div>`;
   el.addEventListener('mousedown', e => {
     e.stopPropagation(); const r = e.target.closest('[data-gm]');
-    if (r) { const v = GMENU[+r.dataset.gm][2]; el.remove(); if (v === 'F1') controlsToggle(true); else sendText(cmd(v)); return; }
+    if (r) { const v = GMENU[+r.dataset.gm][2]; el.remove(); if (v === 'F1') controlsToggle(true); else sendText(v === 'X' ? 'X' : cmd(v)); return; }
     if (e.target === el || e.target.closest('[data-gmclose]')) el.remove();
   });
   document.body.appendChild(el);
@@ -55,9 +55,17 @@ function gmenuKey(e) {
   if (el) {
     if (e.key === 'Escape') { el.remove(); return true; }
     const hit = GMENU.find(([k]) => k === e.key || (k.startsWith('Ctrl+') && e.ctrlKey && e.key.toLowerCase() === k.slice(5).toLowerCase()));
-    el.remove(); if (hit) { if (hit[2] === 'F1') controlsToggle(true); else sendText(cmd(hit[2])); return true; }
+    el.remove(); if (hit) { if (hit[2] === 'F1') controlsToggle(true); else sendText(hit[2] === 'X' ? 'X' : cmd(hit[2])); return true; }
     return false;
   }
   if (e.key === 'Escape' && !e.ctrlKey && !e.altKey && !e.repeat && gap > 400 && gmenuFree()) { gmenuToggle(true); return true; }   // a quick run of Escapes is clearing things, not asking for the menu
   return false;
 }
+// Which hand is playing: the letters beside list rows and on the worn-gear figure are there for the keyboard. They show
+// once a key is pressed and step aside again when the mouse moves, so a mouse player never sees letter menus.
+(() => {
+  let mx = -1, my = -1; document.body.classList.add('mouse');
+  document.addEventListener('mousemove', e => { if (mx >= 0 && Math.abs(e.clientX - mx) + Math.abs(e.clientY - my) < 6) return; mx = e.clientX; my = e.clientY; document.body.classList.add('mouse'); }, true);
+  document.addEventListener('mousedown', () => document.body.classList.add('mouse'), true);
+  document.addEventListener('keydown', e => { if (/^(Shift|Control|Alt|Meta)$/.test(e.key)) return; document.body.classList.remove('mouse'); }, true);
+})();

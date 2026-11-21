@@ -48,6 +48,20 @@ void msg_on_startup(void)
     msg_line_init(ui_msg_rect());
 }
 
+/* a new character starts with an empty log, not the last one's */
+void msg_wipe(void)
+{
+    int i;
+    for (i = 0; i < _msg_max; i++)
+    {
+        _msg_free(_msgs[i]);
+        _msgs[i] = NULL;
+    }
+    _msg_count = 0;
+    _msg_head = 0;
+    _msg_append = FALSE;
+}
+
 void msg_on_shutdown(void)
 {
     int i;

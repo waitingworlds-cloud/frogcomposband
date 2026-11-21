@@ -13,6 +13,7 @@ function lvlOnUi(m) {
 }
 const LV_STATS = ['Strength', 'Intelligence', 'Wisdom', 'Dexterity', 'Constitution', 'Charisma'];
 function lvlOnState(prev, cur) {
+  if (LV.data && cur && cur.p && cur.p.hp < 0) lvlClose();   // no cheering over a fallen character
   if (LV.data) { LV.turns++; if (LV.turns > 40 && !(LV.el && LV.el.matches(':hover'))) lvlClose(); else lvlDraw(); }
   if (!prev || !prev.p || !cur || !cur.p || cur.p.name !== prev.p.name || !(cur.p.lev > prev.p.lev)) return;
   const p = cur.p, q = prev.p, gains = [];
@@ -33,15 +34,15 @@ function lvlSaid() {   // what the game said on the turn you went up, but the le
 function lvlDraw(fresh) {
   const d = LV.data; if (!d) return;
   if (!LV.el) { LV.el = document.createElement('div'); LV.el.id = 'lvlcard'; document.getElementById('stage').appendChild(LV.el); }
-  const study = /Study/.test(hbStatus ? hbStatus() : '');
+  const study = typeof CAN_STUDY !== 'undefined' && CAN_STUDY;
   const said = lvlSaid();
   LV.el.innerHTML = `<div class="lvc ch"><div class="lvi ch">
-    <div class="lvh"><div class="lvn">${d.lev}</div><div><b>Level ${d.lev}</b><span>${esc([S.p.race, S.p.cls].filter(Boolean).join(' '))}${d.lev - d.from > 1 ? ` · up ${d.lev - d.from} levels` : ''}</span></div><span class="grow"></span><span class="lvx" data-lvx="1" data-tip="Close (or just play on)">×</span></div>
+    <div class="lvh"><div class="lvn">${d.lev}</div><div><b>Level ${d.lev}</b><span>${esc(heroKind(S.p))}${d.lev - d.from > 1 ? ` · up ${d.lev - d.from} levels` : ''}</span></div><span class="grow"></span><span class="lvx" data-lvx="1" data-tip="Close (or just play on)">×</span></div>
     ${d.gains.length ? `<div class="lvg">${d.gains.map(([k, v, s]) => `<div class="lvgi"><b>${esc(v)}</b><span>${esc(k)}</span>${s ? `<i>${esc(s)}</i>` : ''}</div>`).join('')}</div>` : ''}
     ${d.reach.length ? `<div class="lvs"><div class="dsch">spells now within reach</div>${d.reach.map(r => `<div class="lvsp"><span class="hbsp-i">${SPARK}</span><b>${esc(r.n)}</b>${r.book ? `<i>${esc(r.book)}</i>` : ''}</div>`).join('')}</div>` : ''}
     ${said.length ? `<div class="lvsaid">${said.map(s => `<div>${esc(s)}</div>`).join('')}</div>` : ''}
     <div class="lvb">${study ? `<span class="btn go" data-key="\\G" data-tip="Study: pick a book, then the spell">Learn new spells</span>` : ''}<span class="btn" data-key="\\C">Character sheet</span><span class="btn" data-lvx="1">Close</span></div></div></div>`;
   if (fresh) { LV.el.classList.remove('in'); void LV.el.offsetWidth; LV.el.classList.add('in'); }
 }
-function lvlClose() { LV.data = null; if (LV.el) LV.el.innerHTML = ''; }
+function lvlClose() { LV.data = null; if (LV.el) LV.el.innerHTML = ''; if (typeof tipStale === 'function') tipStale(); }
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-lvx]')) lvlClose(); else if (e.target.closest && e.target.closest('#lvlcard [data-key]')) setTimeout(lvlClose, 50); });

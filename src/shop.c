@@ -1457,6 +1457,20 @@ static int  _stock_base(shop_ptr shop);
 shop_ptr shell_shop = NULL;
 obj_ptr shell_shop_obj(int slot) { return shell_shop && slot > 0 ? inv_obj(shell_shop->inv, slot) : NULL; }
 
+/* a trade asked for from the interface's own buy and sell cards: the item and the count are
+ * already chosen there and the card's button is the confirmation, so no question is asked here.
+ * req: 0 none, 'b' buy shelf slot, 's' sell from the pack ('p') or quiver ('q') */
+bool shell_shop_idle = FALSE;
+static int _shell_req = 0, _shell_where = 0, _shell_slot = 0, _shell_amt = 0;
+static bool _shell_direct = FALSE;
+bool shell_shop_request(int req, int where, int slot, int amt)
+{
+    if (!shell_shop || !shell_shop_idle || slot <= 0 || amt <= 0) return FALSE;
+    if (req != 'b' && req != 's') return FALSE;
+    _shell_req = req; _shell_where = where; _shell_slot = slot; _shell_amt = amt;
+    return TRUE;
+}
+
 void shop_ui(shop_ptr shop)
 {
     _ui_context_t context = {0};
@@ -1495,7 +1509,10 @@ static void _loop(_ui_context_ptr context)
 
         _display(context);
 
+        shell_shop_idle = TRUE;
         cmd = inkey_special(TRUE);
+        shell_shop_idle = FALSE;
+        if (cmd != 'b' && cmd != 's') _shell_req = 0;
         msg_line_clear();
         msg_boundary(); /* turn_count is unchanging while in home/museum */
         if (cmd == ESCAPE || cmd == 'q' || cmd == 'Q') break;
@@ -1681,6 +1698,35 @@ static void _display(_ui_context_ptr context)
             else if (obj->name2) shell_ui_int("ego", 1);
             if (obj->discount) shell_ui_int("off", obj->discount);
         }
+        /* what you carry that this shop takes, with what it pays for one */
+        {
+            int pass;
+            for (pass = 0; pass < 2; pass++)
+            {
+                slot_t smax = pass ? quiver_max() : pack_max();
+                for (slot = 1; slot <= smax; slot++)
+                {
+                    obj_ptr obj = pass ? quiver_obj(slot) : pack_obj(slot);
+                    char    name[MAX_NLEN], lab[2];
+                    if (!obj) continue;
+                    if (shop->type->buy_p && !shop->type->buy_p(obj)) continue;
+                    object_desc(name, obj, 0);
+                    lab[0] = slot_label(slot); lab[1] = 0;
+                    shell_ui_row();
+                    shell_ui_str("wh", pass ? "q" : "p");
+                    shell_ui_str("k", lab);
+                    shell_ui_int("sl", slot);
+                    shell_ui_str("n", name);
+                    shell_ui_int("tv", obj->tval);
+                    shell_ui_int("ki", obj->k_idx);
+                    shell_ui_int("num", obj->number);
+                    shell_ui_int("w", obj->weight);
+                    shell_ui_int("price", no_selling ? 0 : _buy_price(shop, obj_value(obj)));
+                    if (object_is_artifact(obj)) shell_ui_int("art", 1);
+                    else if (obj->name2) shell_ui_int("ego", 1);
+                }
+            }
+        }
         shell_ui_close();
     }
 }
@@ -1711,7 +1757,7 @@ static bool _buy_aux(shop_ptr shop, obj_ptr obj)
         string_printf(s, "Really give %s? <color:y>[y/n]</color>", name);
     else
         string_printf(s, "Really sell %s for <color:R>%d</color> gp? <color:y>[y/n]</color>", name, price);
-    c = msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
+    c = _shell_direct ? 'y' : msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
     string_free(s);
     if (c == 'n') return FALSE;
 
@@ -1784,6 +1830,19 @@ static void _buy(_ui_context_ptr context)
     prompt.where[0] = INV_PACK;
     prompt.where[1] = INV_QUIVER;
 
+    if (_shell_req == 's')
+    {
+        /* chosen on the interface's sell card */
+        obj_ptr o = _shell_where == 'q' ? quiver_obj(_shell_slot) : pack_obj(_shell_slot);
+        _shell_req = 0;
+        if (!o || (prompt.filter && !prompt.filter(o))) return;
+        prompt.obj = o;
+        amt = MAX(1, MIN(_shell_amt, o->number));
+        _shell_direct = TRUE;
+    }
+    else
+    {
+    _shell_req = 0;
     command_cmd = 's'; /* Hack for !s inscriptions */
     obj_prompt(&prompt);
     command_cmd = '\0';
@@ -1793,6 +1852,7 @@ static void _buy(_ui_context_ptr context)
     {
         amt = prompt.obj->number;
         if (!msg_input_num("Quantity", &amt, 1, prompt.obj->number)) return;
+    }
     }
 
     if (amt < prompt.obj->number)
@@ -1824,6 +1884,7 @@ static void _buy(_ui_context_ptr context)
     else
         _buy_aux(context->shop, prompt.obj);
 
+    _shell_direct = FALSE;
     obj_release(prompt.obj, OBJ_RELEASE_QUIET);
 }
 
@@ -1943,7 +2004,7 @@ static bool _sell_aux(shop_ptr shop, obj_ptr obj)
 
     object_desc(name, obj, OD_COLOR_CODED);
     string_printf(s, "Really buy %s for <color:R>%d</color> gp? <color:y>[y/n]</color>", name, price);
-    c = msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
+    c = _shell_direct ? 'y' : msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
     string_free(s);
     if (c == 'n') return FALSE;
 
@@ -2007,6 +2068,27 @@ static void _sell(_ui_context_ptr context)
 			}
 		}
 
+        if (_shell_req == 'b')
+        {
+            /* chosen on the interface's buy card */
+            int price;
+            _shell_req = 0;
+            slot = _shell_slot;
+            obj = inv_obj(context->shop->inv, slot);
+            if (!obj) break;
+            price = _sell_price(context->shop, obj_value(obj));
+            amt = MAX(1, MIN(_shell_amt, obj->number));
+            if (price > 0 && price * amt > p_ptr->au) amt = p_ptr->au / price;
+            if (amt < 1)
+            {
+                msg_print("You do not have enough gold.");
+                return;
+            }
+            _shell_direct = TRUE;
+        }
+        else
+        {
+        _shell_req = 0;
         if (!msg_command("<color:y>Buy which item <color:w>(<color:keypress>Esc</color> "
                          "to cancel)</color>?</color>", &cmd)) break;
         if (cmd < 'a' || cmd > 'z') continue;
@@ -2014,8 +2096,9 @@ static void _sell(_ui_context_ptr context)
         slot = slot + context->top - 1;
         obj = inv_obj(context->shop->inv, slot);
         if (!obj) continue;
+        }
 
-//        if (obj->number > 1)
+        if (!_shell_direct)
         {
             int maks = obj->number;
             if (limit_shop_prompts)
@@ -2060,6 +2143,7 @@ static void _sell(_ui_context_ptr context)
         }
         break;
     }
+    _shell_direct = FALSE;
 }
 
 static void _sellout(shop_ptr shop)

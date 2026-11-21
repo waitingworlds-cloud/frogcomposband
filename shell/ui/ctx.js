@@ -9,7 +9,7 @@ let AIM = 0;             // when set, answer the game's next "Direction" prompt 
 
 const dirKey = (dx, dy) => String.fromCharCode(48 + (dy < 0 ? 7 : dy > 0 ? 1 : 4) + Math.sign(dx) + 1);
 const cmd = c => '\\' + c;                       // '\' makes the game read the next key as a plain command, whatever the keymap
-function cmdPick(c, name) { PICK = { name, t: Date.now(), tabbed: 0 }; sendText(cmd(c)); }
+function cmdPick(c, name) { PICK = { name, c, t: Date.now(), tabbed: 0 }; sendText(cmd(c)); }
 function cmdAim(c, dx, dy) { sendRaw(`T ${dx} ${dy}`); AIM = Date.now(); sendText(cmd(c)); }
 
 /* ---------- what you can do ---------- */
@@ -30,7 +30,7 @@ function cellItems(cell) {
       S.map.c.forEach((c, i) => { if (!c || !c[0] || featClass(c[0]) !== cls) return; const dx = i % mw - sx, dy = ((i / mw) | 0) - sy; if (best && Math.max(Math.abs(dx), Math.abs(dy)) >= best.n) return; const p = walkPath(dx, dy); if (p && (!best || p.length < best.n)) best = { dx, dy, n: p.length }; });
       if (best) out.push({ k: '', n: `Walk to the nearest way ${word} (${best.n} steps)`, run: () => sendRaw(`M 1 ${best.dx} ${best.dy}`) });
     }
-    if (!expFoes().length) out.push({ k: S.p.rl ? '' : 'x', n: 'Explore until something turns up', run: () => exploreStart() });
+    if (!expFoes().some(expThreat)) out.push({ k: S.p.rl ? '' : 'x', n: 'Explore until something turns up', run: () => exploreStart() });
     out.push({ k: 'R', n: 'Rest as needed', run: () => sendText(cmd('R') + '&\r') });
     out.push({ k: 'i', n: 'Open your pack', run: () => sendText(cmd('i')) });
     out.push({ k: 'l', n: 'Look around', run: () => sendText(cmd('l')) });
@@ -38,10 +38,10 @@ function cellItems(cell) {
   }
   if (m) {
     const nm = cap(m.n.replace(/^(an?|the) /i, ''));
-    out.push({ k: 'a', n: (adj ? 'Attack ' : 'Walk to and attack ') + nm, run: () => sendRaw(`M 1 ${dx} ${dy}`), hot: !m.pet && !m.friendly });
-    out.push({ k: 'f', n: 'Fire at it', run: () => cmdAim('f', dx, dy), dim: !m.los });
+    out.push({ k: 'a', n: (adj ? 'Attack ' : 'Charge ') + nm, run: () => sendRaw(`M 1 ${dx} ${dy}`), hot: !m.pet && !m.friendly });
+    if ((S.equip || []).some(e => e.slot === 'Shooting' && e.o)) out.push({ k: 'f', n: 'Fire at it', run: () => cmdAim('f', dx, dy), dim: !m.los });   // only with something to shoot with
     out.push({ k: 'v', n: 'Throw at it', run: () => cmdAim('v', dx, dy), dim: !m.los });
-    out.push({ k: 'm', n: 'Cast a spell at it', run: () => cmdAim('m', dx, dy), dim: !m.los });
+    if (S.p.msp > 0 || S.p.realm) out.push({ k: 'm', n: 'Cast a spell at it', run: () => cmdAim('m', dx, dy), dim: !m.los });
     out.push({ k: 't', n: 'Target it', run: () => sendRaw(`T ${dx} ${dy}`) });
     out.push({ k: 'r', n: 'Recall what you know', run: () => sendRaw(`M 2 ${dx} ${dy}`) });
     return out;
@@ -65,7 +65,7 @@ function objItems(o, worn) {
   const tv = o.tv, out = [], is = k => TV[k].includes(tv), wearable = (tv >= 19 && tv <= 23) || (tv >= 30 && tv <= 45) || tv === 39;
   if (worn) {
     out.push({ k: 't', n: 'Take it off', run: () => cmdPick('t', o.n) });
-    if (tv >= 19 && tv <= 23 && tv !== 19) out.push({ k: 'f', n: 'Fire', run: () => sendText(cmd('f')) });
+    if (tv === 19) out.push({ k: 'f', n: 'Fire', run: () => sendText(cmd('f')) });
   } else {
     if (is('potion')) out.push({ k: 'q', n: 'Quaff', run: () => cmdPick('q', o.n) });
     if (is('scroll')) out.push({ k: 'r', n: 'Read', run: () => cmdPick('r', o.n) });
@@ -75,7 +75,7 @@ function objItems(o, worn) {
     if (is('rod')) out.push({ k: 'z', n: 'Zap', run: () => cmdPick('z', o.n) });
     if (tv >= 90 && tv <= 109) { out.push({ k: 'b', n: 'Browse', run: () => cmdPick('b', o.n) }); out.push({ k: 'm', n: 'Cast from it', run: () => cmdPick('m', o.n) }); }
     if (is('ammo')) out.push({ k: 'f', n: 'Fire', run: () => cmdPick('f', o.n) });
-    if (wearable) out.push({ k: 'w', n: 'Wear or wield', run: () => cmdPick('w', o.n) });
+    if (wearable) out.push({ k: 'w', n: tv >= 19 && tv <= 23 ? 'Wield' : tv === 39 ? 'Carry as your light' : tv === 40 || tv === 45 ? 'Put on' : tv >= 30 && tv <= 38 ? 'Wear' : 'Wear or wield', run: () => cmdPick('w', o.n) });
     out.push({ k: 'v', n: 'Throw', run: () => cmdPick('v', o.n) });
     out.push({ k: 'd', n: 'Drop', run: () => cmdPick('d', o.n) });
   }
@@ -119,7 +119,7 @@ function ctxOnUi(m) {
   if (Date.now() - PICK.t > 4000) { PICK = null; return; }
   if (m.kind !== 'items') return;
   const hit = m.items.find(it => it.o && (PICK.ki != null ? it.o.ki === PICK.ki : it.o.n === PICK.name) && it.k.trim());
-  if (hit) { PICK = null; sendText(hit.k); return; }
+  if (hit) { const c = PICK.c; PICK = null; sendText(hit.k); if (typeof LASTPICK !== 'undefined') LASTPICK = { o: hit.o, c, t: Date.now() }; return; }
   if (m.tabs && m.tabs.length > 1 && PICK.tabbed < m.tabs.length - 1) { PICK.tabbed++; sendText('/'); return; }
   PICK = null;   // not offered here: leave the choice to you
 }

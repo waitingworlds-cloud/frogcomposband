@@ -24,15 +24,6 @@ function ambCell(g, cls, sx, sy, T, wx, wy, lit) {
 }
 // a creature's sway: awake ones bob a little, sleepers barely breathe
 function ambBob(m, i) { if (!AMB.on || !m) return 0; const t = ambT(), ph = (i || 0) * 1.7; return m.asleep ? Math.sin(t * 1.2 + ph) * .008 : Math.sin(t * 3.1 + ph) * .022; }
-// dust in your light
-function ambMotes(g, px, py, T, W, H) {
-  if (!AMB.on) return; const t = ambT(), ms = AMB.motes;
-  while (ms.length < 18) ms.push({ a: Math.random() * 6.28, r: Math.random() * 4.5, s: .1 + Math.random() * .25, ph: Math.random() * 6.28, z: .6 + Math.random() * .8 });
-  g.save(); g.globalCompositeOperation = 'lighter';
-  for (const m of ms) { const a = m.a + t * m.s * .3, r = m.r * T + Math.sin(t * .5 + m.ph) * T * .3, x = px + Math.cos(a) * r, y = py + Math.sin(a) * r * .8 - ((t * 6 * m.s + m.ph * 9) % (T * 1.5));
-    g.globalAlpha = (.18 + .14 * Math.sin(t * 1.3 + m.ph)) * Math.max(0, 1 - m.r / 4.5); g.fillStyle = '#ffd9a8'; g.beginPath(); g.arc(x, y, m.z * Math.max(1, T / 40), 0, 7); g.fill(); }
-  g.restore();
-}
 function ambKey(e) {
   if (e.key !== 'F7' || !e.shiftKey) return false;
   AMB.on = !AMB.on; try { localStorage.setItem('amb', AMB.on ? '1' : '0'); } catch (x) {}

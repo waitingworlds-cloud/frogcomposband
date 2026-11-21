@@ -18,7 +18,108 @@ function menuBox() {
   while (x1 > x0 && blankCol(x1)) x1--; while (x0 < x1 && blankCol(x0)) x0++;
   return { x0, y0, x1, y1 };
 }
+let MENU_NOTE = '';
+const menuNote = () => MENU_NOTE ? `<div class="mnote"><span>${esc(MENU_NOTE)}</span><span class="btn go" data-key=" ">OK</span></div>` : '';
+/* ---------- the game's Enter-key command menu (an ASCII box of two columns) as cards ---------- */
+const CMDM = { top: '' };
+const CMDM_WORDS = { 'Magic/Special': 'Magic and powers', 'Action': 'Actions', 'Items(use)': 'Use an item', 'Items(other)': 'Handle items', 'Equip': 'Gear', 'Door': 'Doors', 'Information': 'Look things up', 'Options': 'Settings', 'Save/Exit/Help': 'Save, quit, help',
+  'Use': 'Cast a spell', 'See tips': 'Browse your spells', 'Study': 'Learn a spell', 'Special abilities': 'Use a power', 'Activate an equipment': 'Activate worn gear', 'Dump screen dump': 'Save a picture of the screen', 'Load screen dump': 'Show the saved picture',
+  'Commit suicide': 'End this character', 'Edit Mogaminator': 'Pickup rules', 'Interact with macros': 'Key shortcuts', 'Interact w/ visuals': 'Text symbols', 'Interact with colors': 'Text colours', 'Enter a user pref': 'Type a settings line',
+  'Knowledge menu': 'Journal', 'Set options': 'Options', 'Show prev messages': 'Message history', 'Identify symbol': 'What is this symbol?', 'Toggle searching': 'Search as you walk', 'Get items': 'Pick up', 'Switch ring fingers': 'Swap ring fingers',
+  'List monsters': 'Creatures in view', 'List objects': 'Items in view', 'Full map': 'Map of the level', 'Map': 'Look around the level', 'Take note': 'Write a note', 'Version info': 'Game version', 'Fire missile weapon': 'Fire', 'Travel to item': 'Walk to an item', 'Redraw': 'Redraw the screen' };
+function cmdMenuFind() {
+  let bot = -1; for (let y = G.h - 1; y >= 6; y--) if (/\+-{50,54}\+/.test(rowText(y))) { bot = y; break; }
+  if (bot < 0) return null; const bx = rowText(bot).search(/\+-{50,54}\+/), top = bot - 6;
+  if (rowText(top).slice(bx, bx + 54) !== rowText(bot).slice(bx, bx + 54)) return null;
+  const items = []; let cur = -1, sub = false;
+  for (let y = 0; y < top; y++) if (/\+-{20}/.test(rowText(y))) sub = true;
+  for (let i = 0; i < 10; i++) { const y = top + 1 + (i >> 1), x = bx + 4 + (i % 2) * 24, row = rowText(y);
+    const t = row.slice(x, i % 2 ? bx + 53 : x + 24).trim(); if (!t) break; if (row.slice(x - 2, x) === '> ') cur = i; items.push(t); }
+  return items.length ? { items, cur, sub } : null;
+}
+// the keys that walk the game's cursor from one entry to another: its own stepping rules, searched breadth-first
+function cmdMenuKeys(from, to, n) {
+  const odd = n % 2, step = { '2': v => odd ? (v % 2 ? (v + 2) % (n - 1) : (v + 2) % (n + 1)) : (v + 2) % n, '8': v => odd ? (v % 2 ? (v + n - 3) % (n - 1) : (v + n - 1) % (n + 1)) : (v + n - 2) % n, '6': v => (v % 2 || v === n - 1) ? v - 1 : v < n - 1 ? v + 1 : v };
+  const seen = { [from]: '' }, q = [from];
+  while (q.length) { const v = q.shift(); if (v === to) return seen[v]; for (const k of '286') { const w = step[k](v); if (w >= 0 && w < n && !(w in seen)) { seen[w] = seen[v] + k; q.push(w); } } }
+  return null;
+}
+function cmdMenuHtml() {
+  const m = cmdMenuFind(); if (!m) return '';
+  if (!m.sub && m.cur >= 0) CMDM.top = m.items[m.cur];
+  const say = t => { const mm = CMDM_WORDS[t] ? null : /^(.*?)\((.+)\)$/.exec(t), base = mm ? mm[1].trim() : t; return { n: CMDM_WORDS[t] || CMDM_WORDS[base] || base, k: mm ? mm[2] : '' }; };
+  const card = (t, i) => { const w = say(t); return `<div class="mcard${i === m.cur ? ' cur' : ''}" data-cmi="${i}"${w.k ? ` data-tip="Its own key: ${esc(w.k.replace(/\//g, ' or ').replace(/\^(\w)/g, 'Ctrl $1'))}"` : ''}><span class="ml"><span class="mw">${esc(w.n)}</span></span>${m.sub ? '' : '<i class="mgo">&rsaquo;</i>'}</div>`; };
+  return `<div class="pane npanel menup mcards cmdm"><div class="mtitle ctitle">${m.sub ? esc(say(CMDM.top || 'Commands').n) : 'What would you like to do?'}<small>${m.sub ? 'Click one to do it' : 'Every command in the game, by kind'}</small></div>
+    <div class="mgrid">${m.items.map(card).join('')}</div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${m.sub ? 'Back' : 'Close'}</span><span class="mhint">click a choice, or use the arrows and Enter</span></div></div>`;
+}
+document.addEventListener('click', ev => {
+  const c = ev.target.closest && ev.target.closest('[data-cmi]'); if (!c) return;
+  ev.stopPropagation(); ev.preventDefault();
+  const m = cmdMenuFind(); if (!m) return; const keys = cmdMenuKeys(Math.max(0, m.cur), +c.dataset.cmi, m.items.length);
+  if (keys != null) { if (!m.sub) CMDM.top = m.items[+c.dataset.cmi]; sendText(keys + '\r'); }
+}, true);
+
+/* ---------- companion orders (the pet command list) as stance buttons, switches and actions ---------- */
+const PET_WORDS = { 'dismiss pets': ['Send companions away', 'pick who leaves'], 'stay close': ['Stay close'], 'follow me': ['Follow me'], 'seek and destroy': ['Seek and destroy'], 'give me space': ['Give me space'], 'stay away': ['Stay away'],
+  'pets open doors': ['Open doors'], 'pets pick up items': ['Pick up items'], 'allow teleport': ['Teleport'], 'allow cast attack spell': ['Cast attack spells'], 'allow cast summon spell': ['Summon help'], 'allow involve player in area spell': ['Use area spells that may catch you'],
+  'ride a pet': ['Ride a companion'], 'get off a pet': ['Dismount'], 'name pets': ['Name a companion'], 'no breeding': ['Keep them from breeding'], 'highlight pets on map': ['Highlight them on the map'], 'highlight pets in lists': ['Highlight them in lists'] };
+function petsMenuHtml() {
+  if (!/Select a command:\s*$/.test(rowText(0)) || !/\(Command /.test(rowText(0))) return '';
+  const rows = []; for (let y = 1; y < G.h; y++) { const m = /^([ *])([a-z])\)\s+(\S.*?)\s*$/.exec(rowText(y).slice(0, 60).replace(/\x01/g, ' ')); if (m) rows.push({ cur: m[1] === '*', k: m[2], t: m[3] }); else if (rows.length) break; }
+  if (rows.length < 4 || !rows.some(r => /pets|pet\b/.test(r.t))) return '';
+  const stance = [], sw = [], act = [];
+  for (const r of rows) { let m;
+    if ((m = /^(.*?)\s*\(now\s*:?\s*(On|Off)\)$/i.exec(r.t))) sw.push({ ...r, n: (PET_WORDS[m[1]] || [cap(m[1])])[0], on: /on/i.test(m[2]) });
+    else if (/^(stay close|follow me|seek and destroy|give me space|stay away)$/.test(r.t)) stance.push({ ...r, n: PET_WORDS[r.t][0] });
+    else if ((m = /^specify a target of pet\s*\(now\s*:\s*(.*?)\)$/.exec(r.t))) act.push({ ...r, n: 'Choose their target', d: /^nothing$/i.test(m[1]) ? 'none set' : 'now: ' + m[1] });
+    else { const w = PET_WORDS[r.t] || [cap(r.t)]; act.push({ ...r, n: w[0], d: w[1] || '' }); } }
+  const key = k => `<span class="key">${k}</span>`;
+  return `<div class="pane npanel menup mcards petm"><div class="mtitle ctitle">Companions<small>Orders for the creatures that follow you</small></div>
+    ${stance.length ? `<div class="mhead">How they keep to you</div><div class="pseg">${stance.map(r => `<span class="skt${r.cur ? ' on' : ''}" data-key="${r.k}">${key(r.k)}${esc(r.n)}</span>`).join('')}</div>` : ''}
+    <div class="pcols"><div>${sw.length ? `<div class="mhead">What they may do</div>${sw.map(r => `<div class="psw${r.on ? ' on' : ''}" data-key="${r.k}" data-tip="Click to turn ${r.on ? 'off' : 'on'}">${key(r.k)}<span>${esc(r.n)}</span><i><b></b></i><em>${r.on ? 'On' : 'Off'}</em></div>`).join('')}` : ''}</div>
+    <div>${act.length ? `<div class="mhead">Orders</div>${act.map(r => `<div class="mcard" data-key="${r.k}">${key(r.k)}<span class="ml"><span class="mw">${esc(r.n)}</span>${r.d ? `<small class="mwd">${esc(r.d)}</small>` : ''}</span></div>`).join('')}` : ''}</div></div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span></div></div>`;
+}
+/* ---------- the game's own creature list and item list as picture lists ---------- */
+function sightListFind() {
+  let hy = -1, kind = ''; for (let y = 0; y <= 3; y++) { const t = rowText(y).trim(); if (/^You (see|probe) \d+ monsters?,|^You are aware of \d+ (other )?monsters?,/.test(t)) { hy = y; kind = 'mon'; break; } if (/^There (is|are) \d+ (objects?|interesting features?)/.test(t)) { hy = y; kind = 'obj'; break; } }
+  if (hy < 0) return null;
+  const x0 = rowText(hy).search(/\S/), rows = []; let foot = -1;
+  for (let y = hy; y < G.h; y++) { const raw = rowText(y).replace(/\x01/g, ' '), t = raw.slice(x0).replace(/\s+$/, '');
+    if (/^\s*\[.*ESC.*\]\s*$/.test(t)) { foot = y; break; }
+    if (!t.trim()) { if (y > hy + 1 && !rows.some(r => r.y > y)) continue; else continue; }
+    if (/^You (see|probe|are aware)|^There (is|are)/.test(t.trim())) { rows.push({ y, head: t.trim().replace(/:$/, '') }); continue; }
+    const m = /^([\s*])(\S)\s(.+?)(?:\s+(?:([NS])\s*(\d+)\s([EW])\s*(\d+)|Rng\s*(\d+)))?\s*$/.exec(t); if (!m) { rows.push({ y, head: t.trim() }); continue; }
+    let n = m[3].trim(), st = ''; const sm = /\s*\(((?:\d+ )?(?:asleep|awake)(?:, \d+ asleep)?)\)$/.exec(n); if (sm) { st = sm[1]; n = n.slice(0, sm.index); }
+    rows.push({ y, sym: m[2], tgt: m[1] === '*', n, st, dx: m[4] ? (m[6] === 'E' ? +m[7] : -m[7]) : null, dy: m[4] ? (m[4] === 'S' ? +m[5] : -m[5]) : null, rng: m[8] ? +m[8] : null }); }
+  return rows.some(r => r.sym) && foot >= 0 ? { kind, rows } : null;
+}
+function sightListHtml() {
+  const L = sightListFind(); if (!L) return '';
+  const mon = L.kind === 'mon', cur = G.cy;
+  const art = r => { if (mon) { const k = r.n.toLowerCase(); return typeof TS !== 'undefined' && TS && TS.mon && TS.mon[k] ? `<canvas class="ptart" data-k="mon" data-n="${esc(k)}"></canvas>` : `<span class="ptart em">${esc(r.sym)}</span>`; }
+    const o = (S.floor || []).find(o => o.dx === r.dx && o.dy === r.dy); return (o && artHtml(o.ki, 36)) || `<span class="ptart em">${esc(r.sym)}</span>`; };
+  const where = r => r.dx != null ? (r.dx || r.dy ? dirOf(r.dx, r.dy) : 'here') : r.rng != null ? r.rng + ' away' : '';
+  const btn = (k, t, tip) => `<span class="btn" data-slk="${k}" data-tip="${tip}">${t}</span>`;
+  const row = r => r.head != null ? `<div class="slh">${esc(r.head.replace(/^You see (\d+) monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `In view: ${a}, ${b} awake`).replace(/^You are aware of (\d+) (?:other )?monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `Out of sight: ${a}, ${b} awake`).replace(/^There (?:is|are) (\d+) objects?$/, (m, a) => `${a} ${+a === 1 ? 'item' : 'items'} you know of`).replace(/^There (?:is|are) (\d+) interesting features?$/, (m, a) => `${a} ${+a === 1 ? 'place' : 'places'} of note`))}</div>`
+    : `<div class="slr${r.y === cur ? ' cur' : ''}" data-sly="${r.y}">${art(r)}<span class="sln">${mon ? esc(cap(r.n)) : (typeof nameHtml === 'function' ? nameHtml(cap(r.n)) : esc(cap(r.n)))}${r.st ? `<em class="${/awake/.test(r.st) ? 'aw' : ''}">${esc(r.st)}</em>` : mon ? '<em class="aw">awake</em>' : ''}${r.tgt ? '<em class="tg">your target</em>' : ''}</span><span class="slw">${esc(where(r))}</span><span class="slb">${mon ? btn('T', 'Target', 'Aim your next shot or spell at it') + btn('`', 'Go to', 'Walk over to it') + btn('R', 'About', 'What you know of it') : (r.dx || r.dy || r.dx == null ? btn('`', 'Go to', 'Walk over to it') : '') + btn('I', 'About', 'Look at it closely')}</span></div>`;
+  return `<div class="pane npanel menup mcards slm"><div class="mtitle ctitle">${mon ? 'Creatures' : 'Items and places'}<small>${mon ? 'Every creature you can see or sense on this level' : 'Items and places you know of on this level'}</small></div>
+    <div class="sll">${L.rows.map(row).join('')}</div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span><span class="mhint">the arrows move, ${mon ? 'T targets, ' : ''}the backtick walks there</span></div></div>`;
+}
+// a click on a row's button: walk the game's cursor to that row a step at a time (its list skips headings by its own rules), then press the key
+function sightListGo(y, key, tries) {
+  if (!sightListFind()) return; if (G.cy === y) { sendText(key); return; }
+  if (tries > 60) return; const was = G.cy; sendText(G.cy < y ? '2' : '8');
+  let n = 0; const wait = () => { if (G.cy !== was || ++n > 12) sightListGo(y, key, tries + 1 + (G.cy === was ? 20 : 0)); else setTimeout(wait, 30); }; setTimeout(wait, 30);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-slk]'), r = ev.target.closest && ev.target.closest('[data-sly]'); if (!r) return;
+  ev.stopPropagation(); ev.preventDefault(); sightListGo(+r.dataset.sly, b ? b.dataset.slk : '', 0);
+}, true);
 function menuHtml() {
+  { const sp = cmdMenuHtml() || petsMenuHtml() || sightListHtml(); if (sp) return sp; }
   const b = menuBox(); if (!b) return '';
   const rows = []; let n = 0, prose = 0; const pg = pagerInfo(b.y0, b.y1);
   for (let y = b.y0; y <= b.y1; y++) {
@@ -33,12 +134,18 @@ function menuHtml() {
     rows.push({ y, s, toks });
   }
   if (pg) while (rows.length && !rows[rows.length - 1].s.trim()) rows.pop();
+  // something the game says over a menu and waits on ("...just yet. Press any key to continue.", "... -more-"): a note on top of it
+  MENU_NOTE = '';
+  { const i = rows.findIndex(r => /-more-\s*$|Press any key to continue\.?\s*$/i.test(r.s)), ft = rows.findIndex(r => r.toks.length);
+    if (i >= 0 && (ft < 0 || i < ft)) { MENU_NOTE = rows.slice(0, i + 1).map(r => r.s.trim()).filter(Boolean).join(' ').replace(/\s*(-more-|Press any key to continue\.?)\s*$/i, '').replace(/\begos\b/, 'enchanted kinds')
+      .replace(/^You have activated the Mogaminator for the first time.*$/, 'Your pickup rules start from the game\'s own list. You can change them here at any time.'); rows.splice(0, i + 1); } }
   // only menus: a few choices, and not a page of running text or a table
   const filled = rows.filter(r => r.s.trim()).length;
   if ((n < 3 && !(n === 2 && filled <= 4)) || prose > 4 || n < filled * .3) return '';   // two choices count in a small box (which hand?)
   { const c = menuCards(rows, b) || menuSections(rows, b); if (c) return c; }
+  if (G.icky) return '';   // any other menu is set as a page in the shared window, its choices still clickable
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
-  let fs = Math.floor(Math.min((VH - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
+  let fs = Math.floor(Math.min((HUB_H - 58 - 40 - (pg ? 92 : 0)) / nh / 1.4, 1452 / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
   let out = '';
   rows.forEach((r, i) => {
@@ -66,11 +173,11 @@ function menuHtml() {
 function menuCards(rows, b) {
   const items = rows.filter(r => r.toks.length), other = rows.filter(r => !r.toks.length && r.s.trim());
   if (items.length < 4 || items.length > 30 || other.length > 4) return '';
-  if (!items.every(r => r.toks.length === 1 && !r.s.slice(b.x0, r.toks[0].at).trim() && !r.s.slice(r.toks[0].end).trim() && r.toks[0].end - r.toks[0].at < 48)) return '';
+  if (!items.every(r => r.toks.length === 1 && !r.s.slice(b.x0, r.toks[0].at).trim() && !r.s.slice(r.toks[0].end).trim() && r.toks[0].end - r.toks[0].at < 56)) return '';
   const first = rows.findIndex(r => r.s.trim()), title = rows[first] && !rows[first].toks.length ? rows[first] : null;
   const lastItem = rows.indexOf(items[items.length - 1]);
   if (other.some(r => r !== title && rows.indexOf(r) < lastItem)) return '';   // words between the choices: not a plain list
-  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim());
+  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim() && !/^Command:\s*$/.test(r.s.trim()));
   let groups = [[]];
   rows.slice(title ? first + 1 : 0, lastItem + 1).forEach(r => { if (r.toks.length) groups[groups.length - 1].push(r); else if (groups[groups.length - 1].length) groups.push([]); });
   groups = groups.filter(g => g.length);
@@ -78,10 +185,12 @@ function menuCards(rows, b) {
   const hue = r => { const a = G.a[r.y] || [], t = r.toks[0]; for (let x = t.at + t.len; x < t.end; x++) if (rowText(r.y)[x] !== ' ') return a[x] & 31; return -1; };
   const hues = items.map(hue), tally = {}; hues.forEach(h => tally[h] = (tally[h] || 0) + 1);
   const odd = hues.filter(h => tally[h] === 1), cur = odd.length === 1 && Object.keys(tally).length === 2 ? items[hues.indexOf(odd[0])] : null;
-  const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard${r === cur ? ' cur' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
-  return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
-    ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
-    ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${digitKeys(foot)}</div>` : ''}</div>`;
+  const tw = title && MENU_TITLES[title.s.trim()], hid = r => MENU_HIDE[r.s.slice(r.toks[0].at + r.toks[0].len, r.toks[0].end).trim()];
+  const card = r => { const t = r.toks[0], k = esc(t.key); return hid(r) ? '' : `<div class="mcard${r === cur ? ' cur' : ''}${MENU_NOTE ? ' off' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${menuWord(r, t.at + t.len, t.end)}</span></div>`; };
+  const footRow = r => /^Move to <dir>, Select to Enter, Cancel to ESC/.test(r.s.trim()) ? '<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span><span class="mhint">click a choice, or use the arrows and Enter</span>' : rowHtml(r.y, r.s.search(/\S/), b.x1 + 1);
+  return `<div class="pane npanel menup mcards${tw ? ' mjournal mopts' : ''}">${title ? `<div class="mtitle ctitle">${tw ? `${esc(tw[0])}<small>${esc(tw[1])}</small>` : rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    ${menuNote()}${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
+    ${foot.length ? `<div class="mfoot">${foot.map(footRow).join('<br>')}${digitKeys(foot)}</div>` : ''}</div>`;
 }
 // a number asked below a menu ("Delay Factor (0-9 or ESC to accept)"): each digit is a button
 function digitKeys(foot) {
@@ -90,10 +199,31 @@ function digitKeys(foot) {
   return `<div class="mdigs">${h}<span class="mcard mdig" data-key="Esc"><span class="key">Esc</span><span class="ml">done</span></span></div>`;
 }
 
+// plainer names for the game's own menu words, with a line saying what each choice shows
+const MENU_TITLES = { 'Display current knowledge': ['Journal', 'Everything your character has learned so far'] };
+const MENU_HIDE = { 'Window Flags': 1 };   // extra terminal windows: this version has none (the key still works)
+Object.assign(MENU_TITLES, { 'Interact with Macros': ['Key shortcuts', 'Bind one key to a string of commands (for seasoned players)'], 'Interact with Colors': ['Text colours', 'For the plain-text view: these do not change the pictures'],
+  'Interact with Visuals': ['Text symbols', 'For the plain-text view: these do not change the pictures'], 'FrogComposband Options': ['Options', 'How the game plays, and what it shows you'] });
+const MENU_WORDS = {
+  'Input Options': ['Controls', 'keys, prompts and repeats'], 'Map Screen Options': ['Map', 'what the map shows'], 'Text Display Options': ['Text', 'how messages and lists read'],
+  'Game-Play Options': ['Play', 'habits while you play'], 'Disturbance Options': ['Interruptions', 'what stops you mid-stride'], 'Auto-Destroyer Options': ['Junk', 'what to destroy without asking'],
+  'List Display Options': ['Lists', 'the creature and item lists'], 'Mogaminator Preferences': ['Pickup rules', 'what you take or leave'], 'Base Delay Factor': ['Animation speed', 'how long effects linger'],
+  'Hitpoint Warning': ['Low life warning', 'when the game warns you'], 'Mana Color Threshold': ['Low mana warning', 'when the mana bar changes colour'], 'Autosave Options': ['Autosave', 'how often the game saves itself'],
+  'Birth Options (Browse Only)': ['Starting rules', 'chosen at creation: view only'],
+  'Artifacts': ['Artifacts', 'one-of-a-kind treasures you have found'], 'Objects': ['Items', 'every kind of item you know'], 'Egos': ['Enchanted kinds', 'special makes of weapon and armour'],
+  'Auto Pick/Destroy': ['Pickup rules', 'what you take or destroy without asking'], 'Known Monsters': ['Bestiary', 'creatures you have met'], 'Wanted Monsters': ['Bounties', 'creatures with a price on their head'],
+  'Remaining Uniques': ['Named foes', 'the ones still alive'], 'Kill Count': ['Kills', 'what you have slain'], 'Pets': ['Companions', 'who follows you'], 'Dungeons': ['Dungeons', 'how deep you have been'],
+  'Quests': ['Quests', 'what you have been asked to do'], 'Terrain Symbols': ['Terrain', 'the kinds of ground and wall'], 'About Yourself': ['About you', 'your race, class and what you can do'],
+  'Weapon Damage': ['Weapon damage', 'what your blows do'], 'Shooter Damage': ['Shooter damage', 'what your shots do'], 'Extra Info': ['Class notes', 'spells and talents of your calling'], 'High Score List': ['Hall of fame', 'characters past and present'],
+  'Proficiency': ['Weapon skill', 'practice with each weapon'], 'Spell Proficiency': ['Spell skill', 'practice with each spell'],
+  'Exit menu': ['Close'], 'Load a user pref file': ['Load a settings file'], 'Dump monster attr/chars': ['Save creature symbols to a file'], 'Dump object attr/chars': ['Save item symbols to a file'], 'Dump feature attr/chars': ['Save terrain symbols to a file'], 'Change monster attr/chars (numeric operation)': ['Change creature symbols', 'by number'], 'Change object attr/chars (numeric operation)': ['Change item symbols', 'by number'], 'Change feature attr/chars (numeric operation)': ['Change terrain symbols', 'by number'], 'Change monster attr/chars (visual mode)': ['Change creature symbols', 'by picking'], 'Change object attr/chars (visual mode)': ['Change item symbols', 'by picking'], 'Change feature attr/chars (visual mode)': ['Change terrain symbols', 'by picking'], 'Reset visuals': ['Put every symbol back'], 'Dump colors': ['Save colours to a file'], 'Modify colors': ['Change colours'], 'Load simple color set': ['Use the simple colour set'], 'Load Windows color set': ['Use the Windows colour set'], 'Append macros and keymaps to a file': ['Save shortcuts to a file'], 'Query a macro': ['Look up a shortcut'], 'Create a macro': ['Make a shortcut'], 'Remove a macro': ['Remove a shortcut'],
+  'Query a keymap': ['Look up a key change'], 'Create a keymap': ['Change what a key does'], 'Remove a keymap': ['Undo a key change'], 'Enter a new action': ['Type the commands to bind'], 'Object Knowledge': ['Items'], 'Monster Knowledge': ['Creatures'], 'Dungeon Knowledge': ['The world'], 'Self Knowledge': ['Yourself'], 'Skills': ['Practice'] };
+const menuWord = (r, x, e) => { const w = MENU_WORDS[r.s.slice(x, e).trim()]; return w ? `<span class="mw">${esc(w[0])}</span>${w[1] ? `<small class="mwd">${esc(w[1])}</small>` : ''}` : rowHtml(r.y, x, e); };
 // two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
 // Anything else on the lines (a description beside a choice, prose between them) keeps the text layout.
 function menuSections(rows, b) {
   const isEsc = t => t.key === 'Esc';
+  const note = MENU_NOTE;
   const items = rows.filter(r => r.toks.some(t => !isEsc(t)));
   if (items.length < 4 || items.length > 40) return '';
   const ats = []; items.forEach(r => r.toks.forEach(t => { if (!isEsc(t)) ats.push(t.at); }));
@@ -107,15 +237,17 @@ function menuSections(rows, b) {
   for (const r of rows.slice(title ? first + 1 : 0, lastItem + 1)) {
     const ls = loose(r);
     if (ls.some(l => l.e - l.x > 40)) return '';                       // prose: not a plain menu
-    for (const l of ls) { const c = l.x < mid ? 0 : 1; if (r.toks.some(t => (t.at < mid ? 0 : 1) === c && !isEsc(t))) return ''; cols[c].push({ head: rowHtml(r.y, l.x, l.e), items: [] }); heads++; }
+    for (const l of ls) { const c = l.x < mid ? 0 : 1; if (r.toks.some(t => (t.at < mid ? 0 : 1) === c && !isEsc(t))) return ''; cols[c].push({ head: (MENU_WORDS[r.s.slice(l.x, l.e).trim()] || [])[0] ? esc(MENU_WORDS[r.s.slice(l.x, l.e).trim()][0]) : rowHtml(r.y, l.x, l.e), items: [] }); heads++; }
     for (const t of r.toks) { if (isEsc(t)) continue; const c = t.at < mid ? 0 : 1; if (!cols[c].length) cols[c].push({ head: '', items: [] }); cols[c][cols[c].length - 1].items.push({ r, t }); }
   }
   if (heads < 2) return '';
   const esc1 = rows.flatMap(r => r.toks.filter(isEsc).map(t => ({ r, t })));
   const foot = rows.slice(lastItem + 1).filter(r => r.s.trim() && !r.toks.length && !/:\s*_?\s*$/.test(r.s));
-  const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
+  const tw = title && MENU_TITLES[title.s.trim()];
+  const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard${note ? ' off' : ''}" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${menuWord(r, t.at + t.len, t.end)}</span></div>`; };
   const sec = g => g.items.length ? `<div class="msec">${g.head ? `<div class="mhead">${g.head}</div>` : ''}<div class="mlist">${g.items.map(card).join('')}</div></div>` : '';
-  return `<div class="pane npanel menup mcards msect">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+  return `<div class="pane npanel menup mcards msect${tw ? ' mjournal' : ''}">${title ? `<div class="mtitle ctitle">${tw ? `${esc(tw[0])}<small>${esc(tw[1])}</small>` : rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    ${menuNote()}
     <div class="mcols">${cols.map(c => `<div>${c.map(sec).join('')}</div>`).join('')}</div>
-    ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${rowHtml(r.y, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
+    ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${note ? '' : esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${menuWord(r, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
 }

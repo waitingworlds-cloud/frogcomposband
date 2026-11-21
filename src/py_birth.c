@@ -2787,10 +2787,9 @@ static void _stats_init(void)
 static void _stat_dec(int which)
 {
     int val = p_ptr->stat_cur[which];
+    /* stop at the bottom instead of wrapping round to the top */
     if (val > 8)
         val--;
-    else
-        val = 17;
     p_ptr->stat_cur[which] = val;
     p_ptr->stat_max[which] = val;
     _stats_changed = p_ptr->pclass;
@@ -2799,10 +2798,10 @@ static void _stat_dec(int which)
 static void _stat_inc(int which)
 {
     int val = p_ptr->stat_cur[which];
-    if (val < 17)
-        val++;
-    else
-        val = 8;
+    /* stop at the top, and never spend more points than there are */
+    if (val >= 17) return;
+    if (_stats_score() - _stat_points[val] + _stat_points[val + 1] > _MAX_SCORE) return;
+    val++;
     p_ptr->stat_cur[which] = val;
     p_ptr->stat_max[which] = val;
     _stats_changed = p_ptr->pclass;
@@ -3344,6 +3343,9 @@ static void _birth_finalize(void)
     int i;
 
     p_ptr->id = scores_next_id();
+
+    /* the previous character's messages are not this one's */
+    msg_wipe();
 
     /* Quick Start */
     previous_char.quick_ok = TRUE;

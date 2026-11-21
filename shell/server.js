@@ -55,7 +55,7 @@ function start(opts = {}) {
     if (u.pathname === '/in' && req.method === 'POST') {
       let b = ''; req.on('data', d => b += d); req.on('end', () => {
         for (const l of b.split('\n')) {
-          if (/^([XRVMT] [0-9a-fA-F -]+|Q|D [pe] [!-~]|D [mosh] [0-9]{1,5})$/.test(l)) toGame(l);
+          if (/^([XRVMT] [0-9a-fA-F -]+|Q|D [pe] [!-~]|D [mosh] [0-9]{1,5}|B b [0-9]{1,4} [0-9]{1,4}|B s [pq] [0-9]{1,4} [0-9]{1,4}|H g [0-9]{1,4} [0-9]{1,4}|H d [pq] [0-9]{1,4} [0-9]{1,4})$/.test(l)) toGame(l);
           else if (l === 'K' && ended && opts.onKeep) opts.onKeep();
           else if (l === 'E' && ended && opts.onLeave) opts.onLeave();
           else if (l === 'N' && ended && spawnGame) spawnGame();
