@@ -837,6 +837,7 @@ function draw() {
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
   const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
+  if (!page) CHARVIEW = 'summary';
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
   const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!nh);
   if (page) show = false;

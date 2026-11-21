@@ -61,3 +61,11 @@ function gmenuKey(e) {
   if (e.key === 'Escape' && !e.ctrlKey && !e.altKey && !e.repeat && gap > 400 && gmenuFree()) { gmenuToggle(true); return true; }   // a quick run of Escapes is clearing things, not asking for the menu
   return false;
 }
+// Which hand is playing: the letters beside list rows and on the worn-gear figure are there for the keyboard. They show
+// once a key is pressed and step aside again when the mouse moves, so a mouse player never sees letter menus.
+(() => {
+  let mx = -1, my = -1; document.body.classList.add('mouse');
+  document.addEventListener('mousemove', e => { if (mx >= 0 && Math.abs(e.clientX - mx) + Math.abs(e.clientY - my) < 6) return; mx = e.clientX; my = e.clientY; document.body.classList.add('mouse'); }, true);
+  document.addEventListener('mousedown', () => document.body.classList.add('mouse'), true);
+  document.addEventListener('keydown', e => { if (/^(Shift|Control|Alt|Meta)$/.test(e.key)) return; document.body.classList.remove('mouse'); }, true);
+})();

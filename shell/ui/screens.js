@@ -342,8 +342,25 @@ function charHtml() {
     ${sk.map(r => `<div class="row skl"><span class="grow">${esc(r.n)}</span>${bars(r.d)}<span style="width:110px;text-align:right;color:${readable(col(r.col))}">${esc(r.d)}</span></div>`).join('')}
     <div class="catr">resistances</div>
     <div class="resg">${res.map(r => `<div class="rs ${r.pct > 0 ? 'on' : r.pct < 0 ? 'bad' : ''}"><span>${esc(r.n)}</span><b>${r.pct ? r.pct + '%' : '–'}</b></div>`).join('')}</div>
-    <div class="sub" style="font-size:14px;margin-top:8px">The full sheet is on the right. Arrow keys and Page Down scroll it.</div></div>`;
+    </div>`;
 }
+// the second column of the character tab: what you are made of and what you wear, with the game's long record a click away
+let CHARVIEW = 'summary', CHAR_HOME = 0;
+const CH_STATS = [['Strength', 'hitting hard, carrying more'], ['Intelligence', 'arcane spells, magic devices'], ['Wisdom', 'prayers, resisting magic'], ['Dexterity', 'more blows, aim, dodging'], ['Constitution', 'life, and healing'], ['Charisma', 'prices, and some magic']];
+function charMoreHtml(pg) {
+  const p = S.p, worn = (S.equip || []).filter(e => e.o), tile = (v, l, c) => `<div class="tile ch"><div class="ch"><b${c ? ` style="color:${c}"` : ''}>${v}</b><span class="lbl">${l}</span></div></div>`;
+  const lb = n => (n / 10).toFixed(n % 10 ? 1 : 0);
+  return `<div class="chm">
+    <div class="catr">attributes</div>
+    <div class="chst">${CH_STATS.map(([n, d], i) => `<div class="chs"><b>${esc(String((p.stats || [])[i] || '').trim())}</b><div><span>${n}</span><i>${d}</i></div></div>`).join('')}</div>
+    <div class="catr">in the field</div>
+    <div class="ptiles chv">${tile(p.hp + '<small> / ' + p.mhp + '</small>', 'life', '#ff9a86')}${p.msp ? tile(p.sp + '<small> / ' + p.msp + '</small>', 'mana', '#9fd8f2') : ''}${tile(p.ac, 'armour')}${tile((p.speed > 0 ? '+' : '') + p.speed, 'speed')}${tile(Number(p.au).toLocaleString(), 'gold', '#ffcf6a')}${tile(lb(p.wgt) + '<small> / ' + lb(p.wlim) + ' lb</small>', 'burden')}</div>
+    <div class="catr">worn and wielded</div>
+    <div class="chw">${worn.length ? worn.map(e => `<div class="chwi" data-desc="e:${esc(e.k)}">${artHtml(e.o.ki, 36) || '<i class="oart" style="width:36px;height:36px"></i>'}<div><b>${esc(cap(String(e.o.n).replace(/^(an?|the) /i, '')))}</b><span>${esc(e.slot)}</span></div></div>`).join('') : '<div class="sub">Nothing yet.</div>'}</div>
+    <div class="grow"></div>
+    <div class="chrec"><span class="btn go" data-charview="record">Read the full record</span><span class="sub">Every number the game keeps on you, ${pg.of} lines of it. Page Down opens it too.</span><span class="grow"></span><span class="btn${p.hp < 0 ? ' go' : ''}" data-key="Esc">${p.hp < 0 ? 'Continue' : 'Close'}</span></div></div>`;
+}
+document.addEventListener('click', ev => { const t = ev.target.closest && ev.target.closest('[data-charview]'); if (!t) return; if (t.dataset.charview === 'summary' && PAGER && PAGER.at > 0) { trigger(0xFF50, {}); CHAR_HOME = Date.now(); } CHARVIEW = t.dataset.charview; schedule(); });
 function nativeAfter() {
   lmapDraw();
   if (document.querySelector('#native canvas.ptart')) pickAfter();
