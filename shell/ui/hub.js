@@ -22,7 +22,7 @@ function hubCur() {
 function hubTabsHtml(cur) {
   if (S && S.p && S.p.hp < 0) return `<div class="hubt"><div class="hubtab on"><span>${cur === 'log' ? 'Last messages' : cur === 'char' ? 'Character' : 'The fallen'}</span></div><span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;   // the dead have nowhere else to go
   const tabs = HUB_TABS.filter(t => t[0] === 'spells' ? (S && S.p && (S.p.msp > 0 || S.p.realm)) || cur === 'spells' : t[0] === 'powers' ? (S && S.p && S.p.powers) || cur === 'powers' : true);
-  return `<div class="hubt">${tabs.map(([id, label, key, name]) => `<div class="hubtab${id === cur ? ' on' : ''}" data-hub="${id}"><span>${label}</span><span class="key">${esc(name || key)}</span></div>`).join('')}<span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;
+  return `<div class="hubt">${tabs.map(([id, label, key, name]) => `<div class="hubtab${id === cur ? ' on' : ''}" data-hub="${id}"><span>${label}</span><span class="key">${esc(name || key)}</span></div>`).join('')}<span class="grow"></span><span class="hubx" data-hubclose="1" data-tip="Close (Esc)">&times;</span></div>`;
 }
 // wrap a native panel in the frame (shops, your home and death keep their own; so does a "which one?" list)
 function hubWrap(html) {
@@ -56,4 +56,15 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-jump]'); if (!t) return;
   ev.stopPropagation(); ev.preventDefault();
   HUB.gap = 0; HUB.hold = Date.now() + 1500; sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t.dataset.jump), 110); schedule(); setTimeout(schedule, 1520);
+}, true);
+
+// the window's × closes the whole window, however deep the page: the game's Esc only steps back one page
+document.addEventListener('click', ev => {
+  const t = ev.target.closest && ev.target.closest('[data-hubclose]'); if (!t) return;
+  ev.stopPropagation(); ev.preventDefault();
+  if (typeof pageEditing === 'function' && G.icky && pageEditing()) { sendBytes([27]); return; }   // the rule editor asks before it throws changes away
+  const pg = G.icky ? pagerInfo(0, G.h - 1) : null;
+  document.body.classList.add('hubgo'); setTimeout(() => { document.body.classList.remove('hubgo'); schedule(); }, 420);
+  if (pg && /^Help file '/.test(pg.cap || '')) sendText('q'); else sendBytes([27]);
+  sendBytes([27]); sendBytes([27]);
 }, true);

@@ -527,3 +527,4 @@ canvas.csart{width:60px;height:60px;display:block}
 .fmd{font:500 12.5px Inter,system-ui,sans-serif;color:#a39c8f;text-align:right;white-space:nowrap}.fmst{font:600 10.5px Inter,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:4px 0;border-radius:2px;border:1px solid}
 .fmr.alive .fmst{color:#8fd18a;border-color:#2f5a33;background:#14241699}.fmr.dead .fmst{color:#d98a7a;border-color:#5a2f2a;background:#24141499}.fmr.win .fmst{color:#f3d36b;border-color:#6a5a2a;background:#2a241099}.fmr.dead .fmn b{color:#cfc8bb}
 .fmg{display:flex;justify-content:center;gap:10px;margin-top:8px}
+body.hubgo .pane.hub{visibility:hidden}
