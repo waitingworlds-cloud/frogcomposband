@@ -167,6 +167,7 @@ function readable(c) {
 // live text on the game's message line (prompts, -more-), as coloured runs
 // the whole message area as one line of text (a long message wraps onto the rows below the top one)
 function msgTop() { const r = (S && S.rmsg) || [0, 0, 0, 1]; return G.s.slice(r[1], r[1] + Math.max(1, Math.min(8, r[3]))).map(l => r[2] ? (l || '').substr(r[0], r[2]) : l).join(' ').replace(/\x01/g, ' ').replace(/\s+/g, ' ').trim(); }
+let BN_FLIP = 0, BN_MK = '';
 function liveHtml() {
   const r = S.rmsg; let out = '', any = false;
   for (let y = r[1]; y < r[1] + r[3] && y < G.h; y++) {
@@ -266,7 +267,9 @@ function dollHtml() {
     const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
   }
-  return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
+  // a creature character is drawn as the creature it is, not as a human outline
+  const beast = S.p.cls === 'Monster' && S.p.form && TS && TS.mon && TS.mon[tkey(S.p.form)];
+  return `<div class="doll dB" style="height:452px;flex:none">${beast ? '<canvas id="dfig" class="dfig"></canvas>' : FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
 }
 let lastEff = '';
 let CAN_STUDY = false;   // the game says there is a spell to learn
@@ -288,7 +291,7 @@ function effectsHtml() {
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
   { const was = CAN_STUDY; CAN_STUDY = out.some(e => /^Study/.test(e.text || '')); if (was !== CAN_STUDY && typeof LV !== 'undefined' && LV.data) lvlDraw(); }
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(study ? e.text.replace(/^Study(?: \((\d+)\))?.*$/, (m, n) => +n > 1 ? 'Learn a spell · ' + n + ' waiting' : 'Learn a spell') : e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
 }
 // what the common conditions mean, for their tooltips
 const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
@@ -842,6 +845,7 @@ function draw() {
   if (inGame) {
     if (!built) buildMain();
     const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
+    const df = $('#dfig'); if (df && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); df.width = df.height = 240 * d; const g = df.getContext('2d'); g.scale(d, d); g.imageSmoothingEnabled = false; sprite.flat = true; sprite(g, 'mon', S.p.form, 0, 0, 240); sprite.flat = false; }
     const pt = $('#port'); if (pt && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); sprite.flat = true; if (!heroSprite(g, 4, 2, 64)) drawMob(g, MOBS['@'], 0, 0, 72); sprite.flat = false; }
     if (nr || TS_NEW) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     TS_NEW = false;
@@ -850,7 +854,13 @@ function draw() {
     const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
     if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
-    else { setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : ''; }
+    else {
+      // a plain statement (already in the log below) bows out after a few seconds; anything that waits on you stays
+      const said = live.replace(/<[^>]+>/g, '').trim(), calm = live && !car && at < 0 && !/class="(lk|btn|qk)/.test(live) && /[.!](?:[)"']| \(x\d+\))?$/.test(said) && !/-more-/i.test(said);
+      const lm = S.msgs && S.msgs[S.msgs.length - 1], mk = lm ? lm.turn + ':' + lm.n + ':' + S.msgs.length : '';   // the same words said again count as new
+      if (setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car) || mk !== BN_MK) BN_FLIP ^= 1; BN_MK = mk;
+      bn.className = live ? 'on' + (calm ? ' calm' + BN_FLIP : '') : '';
+    }
     tipStale();
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;

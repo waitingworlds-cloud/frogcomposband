@@ -89,6 +89,7 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 /* paper doll */
 .doll{position:relative;flex:1;min-height:0}
 .doll svg.fig{position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%)}.doll.dB svg.fig{opacity:1}.doll.dB .slot{background:radial-gradient(circle at 50% 35%,#24272bf2,#0b0c0df2 75%)}
+.doll canvas.dfig{position:absolute;left:50%;top:46%;width:240px;height:240px;transform:translate(-50%,-50%);opacity:.2;filter:grayscale(.55) brightness(1.15);pointer-events:none}
 .doll svg.wire{position:absolute;inset:0;width:100%;height:100%}
 .doll .slot{position:absolute;width:46px}
 .burden{display:flex;align-items:center;gap:9px;margin-top:8px}
@@ -458,3 +459,7 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 .kcbs{display:flex;flex-wrap:wrap;gap:8px}
 .kcb{display:inline-flex;align-items:baseline;gap:7px;padding:5px 12px;border:1px solid #2e3135;border-radius:6px;background:#17191c;font:400 15px Spectral,Georgia,serif;color:#b3ac9f}
 .kcb b{font:400 19px Fell,Georgia,serif;color:#e8c98a}
+
+/* a plain message fades from the top of the map after a few seconds (it stays in the log) */
+@keyframes bnf0{0%,88%{opacity:1}100%{opacity:0}}@keyframes bnf1{0%,88%{opacity:1}100%{opacity:0}}
+#banner.calm0{animation:bnf0 5.5s linear forwards}#banner.calm1{animation:bnf1 5.5s linear forwards}
