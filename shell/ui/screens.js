@@ -304,7 +304,7 @@ function lmapHtml() {
   u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); if (cls === 'up' || cls === 'down' || cls === 'shop') pois.push({ n: (DICT.f[f] || [''])[0], cls, x: i % u.w, y: (i / u.w) | 0 }); });
   pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
   const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
-  const leg = [['#ffb070', 'You'], ['#ff5a3c', 'Creature in sight'], ['#7fd0f0', 'Stairs'], ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
+  const leg = [['#fff6e6', 'You'], ['#ff5a3c', 'Creature'], ['#7fd0f0', 'Stairs'], pois.some(p => p.cls === 'shop') ? ['#ffb070', 'Shop'] : ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
   return `<div class="pane npanel lmapp">
     <div class="lmhd"><b>${esc(u.place)}</b>${u.dlvl ? `<span>level ${u.dlvl} · ${u.dlvl * 50} ft</span>` : ''}<span class="grow"></span>${leg.map(([c, n]) => `<span class="lmlg"><i style="background:${c}"></i>${n}</span>`).join('')}</div>
     <div class="lmbox"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
@@ -321,7 +321,7 @@ function lmapDraw() {
     if (f) { x.fillStyle = LMC[featClass(f)] || LMC.other; x.fillRect(cx, cy, s + .4, s + .4); }
     if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
   if (LM_HI) { const [hx, hy] = LM_HI.split(',').map(Number); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.beginPath(); x.arc(hx * s + s / 2, hy * s + s / 2, Math.max(9, s * 1.6), 0, 7); x.stroke(); x.fillStyle = '#ff8a3c'; x.fillRect(hx * s - 1, hy * s - 1, s + 2, s + 2); }
-  x.fillStyle = '#ffb070'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#000'; x.lineWidth = 1; x.strokeRect(u.px * s - 2.5, u.py * s - 2.5, s + 5, s + 5);
+  x.fillStyle = '#fff6e6'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.strokeRect(u.px * s - 4, u.py * s - 4, s + 8, s + 8);
 }
 let NATIVE_SIDE = false;
 const SKL = ['very bad', 'bad', 'poor', 'fair', 'good', 'very good', 'excellent', 'superb', 'heroic', 'legendary'];

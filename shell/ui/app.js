@@ -26,10 +26,42 @@ const hex = bytes => bytes.map(b => (b & 255).toString(16).padStart(2, '0')).joi
 let sendQ = Promise.resolve();
 function sendRaw(line) {
   // a walk of more than a step goes through the game's travel, which will not go in the dark: remember it, so it can be walked another way
-  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line); if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) { TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now(), sx: S.px, sy: S.py, hp: S.p.hp }; setTimeout(travelStalled, 520); }
+  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line);
+  if (mv && S && S.p && S.p.wild && !wildGo.busy) { if (Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1) return wildGo(S.px + +mv[2], S.py + +mv[3]); }
+  else if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) { TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now(), sx: S.px, sy: S.py, hp: S.p.hp }; setTimeout(travelStalled, 520); }
+  if (mv && S && S.p && TRAVEL && Date.now() - TRAVEL.t < 8 && TRAVEL.sx === S.px && TRAVEL.sy === S.py && !(typeof EXP !== 'undefined' && EXP.on)) { WALK = { k: mv[1], x: TRAVEL.x, y: TRAVEL.y, hp: S.p.hp, pos: S.px + ',' + S.py, at: Date.now(), t0: Date.now(), n: WALK_N, where: S.p.place + '/' + S.p.dlvl }; WALK_N = 0; }
+  else if (/^X /.test(line)) { WALK = null; if (WILD) { clearInterval(WILD.timer); WILD = null; } }   // any key of yours ends a walk that was under way
   sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {}));
 }
-let TRAVEL = null;
+let TRAVEL = null, WALK = null, WALK_N = 0;
+// On the world map a click walks you there a step at a time. It stops when you arrive, when the way is shut (mountains,
+// deep water), when anything is said or asked, and the moment you are pulled down to the ground (an ambush).
+let WILD = null;
+function wildGo(x, y) {
+  clearInterval(WILD && WILD.timer); WILD = { x, y, pos: '', at: Date.now(), hp: S.p.hp, n: 0 };
+  WILD.timer = setInterval(() => {
+    const w = WILD; if (!w) return; const stop = () => { clearInterval(w.timer); if (WILD === w) WILD = null; };
+    if (!S || !S.p || !S.p.wild || !playing() || G.icky || G.ov || S.p.hp < w.hp || (typeof askKind === 'function' && askKind()) || (S.px === w.x && S.py === w.y) || w.n > 400) return stop();
+    const pos = S.px + ',' + S.py;
+    if (pos === w.pos) { if (Date.now() - w.at > 700) stop(); return; }   // no step came of the last ask: the way is shut
+    if (w.pos && msgTop().trim() && !WALK_OK.test(msgTop())) return stop();
+    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; sendRaw(`M 1 ${Math.sign(w.x - S.px)} ${Math.sign(w.y - S.py)}`); wildGo.busy = false;
+  }, 70);
+}
+// A long walk the game cut short for something harmless (a blessing wearing off, a feeling about an item) carries on by
+// itself, twice at most. Anything that might matter stops it for good: a creature in view, a lost hit point, a question.
+const WALK_OK = /wears off|no longer|in your pack|proficient|have learned|recharged|You feel (less|yourself|more) |is (average|good|excellent|special)\b|sun has (risen|set)/i;
+function walkWatch() {
+  const w = WALK; if (!w) return;
+  if (!S || !S.p || !playing() || Date.now() - w.t0 > 60000 || (typeof EXP !== 'undefined' && EXP.on) || w.where !== S.p.place + '/' + S.p.dlvl || (S.px === w.x && S.py === w.y)) { WALK = null; return; }
+  const pos = S.px + ',' + S.py; if (pos !== w.pos) { w.pos = pos; w.at = Date.now(); return; }
+  if (Date.now() - w.at < 450) return;
+  WALK = null;
+  if (w.n >= 2 || S.p.hp < w.hp || G.icky || G.ov || (typeof UI !== 'undefined' && UI && uiOnTop()) || (typeof askKind === 'function' && askKind())) return;
+  if ((S.mons || []).some(m => !m.pet && !m.friendly) || !WALK_OK.test(msgTop())) return;
+  WALK_N = w.n + 1; sendRaw(`M ${w.k} ${w.x - S.px} ${w.y - S.py}`);
+}
+setInterval(walkWatch, 150);
 // after each turn: the travel just asked for was refused ("You cannot see!" with no light, "No route is found!"), so walk it a step at a time over what you have seen
 function travelRetry() {
   if (!TRAVEL || !S || !S.p) return; if (Date.now() - TRAVEL.t > 2500) { TRAVEL = null; return; }
@@ -180,6 +212,7 @@ function liveHtml() {
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
   if (/^You (are|were) (wearing|wielding|shooting with|carrying) /.test(out.replace(/<[^>]+>/g, ''))) out = out.replace(/ \([a-z]\)\.(<\/span>)$/, '.$1');   // the slot letter means nothing here
+  out = shotTidy(out);
   return lookKeys(out) + qtyKeys();
 }
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
@@ -291,7 +324,7 @@ function effectsHtml() {
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
   { const was = CAN_STUDY; CAN_STUDY = out.some(e => /^Study/.test(e.text || '')); if (was !== CAN_STUDY && typeof LV !== 'undefined' && LV.data) lvlDraw(); }
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(study ? e.text.replace(/^Study(?: \((\d+)\))?.*$/, (m, n) => +n > 1 ? 'Learn a spell · ' + n + ' waiting' : 'Learn a spell') : e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(study ? e.text.replace(/^Study(?: \((\d+)\))?.*$/, (m, n) => +n > 1 ? 'Learn a spell · ' + n + ' waiting' : 'Learn a spell') : COND_SAY[e.text] || e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
 }
 // what the common conditions mean, for their tooltips
 const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
@@ -301,7 +334,8 @@ const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many
   [/Cut|Graze|Wound|Gash|Bleed/, 'Bleeding: you lose life each turn until it closes.'], [/^Hallu|^Image/, 'Hallucinating: what you see cannot be trusted.'], [/^Hero/, 'Heroism: better to-hit and no fear.'],
   [/^Bers|^Shero/, 'Berserk: big to-hit bonus and no fear, but worse armour.'], [/^Bless/, 'Blessed: better armour and to-hit.'], [/^(Res|R)(Fire|Cold|Elec|Acid|Pois)|^Rfire|^Rcold/i, 'A temporary resistance.'],
   [/^S?Inv|^SeeInv/, 'You can see invisible things.'], [/^Lev|^Float/, 'Levitating: you float over traps and water.'], [/^Prot|^PrtEvl/, 'Protected from evil.'], [/^Recall|^Recl|^Deep/, 'Word of Recall is active: you will be pulled away soon.'],
-  [/^D?Trap/i, 'Traps nearby have been detected.'], [/^Slp|^Sleep/, 'Asleep.']];
+  [/^D?Trap/i, 'You have searched this stretch for traps: any here are marked. Walk out of it and you are guessing again.'], [/^Slp|^Sleep/, 'Asleep.']];
+const COND_SAY = { DTrap: 'Traps found', Recall: 'Being recalled', SInv: 'See invisible', PrtEvl: 'Shielded from evil' };
 function condTip(t) { const m = COND_TIPS.find(([re]) => re.test(t)); return m ? m[1] : ''; }
 const STAT_TIPS = ['Strength: melee damage, how much you can carry, digging.', 'Intelligence: spell power and mana for book learners, magic devices.', 'Wisdom: saving throws, and spell power and mana for priests.', 'Dexterity: blows per round, armour, keeping thieves off your pack.', 'Constitution: hit points and how fast you heal.', 'Charisma: shop prices, and power for some classes.'];
 function leftHtml() {
@@ -400,7 +434,7 @@ function floorHtml() {
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
   return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${recallHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
-  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk the level and pick up what you find, until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
+  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `${S.p.wild ? '' : `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk the level and pick up what you find, until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span>`}${!S.p.dlvl && !S.p.wild && !S.p.rl ? `<span class="xpl" data-key="${esc(cmd('<'))}" data-tip="The world map: the whole land, to travel between towns.&#10;You cannot open it with a creature close by."><span class="key">&lt;</span>world</span>` : ''}<span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
 const RL_KEY = { f: 't', a: 'z' };   // the roguelike keys show their own letters; a click always sends the plain command
@@ -410,7 +444,10 @@ function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n +=
 // the log keeps the game's questions with the key that answered them: say the answer in words, and drop the key lists
 // the game logs its own questions as you answer them: those that say nothing once answered are left out of the log
 const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
+// in the heat of a fight "The Arrow (3d4) (+0,+0) hits" reads as "The Arrow hits": the numbers stay on the item itself
+const shotTidy = s => s.replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)* in your pack)/g, '');
 function logTidy(s) {
+  s = shotTidy(String(s));
   return String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
     .replace(/ gp\?/g, ' gold?')
     .replace(/^((?:<color:\w>)?You (?:are|were) (?:wearing|wielding|shooting with|carrying)[^.]*?) \([a-z]\)\./, '$1.')
@@ -431,7 +468,7 @@ function consoleHtml() {
 }
 function plaqueHtml() {
   const p = S.p, t = `${p.hour}:${String(p.min).padStart(2, '0')}`;
-  return `${esc(p.place)}${p.dlvl ? `<s></s><b>level ${p.dlvl}</b><s></s>${p.dlvl * 50} ft` : ''}<s></s>day ${p.day}, ${t}`;
+  return `${p.wild ? 'The world map' : esc(p.place)}${p.dlvl ? `<s></s><b>level ${p.dlvl}</b><s></s>${p.dlvl * 50} ft` : ''}<s></s>day ${p.day}, ${t}`;
 }
 const MC = ['tl', 'tr', 'bl', 'br'].map(p => `<svg class="mcorner ${p}" viewBox="0 0 54 54"><defs><linearGradient id="mc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a8f96"/><stop offset=".5" stop-color="#3a3d42"/><stop offset="1" stop-color="#1a1c1f"/></linearGradient></defs>
   <path fill="url(#mc)" stroke="#000" d="M8 .5H53.500L47 14H22L14 22V47L.5 53.500V8z"/><path fill="none" stroke="#ff8a3c" stroke-opacity=".75" d="M43 9.500H20L9.500 20V43"/><path fill="#ff8a3c" stroke="#000" d="M14 9l5 5-5 5-5-5z"/></svg>`).join('');

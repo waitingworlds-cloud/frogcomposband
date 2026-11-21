@@ -305,7 +305,16 @@ static void shell_command(char *line)
             Term_keypress(ESCAPE); Term_keypress('\\'); Term_keypress('`');
             return;
         }
-        if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
+        if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated) return;
+        if (p_ptr->wild_mode)
+        {
+            /* on the world map a click is one step that way; the interface repeats it to walk further */
+            int sx = dx > 0 ? 1 : dx < 0 ? -1 : 0, sy = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+            if (kind != 1 || (!sx && !sy)) return;
+            Term_keypress('\\'); Term_keypress(';');
+            Term_keypress('0' + (sy < 0 ? 7 : sy > 0 ? 1 : 4) + sx + 1);
+            return;
+        }
         if (kind == 1 && !dx && !dy)
         {
             /* clicking yourself: in a shop doorway, go back in; elsewhere pick up what is here */
@@ -687,7 +696,7 @@ static void send_state(void)
     o_kint("ac", p_ptr->dis_ac + p_ptr->dis_to_a);
     o_kint("speed", p_ptr->pspeed - 110); o_kint("lite", p_ptr->cur_lite);
     o_kint("wgt", py_total_weight()); o_kint("wlim", weight_limit());
-    o_kstr("place", map_name());
+    o_kstr("place", map_name()); if (p_ptr->wild_mode) o_kint("wild", 1);
     o_kint("dlvl", dun_level);
     {
         int d, h, m;
