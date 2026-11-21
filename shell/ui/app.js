@@ -109,7 +109,7 @@ function onMsg(m) {
     if (m.kind === 'shop' || m.kind === 'home') { const sg = JSON.stringify(m.rows || m.items || m); if (sg !== DESC_SHOP) { DESC_SHOP = sg; for (const k in DESC) if (/^[sh]:/.test(k)) { delete DESC[k]; delete DESC_ASKED[k]; } } }
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
-    uiSel = ''; schedule(); ctxOnUi(m); if (typeof spbOnUi === 'function') spbOnUi(m);
+    uiSel = ''; schedule(); ctxOnUi(m); if (typeof spbOnUi === 'function') spbOnUi(m); if (typeof lightOnUi === 'function') lightOnUi(m);
   }
   else if (m.t === 'snd') sndEvent(m.v);
   else if (m.t === 'desc') descIn(m);
@@ -277,7 +277,7 @@ function effectsHtml() {
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
   CAN_STUDY = out.some(e => /^Study/.test(e.text || ''));
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-key="\\w" data-tip="You carry a light but are not holding one.&#10;click or press w: wield it">No light</div>` : ''}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
 }
 // what the common conditions mean, for their tooltips
 const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],

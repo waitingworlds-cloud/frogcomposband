@@ -32,10 +32,12 @@ function spellsHtml() {
   const two = rows.length > 22, rh = Math.max(28, Math.min(40, Math.floor(760 / Math.max(1, two ? Math.ceil(rows.length / 2) : rows.length))));
   const list = rows.map(r => {
     const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
-    const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl, dim = r.dim || early || (!r.ok && !V.study);
+    const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl, unk = r.info === 'unknown', bookSp = r.info != null && u.realm !== 'Powers';
+    // casting: what you have not learned steps back. learning: what you can learn now stands out, what you know already steps back
+    const dim = r.dim || early || (V.study ? bookSp && !unk : unk), tag = V.study ? (bookSp && !unk ? 'known' : early ? '' : unk ? 'can learn' : '') : unk ? (early ? '' : 'not learned') : '';
     const mark = cur === r ? (SPB.sel === r.n ? 'sel' : 'hov') : '';
     return `<div class="tr sprow ${dim ? 'dim' : ''} ${mark}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}><span class="key" data-tip="Press this key to ${V.v ? V.v.toLowerCase() : 'read'} it at once">${esc(r.k)}</span><i class="spdot"></i>
-      <span class="n nowrap" style="${r.col && r.col !== 1 && !dim ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</span>
+      <span class="n nowrap" style="${dim ? '' : V.study && unk ? 'color:#7fd4ff' : 'color:#f4efe4'}">${esc(r.n)}${tag ? `<small class="sptag${tag === 'can learn' ? ' go' : ''}">${tag}</small>` : ''}</span>
       <span class="dir">${r.lvl != null ? 'lv ' + r.lvl : ''}</span>
       ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}">${icon('potion')}<b>${r.cost}</b></span>` : '<span></span>'}
       <span class="spf" style="color:${fc}">${f != null ? f + '%' : ''}</span></div>`;

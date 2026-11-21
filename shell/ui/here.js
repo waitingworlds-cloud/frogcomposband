@@ -46,3 +46,11 @@ setInterval(() => {
   if (S && playing() && S.px === STAIR_AT.x && S.py === STAIR_AT.y && !hereBusy()) { const k = STAIR_AT.k; STAIR_AT = null; const c = hereCell(); if (c && c.cls === (k === '>' ? 'down' : 'up')) sendText(cmd(k)); }
 }, 150);
 addEventListener('keydown', () => { STAIR_AT = null; }, { capture: true });
+
+// "No light": one click holds up a light you carry, with no list to pick from
+let LIGHT_AUTO = 0;
+document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('[data-wlight]') && playing()) { ev.stopPropagation(); LIGHT_AUTO = Date.now(); sendText(cmd('w')); } }, true);
+function lightOnUi(m) {
+  if (m.kind !== 'items' || !/wear|wield/i.test(m.prompt || '') || Date.now() - LIGHT_AUTO > 1500) return; LIGHT_AUTO = 0;
+  const it = (m.items || []).find(i => i.o && i.k.trim() && i.o.tv === 39); if (it) sendText(it.k);
+}

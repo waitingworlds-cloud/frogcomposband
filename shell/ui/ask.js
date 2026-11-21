@@ -35,7 +35,8 @@ function askHtml() {
   const a = askKind(); if (!a || a.t !== 'aim') ASK_AIM = null;
   if (!a) return null;
   // what is being thrown or fired: only if it was picked just before the game asked where
-  if (a.t === 'aim' && !ASK_AIM) ASK_AIM = { o: typeof LASTPICK !== 'undefined' && LASTPICK && Date.now() - LASTPICK.t < 3000 ? LASTPICK.o : null };
+  if (a.t === 'aim' && !ASK_AIM) { const sp = typeof CAST !== 'undefined' && CAST.n && Date.now() - CAST.t < 3000 ? CAST.n : ''; ASK_AIM = { sp, o: !sp && typeof LASTPICK !== 'undefined' && LASTPICK && Date.now() - LASTPICK.t < 3000 ? LASTPICK.o : null }; }
+  const aimFor = ASK_AIM ? (ASK_AIM.sp ? ASK_AIM.sp : ASK_AIM.o ? 'the ' + baseName(ASK_AIM.o.n) : '') : '';
   const btn = (key, label, cls, capText, tip) => `<span class="abtn ${cls || ''}" data-key="${esc(key)}"${tip ? ` data-tip="${esc(tip)}"` : ''}><span class="key">${esc(capText || key)}</span>${label}</span>`;
   const cancel = label => `<span class="abtn" data-key="Esc"><span class="key">Esc</span>${label || 'Cancel'}</span>`;
   const pick = typeof LASTPICK !== 'undefined' && LASTPICK && Date.now() - LASTPICK.t < 30000 ? LASTPICK.o : null;
@@ -69,7 +70,7 @@ function askHtml() {
       <div class="askb">${cancel()}</div>` };
   }
   if (a.t === 'dir') return { cls: 'strip', html: `<div class="askrow"><div class="grow"><div class="askh lite">Which way?</div><div class="asks">Click a square next to you, or press a direction.</div></div>${cancel()}</div>` };
-  if (a.t === 'aim') return { cls: 'strip', html: `<div class="askrow">${ASK_AIM.o && artHtml(ASK_AIM.o.ki, 40) ? `<div class="slot askart t-${tvIcon(ASK_AIM.o.tv)}" data-tip="${esc(cap(ASK_AIM.o.n))}">${artHtml(ASK_AIM.o.ki, 40)}</div>` : ''}<div class="grow"><div class="askh lite">Choose a target</div><div class="asks">Click a creature, or any square to aim that way.</div></div>
+  if (a.t === 'aim') return { cls: 'strip', html: `<div class="askrow">${ASK_AIM.o && artHtml(ASK_AIM.o.ki, 40) ? `<div class="slot askart t-${tvIcon(ASK_AIM.o.tv)}" data-tip="${esc(cap(ASK_AIM.o.n))}">${artHtml(ASK_AIM.o.ki, 40)}</div>` : ''}<div class="grow"><div class="askh lite">Choose a target${aimFor ? ` <span class="askfor">for ${esc(aimFor)}</span>` : ''}</div><div class="asks">Click a creature, or any square to aim that way.</div></div>
       ${a.cur ? btn(a.cur, 'Same target', 'go', a.cur, 'Aim at the creature you already have targeted') : ''}${btn('*', a.cur ? 'Another' : 'Nearest', a.cur ? '' : 'go', '*', 'Step through the creatures in view')}${cancel()}</div>` };
   if (a.t === 'look') {
     const bs = ASK_LOOK.filter(([k]) => a.keys.includes(k)).filter(([k], i, l) => !(k === '(' && l.some(o => o[0] === 'j'))).map(([k, w, c]) => btn(k, w, c));

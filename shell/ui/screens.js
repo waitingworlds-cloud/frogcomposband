@@ -48,7 +48,7 @@ function itemsHtml() {
   const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
   let ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
   // a "which one?" list with a single tab is headed by the question itself
-  const q1 = !viewer && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '') : '';
+  const q1 = !viewer && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '').replace(/^Wear\/Wield/, 'Wear or wield') : '';
   if (q1) ask = '';
   return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
     <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>${u.tabs.length > 1 ? `<span class="ptabs"><i>from your</i>${u.tabs.map((t, i) => `<span class="ptab${t.on ? ' on' : ''}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}"`}>${esc(t.name.toLowerCase().replace(/^inventory$/, 'pack').replace(/^equipment$/, 'gear'))}</span>`).join('')}</span>` : ''}` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
