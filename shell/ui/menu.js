@@ -90,9 +90,9 @@ function sightListFind() {
     if (/^\s*\[.*ESC.*\]\s*$/.test(t)) { foot = y; break; }
     if (!t.trim()) { if (y > hy + 1 && !rows.some(r => r.y > y)) continue; else continue; }
     if (/^You (see|probe|are aware)|^There (is|are)/.test(t.trim())) { rows.push({ y, head: t.trim().replace(/:$/, '') }); continue; }
-    const m = /^\s(\S)\s(.+?)(?:\s+(?:([NS])\s*(\d+)\s([EW])\s*(\d+)|Rng\s*(\d+)))?\s*$/.exec(t); if (!m) { rows.push({ y, head: t.trim() }); continue; }
-    let n = m[2].trim(), st = ''; const sm = /\s*\(((?:\d+ )?(?:asleep|awake)(?:, \d+ asleep)?)\)$/.exec(n); if (sm) { st = sm[1]; n = n.slice(0, sm.index); }
-    rows.push({ y, sym: m[1], n, st, dx: m[3] ? (m[5] === 'E' ? +m[6] : -m[6]) : null, dy: m[3] ? (m[3] === 'S' ? +m[4] : -m[4]) : null, rng: m[7] ? +m[7] : null }); }
+    const m = /^([\s*])(\S)\s(.+?)(?:\s+(?:([NS])\s*(\d+)\s([EW])\s*(\d+)|Rng\s*(\d+)))?\s*$/.exec(t); if (!m) { rows.push({ y, head: t.trim() }); continue; }
+    let n = m[3].trim(), st = ''; const sm = /\s*\(((?:\d+ )?(?:asleep|awake)(?:, \d+ asleep)?)\)$/.exec(n); if (sm) { st = sm[1]; n = n.slice(0, sm.index); }
+    rows.push({ y, sym: m[2], tgt: m[1] === '*', n, st, dx: m[4] ? (m[6] === 'E' ? +m[7] : -m[7]) : null, dy: m[4] ? (m[4] === 'S' ? +m[5] : -m[5]) : null, rng: m[8] ? +m[8] : null }); }
   return rows.some(r => r.sym) && foot >= 0 ? { kind, rows } : null;
 }
 function sightListHtml() {
@@ -103,7 +103,7 @@ function sightListHtml() {
   const where = r => r.dx != null ? (r.dx || r.dy ? dirOf(r.dx, r.dy) : 'here') : r.rng != null ? r.rng + ' away' : '';
   const btn = (k, t, tip) => `<span class="btn" data-slk="${k}" data-tip="${tip}">${t}</span>`;
   const row = r => r.head != null ? `<div class="slh">${esc(r.head.replace(/^You see (\d+) monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `In view: ${a}, ${b} awake`).replace(/^You are aware of (\d+) (?:other )?monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `Out of sight: ${a}, ${b} awake`).replace(/^There (?:is|are) (\d+) objects?$/, (m, a) => `${a} ${+a === 1 ? 'item' : 'items'} you know of`).replace(/^There (?:is|are) (\d+) interesting features?$/, (m, a) => `${a} ${+a === 1 ? 'place' : 'places'} of note`))}</div>`
-    : `<div class="slr${r.y === cur ? ' cur' : ''}" data-sly="${r.y}">${art(r)}<span class="sln">${mon ? esc(cap(r.n)) : (typeof nameHtml === 'function' ? nameHtml(cap(r.n)) : esc(cap(r.n)))}${r.st ? `<em class="${/awake/.test(r.st) ? 'aw' : ''}">${esc(r.st)}</em>` : mon ? '<em class="aw">awake</em>' : ''}</span><span class="slw">${esc(where(r))}</span><span class="slb">${mon ? btn('T', 'Target', 'Aim your next shot or spell at it') + btn('`', 'Go to', 'Walk over to it') + btn('R', 'About', 'What you know of it') : (r.dx || r.dy || r.dx == null ? btn('`', 'Go to', 'Walk over to it') : '') + btn('I', 'About', 'Look at it closely')}</span></div>`;
+    : `<div class="slr${r.y === cur ? ' cur' : ''}" data-sly="${r.y}">${art(r)}<span class="sln">${mon ? esc(cap(r.n)) : (typeof nameHtml === 'function' ? nameHtml(cap(r.n)) : esc(cap(r.n)))}${r.st ? `<em class="${/awake/.test(r.st) ? 'aw' : ''}">${esc(r.st)}</em>` : mon ? '<em class="aw">awake</em>' : ''}${r.tgt ? '<em class="tg">your target</em>' : ''}</span><span class="slw">${esc(where(r))}</span><span class="slb">${mon ? btn('T', 'Target', 'Aim your next shot or spell at it') + btn('`', 'Go to', 'Walk over to it') + btn('R', 'About', 'What you know of it') : (r.dx || r.dy || r.dx == null ? btn('`', 'Go to', 'Walk over to it') : '') + btn('I', 'About', 'Look at it closely')}</span></div>`;
   return `<div class="pane npanel menup mcards slm"><div class="mtitle ctitle">${mon ? 'Creatures' : 'Items and places'}<small>${mon ? 'Every creature you can see or sense on this level' : 'Items and places you know of on this level'}</small></div>
     <div class="sll">${L.rows.map(row).join('')}</div>
     <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span><span class="mhint">the arrows move, ${mon ? 'T targets, ' : ''}the backtick walks there</span></div></div>`;

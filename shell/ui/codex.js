@@ -311,3 +311,14 @@ function aboutHtml(y0, y1, x0, x1, skip) {
   const more = PAGER && PAGER.at + PAGER.page < PAGER.of;
   return `<div class="abw">${tiles.length ? `<div class="abts">${tiles.join('')}</div>` : ''}${html.join('')}${more ? '<div class="abm"><span class="btn go" data-ks="FF56">Read on</span></div>' : ''}</div>`;
 }
+
+// a creature's write-up opened from the creature list or the journal: its picture and name head a card, the facts sit two to a row, the lore reads as prose
+function mobCardHtml(y0, y1, x0, x1, skip) {
+  const txt = y => rowText(y).replace(/\x01/g, ' ').slice(x0, x1 + 1).replace(/\s+$/, '');
+  let hy = -1, m = null; for (let y = y0; y <= y1; y++) { if (skip[y] || !txt(y).trim()) continue; m = /^Name\s*:\s*(.+?) \((.)\)$/.exec(txt(y)); hy = y; break; }
+  if (!m) return '';
+  const list = []; for (let y = hy; y <= y1; y++) { if (skip[y]) continue; const s = txt(y), a = G.a[y] || []; let hex = ''; for (let x = 0; x < s.length; x++) hex += ((a[x0 + x] || 0) & 255).toString(16).padStart(2, '0'); list.push({ s, a: hex }); }
+  const k = m[1].toLowerCase(), has = typeof TS !== 'undefined' && TS && TS.mon && TS.mon[k];
+  const body = loreRows(list);
+  return `<div class="mbc"><div class="mbh">${has ? `<canvas class="ptart" data-k="mon" data-n="${esc(k)}"></canvas>` : `<span class="ptart em">${esc(m[2])}</span>`}<div><b>${esc(cap(m[1]))}</b><span>What you have learned of this creature</span></div></div><div class="mbl">${body || '<p class="sub">You know nothing of it yet. Fight it or watch it to learn more.</p>'}</div></div>`;
+}

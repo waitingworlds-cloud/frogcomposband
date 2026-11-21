@@ -101,6 +101,8 @@ function hubPageHtml(side) {
   const charRec = side && PAGER && /Character Sheet/i.test(PAGER.cap) ? `<span class="btn" data-charview="summary" style="margin-right:14px">&lsaquo; Summary</span>` : '';
   const head = charRec ? charRec + pagerHead(PAGER).replace('<b>Character Sheet</b>', '<b>The full record</b>') : over ? '<b>From your journal</b>' : ask ? `<b>${esc(ask)}</b>` : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
   const foot = over ? kb('Space', 'data-key=" "', 'back to the list') : PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : press || ask ? kb('Esc', 'data-key="Esc"', 'close') + (/\?/.test(press) ? kb('?', 'data-key="?"', 'help') : '') + (/any key/i.test(press) ? kb('Space', 'data-key=" "', 'continue') : '') : '';
+  const mob = !PAGER && !BROWSE && !side && typeof mobCardHtml === 'function' ? mobCardHtml(y0, y1, x0, x1, skip) : '';
+  if (mob) return frame(`<div class="t-h pgh"><b>${over ? 'From your journal' : 'Creature'}</b></div><div class="t-w top cdw">${mob}</div><div class="t-f pgf">${foot}</div>`);
   // the character tab opens on a summary in the new look; the game's own long record is one click (or Page Down) away
   if (side && PAGER && /Character Sheet/i.test(PAGER.cap)) {
     if (PAGER.at > 0 && Date.now() - CHAR_HOME > 700) CHARVIEW = 'record';
