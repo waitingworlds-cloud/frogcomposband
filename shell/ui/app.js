@@ -421,7 +421,7 @@ function loreRows(list) {
       if (!grid) { grid = []; out.push(grid); } para = null;
       const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) {
         const raw = m[0]; if (/:\s*\??$/.test(raw)) continue;   // a fact you have not learned yet says nothing: leave it out
-        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1').replace(/^([A-Za-z ]+?)\s+:/, '$1:')); }
+        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1').replace(/^([A-Za-z ]+?)\s+:/, '$1:').replace(/^Spells:\s*(?:<span[^>]*>)?\?%(?:<\/span>)?$/, 'Casts spells')); }
       if (!grid.length) { out.pop(); grid = null; }
     } else { grid = null; const h = seg(0, s.length); if (para) para.h += ' ' + h; else { para = { h }; out.push(para); } }
   });

@@ -62,7 +62,7 @@ function spbCardHtml(r, u, V, have, unit) {
   const why = early ? `You need to be level ${r.lvl}.` : r.fail === 100 ? 'You cannot manage this yet.' : short ? `You have ${have} ${unit}: casting it now will strain you.` : '';
   const label = V.v ? `${V.v}${r.cost != null && !V.study ? ` for ${r.cost} ${unit}` : ''}` : '';
   return `<div class="shhead"><div class="slot big spicon"${el ? ` style="--el:${el}"` : ''}>${SPARK}</div><div class="grow" style="min-width:0"><div class="shn">${esc(r.n)}</div><div class="dir">${esc([u.realm && u.realm !== 'Powers' ? u.realm : '', r.lvl != null ? 'level ' + r.lvl : ''].filter(Boolean).join(' · '))}</div></div></div>
-    <div class="shdesc"><div class="dsc">${esc(r.desc || '')}</div>${r.info && r.info !== 'unknown' ? `<div class="dsc" style="color:#ffcf9e;margin-top:8px">${esc(r.info)}</div>` : ''}</div>
+    <div class="shdesc"><div class="dsc">${esc(r.desc || '')}</div>${r.info && r.info !== 'unknown' ? `<div class="dsc" style="color:#ffcf9e;margin-top:8px">${r.info === 'untried' ? 'You have not cast this yet.' : esc(r.info)}</div>` : ''}</div>
     <div class="shbuy"><div class="facts">${facts.map(([l, v]) => `<div><span class="lbl">${l}</span><b>${esc(String(v))}</b></div>`).join('')}</div>
       ${why ? `<div class="spwarn">${why}</div>` : ''}
       ${!label ? '' : early ? `<div class="shgo off">Needs level ${r.lvl}</div>` : pinned ? `<div class="shgo" data-spgo="1"><span class="key">Enter</span>${esc(label)}</div>` : `<div class="shgo ghost">Click the ${V.word} to ${V.v.toLowerCase()} it</div>`}</div>`;
