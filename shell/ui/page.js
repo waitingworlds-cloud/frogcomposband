@@ -21,7 +21,10 @@ function pageRow(y, b, cw, menu) {
     else if (menu && (k = PG_TOK.exec(t))) { const key = k[2] || k[3] || k[4], n = k[0].trimEnd().length; h += `<span class="pc pk${t[0] === '*' ? ' cur' : ''}" data-key="${esc(key)}" style="left:${(x - b.x0) * cw}px"><span class="key">${esc(key)}</span><span style="margin-left:${(n + 1) * cw - 22}px">${rowHtml(y, x + n + 1, e)}</span></span>`; }
     else if (pgGrid(t)) h += `<span class="pc mono" style="left:${(x - b.x0) * cw}px;font-size:${(cw / .602).toFixed(2)}px">${rowHtml(y, x, e)}</span>`;
     else if (pgNum(t)) h += `<span class="pc r" style="left:${(e - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`;
-    else h += `<span class="pc" style="left:${(x - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`;
+    else { // a lone green or light-blue word standing clear of other text is a column heading
+      let hd = /^[A-Z][A-Za-z ]{2,30}$/.test(t) && (x === s.search(/\S/) || /\s{6,}$/.test(s.slice(0, x)));
+      if (hd) { const c0 = ((G.a[y] || [])[x] || 0) & 31; hd = c0 === 13 || c0 === 14; for (let q = x; hd && q < e; q++) if (s[q] !== ' ' && (((G.a[y] || [])[q] || 0) & 31) !== c0) hd = false; }
+      h += `<span class="pc${hd ? ' phw' : ''}" style="left:${(x - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`; }
   }
   return h;
 }
@@ -66,6 +69,12 @@ function editorHtml() {
     <div class="t-w edw" style="align-items:flex-start;justify-content:flex-start;overflow:hidden"><div class="pgt" style="width:${Math.ceil((x1 + 1) * cw)}px;--lh:${lh}px">${rows}${caret}</div>${pop}</div>
     <div class="t-f pgf">${yn ? '' : menu ? k('Esc', 'data-key="Esc"', 'back to the rules') + '<span class="pgw">press a letter to choose</span>' : k('Esc', 'data-key="Esc"', 'menu') + k('Ctrl W', 'data-key="\x17"', 'save and close') + k('Ctrl Q', 'data-key="\x11"', 'close without saving') + '<span class="pgw">type to edit</span>'}</div></div></div></div>`;
 }
+// a short line all in one of the game's heading colours (green, light blue, yellow) is a heading: it is set as one
+function pgHeading(y, x0, x1) {
+  const t = rowText(y).slice(x0, x1 + 1), s = t.trim(); if (!s || s.length > 40 || /[.,;]$|\s{3,}|^\S\)|^\[/.test(s)) return false;
+  let c = -1; for (let x = 0; x < t.length; x++) { if (t[x] === ' ') continue; const a = ((G.a[y] || [])[x0 + x] || 0) & 31; if (c < 0) c = a; else if (a !== c) return false; }
+  return c === 13 || c === 14 || c === 11 || c === 6;
+}
 function hubPageHtml(side) {
   HUB.cur = hubCur();
   const b = menuBox(), frame = body => `<div class="pane npanel hub">${hubTabsHtml(HUB.cur)}<div class="hubb term">${side || ''}<div class="hubterm">${body}</div></div></div>`;
@@ -106,7 +115,7 @@ function hubPageHtml(side) {
   cw = Math.round(cw * 100) / 100; lh = Math.floor(lh * 10) / 10;
   let rows = '', toks = 0;
   if (!(PAGER && /Character Sheet|Messages/i.test(PAGER.cap))) for (let y = y0; y <= y1; y++) if (!skip[y] && PG_TOK.test(rowText(y).slice(x0).trimStart())) toks++;
-  for (let y = y0; y <= y1; y++) { if (skip[y]) continue; rows += `<div class="pr" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, toks >= 3)}</div>`; }
+  for (let y = y0; y <= y1; y++) { if (skip[y]) continue; rows += `<div class="pr${!BROWSE && pgHeading(y, x0, x1) ? ' phd' : ''}" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, toks >= 3)}</div>`; }
   const caret = G.cv && G.cx >= x0 && G.cx <= x1 + 1 && G.cy >= y0 && G.cy <= y1 && !skip[G.cy] ? `<i class="mcaret" style="left:${(G.cx - x0) * cw}px;top:${(G.cy - y0) * lh + lh - 3}px;width:${cw}px"></i>` : '';
   PGEO = { x0, cw };
   return frame(`<div class="t-h pgh">${head}</div><div class="t-w${PAGER || over ? ' top' : ''}"><div class="pgt${BROWSE ? ' pick' : ''}" style="width:${Math.ceil(nw * cw)}px;font-size:${fs.toFixed(2)}px;--lh:${lh}px">${rows}${caret}</div></div><div class="t-f pgf">${foot}</div>`);

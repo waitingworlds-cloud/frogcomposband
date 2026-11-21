@@ -425,3 +425,5 @@ canvas.ptart.none{visibility:hidden}
 .chrec{display:flex;align-items:center;gap:16px;padding:14px 0 6px;border-top:1px solid #2e3135;margin-top:12px}
 /* letters for keyboard play step aside while the mouse is in use */
 body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse .pt .ptk{visibility:hidden}
+.pgt .pr.phd .pc,.pgt .pr.phd .pc span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;font-size:1.1em;color:#ffb070!important}
+.pgt .pc.phw,.pgt .pc.phw span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;color:#ffb070!important}

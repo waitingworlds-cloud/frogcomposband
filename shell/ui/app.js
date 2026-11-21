@@ -399,6 +399,7 @@ const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized 
 function logTidy(s) {
   return String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
     .replace(/ gp\?/g, ' gold?')
+    .replace(/^((?:<color:\w>)?You (?:are|were) (?:wearing|wielding|shooting with|carrying)[^.]*?) \([a-z]\)\./, '$1.')
     .replace(/^((?:<color:\w>)?The [^.]*?) \(\d+d\d+\)(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails|breaks|disappears|sticks))/, '$1')
     .replace(/\s*(?:<color:\w>)?\[(?:y\/n(?:\/Auto)?|Y\/N|Y,n)\](?:<\/color>)?/g, '')
     .replace(/\s*=>\s*(?:<color:\w>)?(.)(?:<\/color>)?\./g, (m0, k) => ({ y: ' <color:y>Yes.</color>', Y: ' <color:y>Yes.</color>', n: ' <color:y>No.</color>', N: ' <color:y>No.</color>', A: ' <color:y>Always.</color>' })[k] || '');
