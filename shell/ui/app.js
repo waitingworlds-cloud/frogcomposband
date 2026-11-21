@@ -482,6 +482,9 @@ function logTidy(s) {
     .replace(/^((?:<color:\w>)?The [^.]*?) \(\d+d\d+\)(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails|breaks|disappears|sticks))/, '$1')
     .replace(/\s*(?:<color:\w>)?\[(?:y\/n(?:\/Auto)?|Y\/N|Y,n)\](?:<\/color>)?/g, '')
     .replace(/\s*=>\s*(?:<color:\w>)?(.)(?:<\/color>)?\./g, (m0, k) => ({ y: ' <color:y>Yes.</color>', Y: ' <color:y>Yes.</color>', n: ' <color:y>No.</color>', N: ' <color:y>No.</color>', A: ' <color:y>Always.</color>' })[k] || '');
+  // the same plain words the question cards use
+  s = s.replace('Do you really want to commit suicide?', 'End this character for good?').replace(/Unknown command\. Type (?:<color:\w>)?\?(?:<\/color>)? for help\./, 'That key does nothing here.').replace(/^Sorry\?$/, 'Never mind.')
+    .replace('Are you sure you want to buy the entire inventory of this store?', 'Buy everything on the shelves?').replace(/Shuffle stock for /, 'New stock for ').replace(/^Reserve (.+ for (?:<color:\w>)?\d+(?:<\/color>)? gold\?)/, 'Hold $1');
   return lit ? s.replace('You are wearing ', 'Your light is now ') : s;
 }
 function consoleHtml() {
