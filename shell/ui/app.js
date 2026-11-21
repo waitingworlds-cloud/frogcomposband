@@ -708,7 +708,8 @@ function drawMini(pcx, pcy, vw, vh) {
 
 /* ---------- plain view of any screen that has no native layout yet ---------- */
 // float = a pop-up over the game: only the squares the pop-up has drawn are shown, in a panel sized to fit them
-function drawTerm(float) {
+function drawTerm(float, root) {
+  root = root || $('#term'); const hub = root.id !== 'term';
   let x0 = 0, y0 = 0, x1 = G.w - 1, y1 = G.h - 1;
   if (float) {
     x0 = y0 = 1e9; x1 = y1 = -1;
@@ -731,14 +732,15 @@ function drawTerm(float) {
   if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--;
     while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; }
   const rcH = rc ? `<canvas class="rmob" data-n="${esc(rc[1])}"></canvas><b>${esc(rc[1])}</b><span class="pgn">creature recall</span>` : '';
-  setHtml($('#termh'), rc ? rcH : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
-  const rcv = rc && $('#termh .rmob');
+  setHtml(root.querySelector('.t-h'), rc ? rcH : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
+  const rcv = rc && root.querySelector('.t-h .rmob');
   if (rcv && !rcv._ok) {
     const c = rcv, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', rc[1], 0, 0, 72); sprite.flat = false;
   }
-  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : /^\s*Window Flags/.test((G.s[y0] || '').replace(/\x01/g, ' ')) ? '<span class="pgw">these pick what the game\'s extra text windows show; this interface already shows it all in its own panels, so they change nothing here</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>back</span>' : '');
-  const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
-  let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
+  setHtml(root.querySelector('.t-f'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : /^\s*Window Flags/.test((G.s[y0] || '').replace(/\x01/g, ' ')) ? '<span class="pgw">these pick what the game\'s extra text windows show; this interface already shows it all in its own panels, so they change nothing here</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>back</span>' : '');
+  const cv = root.querySelector('.t-c'), sideW = hub && root.previousElementSibling ? root.previousElementSibling.offsetWidth + 24 : 0;
+  const availW = hub ? 1452 - sideW : VW - 120, availH = hub ? HUB_H - 58 - 40 - (PAGER || BROWSE ? 92 : 0) : VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
+  let fs = hub ? Math.floor(Math.min(availH / Math.max(nh, 30) / 1.18, availW / Math.max(nw, 80) / .602)) : Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, hub ? 19 : 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
   cv.style.width = cw * nw + 'px'; cv.style.height = chh * nh + 'px'; cv.width = Math.round(cw * nw * d); cv.height = Math.round(chh * nh * d);
   const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.font = `500 ${fs}px "DejaVu Sans Mono","Cascadia Mono",Consolas,monospace`; g.textBaseline = 'middle';
@@ -747,6 +749,7 @@ function drawTerm(float) {
   TERMGEO = { x0, y0, cw, chh };
   return true;
 }
+const HUB_H = 950;
 let TERMGEO = null, PAGER = null, BROWSE = null, RECALL = false;
 // list browsers (knowledge, visuals): the bottom line reads "<dir>, 'r' to recall, ..., ESC"
 function browseInfo(y0, y1) {
@@ -805,16 +808,18 @@ function draw() {
     if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
     else { setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : ''; }
   }
-  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
+  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
+  // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
+  const page = inGame && !raw && G.icky && !ask, nh = page ? hubTermHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
-  const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
-  if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
+  const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
+  if (page) { drawTerm(!!G.ov, nat.querySelector('.hubterm')); show = false; }
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
   else if (ask && G.ov) show = false;
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
-  const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
+
   // a panel opening eases in rather than snapping; one already open just updates
   for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); const n = el._pop = (el._pop || 0) + 1; setTimeout(() => { if (el._pop === n) el.classList.remove('pop'); }, 220); }
   // the ease-in is for opening only: once it has played, the class goes, or every redraw (a new panel element) would fade in again

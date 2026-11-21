@@ -11,6 +11,19 @@
 #banner{position:absolute;left:50%;top:44px;transform:translateX(-50%);max-width:78%;display:none;z-index:6;padding:9px 20px 10px 18px;font:500 19px/1.38 Spectral,serif;color:#f1ebe0;
  background:linear-gradient(#17191cf2,#0d0e10f2);border:1px solid #000;border-left:3px solid #ff8a3c;box-shadow:0 8px 26px #000b,inset 0 1px 0 #ffffff14;text-shadow:0 1px 2px #000}
 #banner.on{display:block}
+.npanel.hub{width:1500px;height:950px;max-height:none;padding:0;display:flex;flex-direction:column;box-sizing:border-box}
+.hubt{flex:none;display:flex;align-items:flex-end;gap:4px;height:58px;padding:0 14px 0 18px;border-bottom:1px solid #3a2a1c;background:linear-gradient(#1d1f23,#131416)}
+.hubtab{display:flex;align-items:center;gap:9px;height:48px;padding:0 16px;font:400 21px/1 Fell,serif;letter-spacing:.05em;color:#8f8a80;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.hubtab .key{opacity:.55;font-size:11px!important}.hubtab:hover{color:#e9e3d6}.hubtab.on{color:#ffcf9e;border-bottom-color:#ff8a3c;background:linear-gradient(#ff8a3c00,#ff8a3c1c);cursor:default}.hubtab.on .key{opacity:.9}
+.hubx{align-self:center;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font:400 26px/1 Georgia,serif;color:#8f8a80;cursor:pointer;border-radius:4px}.hubx:hover{color:#ffcf9e;background:#2a1c12}
+.hubb{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;padding:18px 24px 20px;position:relative}
+.hubb>.npanel{box-shadow:none!important;background:none!important;border:0!important;max-height:100%;min-width:0!important;min-height:0!important}
+.hubb>.inv2,.hubb>.spell2{width:100%!important;height:100%!important;padding:0!important}
+.hubb.term{gap:24px;align-items:stretch}.hubb.term>.charp{width:600px!important;padding:0 8px 0 0!important;overflow:hidden;flex:none}.hubb.term>.charp>.tabs{display:none}
+.hubb>.npanel>.tabs:not(.multi)>div{display:none}.hubb>.npanel>.tabs:not(.multi){border:0;min-height:0;margin:0 0 6px;padding:0}
+.hubb>.menup{padding:0!important}
+.hubterm{flex:1;min-width:0;display:flex;flex-direction:column}.hubterm .t-w{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.hubterm canvas{display:block}
+.hubterm .pgh{margin:0 0 10px}.hubterm .pgf{margin:10px 0 0}
 #banner.ask{top:150px;width:540px;max-width:none;padding:24px 28px 22px;border:1px solid #000;border-top:3px solid #ff8a3c;box-shadow:0 18px 60px #000d,0 0 0 1px #3a3d42,inset 0 1px 0 #ffffff14;text-align:center;pointer-events:auto}
 #banner.ask.strip{top:44px;width:760px;padding:14px 18px 14px 22px;text-align:left}#banner.ask.look{width:900px}
 .askh{font:400 26px/1.25 Fell,serif;letter-spacing:.03em;color:#f4ead8}.askh.lite{font-size:21px}
@@ -216,6 +229,6 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .oro{justify-self:end;font:600 15px Inter,sans-serif;color:#b3ac9f}.onote{padding:8px 12px 4px;font:italic 400 15px Spectral,serif;color:#ffc46a}
 </style></head>
 <body class="main">
-<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="pgh"></div><canvas id="termc"></canvas><div id="termf" class="pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script>
+<div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="t-h pgh"></div><canvas id="termc" class="t-c"></canvas><div id="termf" class="t-f pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script><script src="hub.js"></script>
 </body></html>

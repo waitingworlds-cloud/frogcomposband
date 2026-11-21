@@ -38,7 +38,7 @@ function menuHtml() {
   if ((n < 3 && !(n === 2 && filled <= 4)) || prose > 4 || n < filled * .3) return '';   // two choices count in a small box (which hand?)
   { const c = menuCards(rows, b) || menuSections(rows, b); if (c) return c; }
   const nw = b.x1 - b.x0 + 1, nh = rows.length;
-  let fs = Math.floor(Math.min((VH - 150) / nh / 1.4, (VW - 160) / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
+  let fs = Math.floor(Math.min((HUB_H - 58 - 40 - (pg ? 92 : 0)) / nh / 1.4, 1452 / nw / .602)); fs = Math.max(11, Math.min(fs, 21));
   const lh = Math.round(fs * 1.4), first = rows.findIndex(r => r.s.trim());
   let out = '';
   rows.forEach((r, i) => {

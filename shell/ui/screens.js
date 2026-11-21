@@ -48,7 +48,7 @@ function itemsHtml() {
   const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
   const ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
   return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
-    <div class="tabs">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
+    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
     <div class="sh2"><div class="nrows">${rows}</div><div class="shcard">${itemsCardHtml(cur, equip, viewer)}</div></div>
     <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(ask)}</span><span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
@@ -331,7 +331,6 @@ function nativeHtml() {
   if (UI.kind === 'shop') return shopHtml();
   if (UI.kind === 'home') return homeHtml();
   if (UI.kind === 'lmap') return lmapHtml();
-  if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
   return UI.kind === 'char' ? '' : menuHtml();
 }
 
@@ -624,7 +623,7 @@ document.addEventListener('mousedown', ev => {
     sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
   }
   // the plain text panel: clicking a line that offers a lettered choice presses that letter
-  if (ev.target.id === 'termc' && TERMGEO && ev.button === 0) {
+  if (ev.target.classList && ev.target.classList.contains('t-c') && TERMGEO && ev.button === 0) {
     const r = ev.target.getBoundingClientRect(), gx = TERMGEO.x0 + Math.floor((ev.clientX - r.left) / SCALE / TERMGEO.cw), gy = TERMGEO.y0 + Math.floor((ev.clientY - r.top) / SCALE / TERMGEO.chh);
     if (BROWSE && G.cv) { browsePick(gx, gy, ev.detail >= 2); return; }
     const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
@@ -648,7 +647,7 @@ function browsePick(gx, gy, dbl) {
 }
 let wheelAcc = 0;
 document.addEventListener('wheel', ev => {
-  if (BROWSE && ev.target.closest && ev.target.closest('#term')) {   // a list: the wheel walks the picked line
+  if (BROWSE && ev.target.closest && ev.target.closest('#term,.hubterm')) {   // a list: the wheel walks the picked line
     wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
     sendText((n > 0 ? '2' : '8').repeat(Math.min(8, Math.abs(n)))); return;
   }
