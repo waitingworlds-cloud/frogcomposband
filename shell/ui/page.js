@@ -18,6 +18,7 @@ function pageRow(y, b, cw, menu) {
     let k;
     if ((k = /^([=\-]{3,})\s+(\S.*?)\s+([=\-]{3,})$/.exec(t))) h += `<span class="pc psec" style="left:${(x - b.x0) * cw}px;width:${(e - x) * cw}px"><i></i><b>${esc(k[2])}</b><i></i></span>`;
     else if (/^\|+$/.test(t)) h += `<span class="pc pbar" style="left:${(x - b.x0 + .5) * cw}px"></span>`;
+    else if (menu === 2 && (k = PG_TOK.exec(t))) { const n = k[0].trimEnd().length; h += `<span class="pc" style="left:${(x - b.x0) * cw}px">${rowHtml(y, x + n + 1, e)}</span>`; }   // a list to read, not to pick from: no letters
     else if (menu && (k = PG_TOK.exec(t))) { const key = k[2] || k[3] || k[4], n = k[0].trimEnd().length; h += `<span class="pc pk${t[0] === '*' ? ' cur' : ''}" data-key="${esc(key)}" style="left:${(x - b.x0) * cw}px"><span class="key">${esc(key)}</span><span style="margin-left:${(n + 1) * cw - 22}px">${rowHtml(y, x + n + 1, e)}</span></span>`; }
     else if (pgGrid(t)) h += `<span class="pc mono" style="left:${(x - b.x0) * cw}px;font-size:${(cw / .602).toFixed(2)}px">${rowHtml(y, x, e)}</span>`;
     else if (pgNum(t)) h += `<span class="pc r" style="left:${(e - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`;
@@ -121,7 +122,7 @@ function hubPageHtml(side) {
   cw = Math.round(cw * 100) / 100; lh = Math.floor(lh * 10) / 10;
   let rows = '', toks = 0;
   if (!(PAGER && /Character Sheet|Messages/i.test(PAGER.cap))) for (let y = y0; y <= y1; y++) if (!skip[y] && PG_TOK.test(rowText(y).slice(x0).trimStart())) toks++;
-  for (let y = y0; y <= y1; y++) { if (skip[y]) continue; rows += `<div class="pr${!BROWSE && pgHeading(y, x0, x1) ? ' phd' : ''}" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, toks >= 3)}</div>`; }
+  for (let y = y0; y <= y1; y++) { if (skip[y]) continue; rows += `<div class="pr${!BROWSE && pgHeading(y, x0, x1) ? ' phd' : ''}" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, PAGER && /Extra Information|Spell Proficiency/i.test(PAGER.cap) ? 2 : toks >= 3)}</div>`; }
   const caret = G.cv && G.cx >= x0 && G.cx <= x1 + 1 && G.cy >= y0 && G.cy <= y1 && !skip[G.cy] ? `<i class="mcaret" style="left:${(G.cx - x0) * cw}px;top:${(G.cy - y0) * lh + lh - 3}px;width:${cw}px"></i>` : '';
   PGEO = { x0, cw };
   return frame(`<div class="t-h pgh">${head}</div><div class="t-w${PAGER || over ? ' top' : ''}"><div class="pgt${BROWSE ? ' pick' : ''}" style="width:${Math.ceil(nw * cw)}px;font-size:${fs.toFixed(2)}px;--lh:${lh}px">${rows}${caret}</div></div><div class="t-f pgf">${foot}</div>`);
