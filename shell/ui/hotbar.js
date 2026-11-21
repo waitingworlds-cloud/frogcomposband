@@ -50,7 +50,7 @@ function hbOnUi(m) {
   if (m.kind === 'spells' && HB.who) { let ch = false; for (const s of HB.slots) { if (!s || s.t !== 's') continue; const r = (m.rows || []).find(r => r.n === s.n); if (r && r.cost != null && (s.cost !== r.cost || s.unit !== (m.unit || 'SP'))) { s.cost = r.cost; s.unit = m.unit || 'SP'; ch = true; } } if (ch) hbSave(); }
   if (!SPELLPICK || m.kind !== 'spells') return;
   const want = SPELLPICK; SPELLPICK = null; if (Date.now() - want.t > 5000) return;
-  const r = (m.rows || []).find(r => r.n === want.n); if (r && r.k) sendText(r.k);
+  const r = (m.rows || []).find(r => r.n === want.n); if (r && r.k) { CAST = { n: r.n, t: Date.now() }; sendText(r.k); }
 }
 // remember what was picked and which command opened it, so a spell dragged from the list knows its book
 function hbNote(bytes) {

@@ -32,8 +32,10 @@ function itemsHtml() {
   if (ITEMS.hov && !u.items.some(i => i.o && i.k === ITEMS.hov)) ITEMS.hov = '';
   const cur = itemsCur();
   let rows = '', lastCat = '', n = 0, cats = 0;
-  for (const it of u.items) {
-    const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
+  // throwing: what is made for it heads the list
+  const thr = !equip && /^Throw which/i.test(u.prompt || ''), good = o => thr && o && (o.tv === 77 || /\b(Throwing|Darts?|Javelins?|Shuriken|Boomerangs?|Iron Spikes?)\b/i.test(o.n));
+  for (const it of thr ? u.items.filter(i => good(i.o)).concat(u.items.filter(i => !good(i.o))) : u.items) {
+    const o = it.o, cat = equip ? '' : good(o) ? 'made to be thrown' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
     const has = !!(o && it.k.trim()), mark = has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
@@ -93,7 +95,15 @@ function itemsMove(d) {
 }
 // keys that belong to the list and its card while you look through your things; every other key goes to the game
 function itemsKey(e) {
-  if (!itemsViewer() || !uiOnTop() || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (e.ctrlKey || e.altKey || e.metaKey) return false;
+  // a "which one?" list: the arrows move a highlight, Enter takes it (or the only thing there is)
+  if (UI && UI.kind === 'items' && !itemsViewer() && uiOnTop() && !(typeof spbPicking === 'function' && spbPicking())) {
+    const its = UI.items.filter(i => i.o && i.k.trim()); if (!its.length) return false;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const i = its.findIndex(x => x.k === ITEMS.hov), d = e.key === 'ArrowDown' ? 1 : -1; ITEMS.hov = its[i < 0 ? (d > 0 ? 0 : its.length - 1) : Math.max(0, Math.min(its.length - 1, i + d))].k; schedule(); return true; }
+    if (e.key === 'Enter') { const it = its.find(x => x.k === ITEMS.hov) || (its.length === 1 ? its[0] : null); if (it) { sendText(it.k); return true; } ITEMS.hov = its[0].k; schedule(); return true; }
+    return false;
+  }
+  if (!itemsViewer() || !uiOnTop()) return false;
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { itemsMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
   if (!ITEMS.sel) return false;
   if (e.key === 'Enter') { const a = ITEMS.acts[0]; if (a) a.run(); return true; }

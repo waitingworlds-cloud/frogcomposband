@@ -33,7 +33,7 @@ let ASK_AIM = null;
 const ASK_WORDS = { 'Last word': ['Your last words', 'They are kept with your memorial. Type to change them.'], 'Inscription': ['Inscribe it', 'A short note shown after the item\'s name.'], 'Inscribe': ['Inscribe it', 'A short note shown after the item\'s name.'] };
 const ASK_LOOK = [['t', 'Target this', 'go'], ['r', 'What is it?'], ['j', 'Walk here'], ['(', 'Walk here'], ['x', 'Items here'], ['+', 'Next'], ['-', 'Previous'], ['m', 'Creatures only'], ['o', 'Look anywhere'], ['p', 'Back to you'], ['?', 'Help']];
 function askHtml() {
-  const a = askKind(); if (!a || a.t !== 'aim') ASK_AIM = null;
+  const a = askKind(); if (!a || (a.t !== 'aim' && !(a.t === 'look' && ASK_AIM))) ASK_AIM = null;   // stepping through targets is still part of the same aim
   if (!a) return null;
   // what is being thrown or fired: only if it was picked just before the game asked where
   if (a.t === 'aim' && !ASK_AIM) { const sp = typeof CAST !== 'undefined' && CAST.n && Date.now() - CAST.t < 3000 ? CAST.n : ''; ASK_AIM = { sp, o: !sp && typeof LASTPICK !== 'undefined' && LASTPICK && Date.now() - LASTPICK.t < 3000 ? LASTPICK.o : null }; }
@@ -75,7 +75,12 @@ function askHtml() {
   if (a.t === 'dir') return { cls: 'strip', html: `<div class="askrow"><div class="grow"><div class="askh lite">Which way?</div><div class="asks">Click a square next to you, or press a direction.</div></div>${cancel()}</div>` };
   const foes = a.t === 'aim' && (S.mons || []).some(m => !m.pet && !m.friendly);
   if (a.t === 'aim') return { cls: 'strip', html: `<div class="askrow">${ASK_AIM.o && artHtml(ASK_AIM.o.ki, 40) ? `<div class="slot askart t-${tvIcon(ASK_AIM.o.tv)}" data-tip="${esc(cap(ASK_AIM.o.n))}">${artHtml(ASK_AIM.o.ki, 40)}</div>` : ''}<div class="grow"><div class="askh lite">Choose a target${aimFor ? ` <span class="askfor">for ${esc(aimFor)}</span>` : ''}</div><div class="asks">${foes ? 'Click a creature, or any square to aim that way.' : 'Nothing is in sight. Click any square to aim that way.'}</div></div>
-      ${a.cur ? btn(a.cur, 'Same target', 'go', a.cur, 'Aim at the creature you already have targeted') : ''}${foes ? btn('*', a.cur ? 'Another' : 'Nearest', a.cur ? '' : 'go', '*', 'Step through the creatures in view') : ''}${cancel()}</div>` };
+      ${a.cur ? btn(a.cur, 'Same target', 'go', a.cur, 'Aim at the creature you already have targeted') : ''}${foes ? (a.cur ? btn('*', 'Another', '', '*', 'Step through the creatures in view') : btn('*t', 'Nearest', 'go', '*', 'Aim at the nearest creature in view (press * to step through them)')) : ''}${cancel()}</div>` };
+  if (a.t === 'look' && ASK_AIM && a.keys.includes('t')) {   // choosing a target for a shot or a spell: only what that needs
+    const nm = cap(a.what.replace(/^Monster:\s*/i, '').replace(/^(an?|the) /i, '')), what = ASK_AIM.sp || (ASK_AIM.o ? 'the ' + baseName(ASK_AIM.o.n) : '');
+    return { cls: 'strip', html: `<div class="askrow"><div class="grow"><div class="askh lite">${esc(nm)}</div><div class="asks">${what ? `Target for ${esc(what)}. ` : ''}Click another creature to change.</div></div>
+      ${btn('t', 'Aim here', 'go', 't')}${a.keys.includes('+') ? btn('+', 'Next', '', '+', 'The next creature in view') : ''}${cancel()}</div>` };
+  }
   if (a.t === 'look') {
     const bs = ASK_LOOK.filter(([k]) => a.keys.includes(k)).filter(([k], i, l) => !(k === '(' && l.some(o => o[0] === 'j'))).map(([k, w, c]) => btn(k, w, c));
     return { cls: 'strip look', html: `<div class="askh lite">${esc(a.what)}</div><div class="askb wrap">${bs.join('')}${cancel('Done')}</div>` };

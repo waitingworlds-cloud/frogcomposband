@@ -275,7 +275,7 @@ function effectsHtml() {
   }
   // in the dungeon with a light in the pack but none in hand: say so, and a click wields one
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
-  CAN_STUDY = out.some(e => /^Study/.test(e.text || ''));
+  { const was = CAN_STUDY; CAN_STUDY = out.some(e => /^Study/.test(e.text || '')); if (was !== CAN_STUDY && typeof LV !== 'undefined' && LV.data) lvlDraw(); }
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
   return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
 }
