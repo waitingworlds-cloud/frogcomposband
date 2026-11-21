@@ -104,7 +104,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
+  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
   else if (m.t === 'ui') {
     if (m.kind === 'shop' || m.kind === 'home') { const sg = JSON.stringify(m.rows || m.items || m); if (sg !== DESC_SHOP) { DESC_SHOP = sg; for (const k in DESC) if (/^[sh]:/.test(k)) { delete DESC[k]; delete DESC_ASKED[k]; } } }
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
@@ -258,6 +258,7 @@ function dollHtml() {
   return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
 }
 let lastEff = '';
+let CAN_STUDY = false;   // the game says there is a spell to learn
 function effectsHtml() {
   if (G.icky || G.ov) return lastEff || '<div class="sub" style="font-size:14px">nothing unusual</div>';
   const out = [];
@@ -274,6 +275,7 @@ function effectsHtml() {
   }
   // in the dungeon with a light in the pack but none in hand: say so, and a click wields one
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
+  CAN_STUDY = out.some(e => /^Study/.test(e.text || ''));
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
   return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-key="\\w" data-tip="You carry a light but are not holding one.&#10;click or press w: wield it">No light</div>` : ''}</div>`;
 }
@@ -383,13 +385,19 @@ const RL_KEY = { f: 't', a: 'z' };   // the roguelike keys show their own letter
 const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what you stand on' };
 const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'], ['M', 'map'], ['Esc', 'menu']];
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
+// the log keeps the game's questions with the key that answered them: say the answer in words, and drop the key lists
+function logTidy(s) {
+  return String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
+    .replace(/\s*(?:<color:\w>)?\[(?:y\/n(?:\/Auto)?|Y\/N|Y,n)\](?:<\/color>)?/g, '')
+    .replace(/\s*=>\s*(?:<color:\w>)?(.)(?:<\/color>)?\./g, (m0, k) => ({ y: ' <color:y>Yes.</color>', Y: ' <color:y>Yes.</color>', n: ' <color:y>No.</color>', N: ' <color:y>No.</color>', A: ' <color:y>Always.</color>' })[k] || '');
+}
 function consoleHtml() {
   const cnt = { q: countTv(t => t === 75), r: countTv(t => t === 70), E: countTv(t => t === 80), a: countTv(t => t === 65 || t === 66 || t === 55) };
   const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o); if (!noBow) { const n = countTv(t => t >= 16 && t <= 18); if (n) cnt.f = n; }   // ammunition in the pack shows on the Fire button (a worn quiver keeps its own, so none here is not 'none')
   const noFloor = !S.floor.some(o => !o.dx && !o.dy);   // nothing to fire with: say so on the button
   const msgs = S.msgs.filter(m => (String(m.s).match(/\n/g) || []).length < 3).slice(-8);   // a picture of the map kept in the log (after a death) is not a line to read
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
-  const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
+  const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(logTidy(m.s))}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
   ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
@@ -803,7 +811,7 @@ function draw() {
     const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();
-    setHtml($('#here'), hereHtml());
+    setHtml($('#here'), hereHtml()); tipStale();
     const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
     if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }

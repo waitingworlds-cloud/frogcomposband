@@ -48,10 +48,10 @@ function itemsHtml() {
   const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
   let ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
   // a "which one?" list with a single tab is headed by the question itself
-  const q1 = !viewer && u.tabs.length <= 1 && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '') : '';
+  const q1 = !viewer && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '') : '';
   if (q1) ask = '';
   return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
-    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
+    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>${u.tabs.length > 1 ? `<span class="ptabs"><i>from your</i>${u.tabs.map((t, i) => `<span class="ptab${t.on ? ' on' : ''}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}"`}>${esc(t.name.toLowerCase().replace(/^inventory$/, 'pack').replace(/^equipment$/, 'gear'))}</span>`).join('')}</span>` : ''}` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
     <div class="sh2"><div class="nrows">${rows}</div><div class="shcard">${itemsCardHtml(cur, equip, viewer)}</div></div>
     <div class="nfoot">${q1 ? '<span class="sub">Click one, or press its key.</span>' : `<span class="live" style="white-space:pre-line">${rich(ask)}</span>`}<span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
@@ -331,13 +331,23 @@ function deathRead() {
 function deathHtml() {
   const d = deathRead(); if (!d) return ''; DIED = d;
   const ask = d.after.map(r => r.replace(/\s+$/, '')).filter(Boolean);
+  // the game offers to write the character to a file: say so plainly, with the name being typed in a field
+  const fi = ask.findIndex(l => /^\s*Filename:/.test(l));
+  if (fi >= 0) {
+    const typed = ask[fi].replace(/^\s*Filename:\s?/, '');
+    return deathFrame(d, `<div class="dnote">Type a name to keep a record of this character as a file, or leave it empty.</div><div class="dfield">${esc(typed)}<i class="dcaret"></i></div>`,
+      `<span class="pgb" data-key="\r"><span class="key">Enter</span>${typed.trim() ? 'save the record' : 'see the character'}</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span>`);
+  }
   const cy = G.cy - (G.s.length - d.after.length), live = ask.map((l, i) => `<div class="dl">${esc(l)}${G.cv && i === ask.length - 1 ? '<i class="dcaret"></i>' : ''}</div>`).join('');
+  return deathFrame(d, live, `<span class="pgb" data-key="\r"><span class="key">Enter</span>${/-more-/.test(msgTop()) ? 'continue' : 'see the character'}</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span>`);
+}
+function deathFrame(d, live, btns) {
   const where = /^Level 0$/i.test(d.where) ? 'in the town' : d.where ? 'on ' + d.where.toLowerCase().replace(/^level/, 'dungeon level') : '';
   return `<div class="pane npanel deathp"><div class="dhead">Here lies</div><div class="dname">${esc(d.name)}</div><div class="dtitle">${esc([d.title, d.cls].filter(Boolean).join(' · '))}</div>
     <div class="dby">${/^quitting$/i.test(d.by) ? 'Laid down the quest ' : d.by ? `Slain by <b>${esc(d.by)}</b> ` : ''}${esc(where)}</div>
     <div class="dstats"><div><b>${esc(d.lev)}</b><span>level</span></div><div><b>${esc(d.exp)}</b><span>experience</span></div><div><b>${esc(d.au)}</b><span>gold</span></div></div>
     <div class="dwhen">${esc(d.when)}</div><div class="dask">${live}</div>
-    <div class="dbtns"><span class="pgb" data-key="\r"><span class="key">Enter</span>see the character</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span></div></div>`;
+    <div class="dbtns">${btns}</div></div>`;
 }
 
 /* ---------- mouse ---------- */
@@ -414,6 +424,8 @@ function tipRefresh() {
   }
   showTip(cellTip(cell), MAPEV);
 }
+let TIP_EL = null;   // the button a hint belongs to: when a redraw takes the button away, the hint goes with it
+function tipStale() { if (TIP_EL && !TIP_EL.isConnected) { TIP_EL = null; const t = $('#tip'); if (t) t.style.display = 'none'; } }
 function showTip(html, ev) {
   const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
   t.innerHTML = html; t.style.display = 'block';
@@ -505,6 +517,7 @@ document.addEventListener('mousemove', ev => {
   const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
   $('#tip').classList.toggle('wide', !!th);
   if (th) return showTip(th, ev);
+  TIP_EL = tipEl || null;
   if (tipEl) { const [a, b] = tipEl.dataset.tip.split('\n'); return showTip(esc(a) + (b ? `<div class="hint">${esc(b)}</div>` : ''), ev); }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];

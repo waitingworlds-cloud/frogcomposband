@@ -325,7 +325,7 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 #tip .cmpb .up{color:#a9e08c}#tip .cmpb .down{color:#ff8a70}#tip .cmpb .soft{opacity:.75;font-weight:400}
 #tip .cmpb .cmpl{flex-basis:100%;font:400 14.500px Spectral,serif;line-height:1.35}
 /* level-up card, over the top of the map */
-#lvlcard{position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:30;width:560px;pointer-events:auto}
+#lvlcard{position:absolute;left:50%;top:210px;transform:translateX(-50%);z-index:30;width:560px;pointer-events:auto}
 #lvlcard:empty{display:none}
 #lvlcard.in .lvc{animation:panin .35s cubic-bezier(.2,.8,.3,1)}
 .lvc{--c:12px;padding:1px;background:linear-gradient(165deg,#ffcf8a,#7a4a1c 40%,#3a2a1c);filter:drop-shadow(0 12px 30px #000e)}

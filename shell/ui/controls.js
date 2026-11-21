@@ -2,13 +2,13 @@
 'use strict';
 const CONTROLS = [
   ['Mouse', [
-    ['click a square', 'walk there (dots show the way)'], ['click a creature', 'attack it, or walk to it'], ['click yourself', 'pick up, or take the stairs you stand on'],
+    ['click a square', 'walk there (dots show the way)'], ['click a creature', 'attack it, or walk to it'], ['the button under the map', 'what you can do where you stand: pick up, stairs, doors'], ['double-click stairs', 'walk there and take them'],
     ['click an item', 'walk over and pick it up'], ['right-click anything', 'everything you can do with it'], ['point at a creature', 'what you know of it, in Recall'], ['rest the pointer on an item', 'what it does'],
     ['wheel over the map', 'zoom in and out'], ['drag an item onto the map', 'drop it'], ['click the area map', 'travel there'], ['click your name', 'character sheet'], ['click an edge arrow', 'target the creature off view'],
-    ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['prompts and menus', 'every key shown is a button'], ['drag a spell or item onto the hotbar', 'then one click uses it'], ['drag a hotbar slot off the bar', 'clear it'],
+    ['shift-click a creature', 'fire your launcher at it'], ['click rubble or a vein', 'dig into it'], ['while aiming', 'click the square to aim at'], ['while looking', 'click a square to look at it'], ['questions', 'every answer is a button; arrows change a number'], ['drag a spell or item onto the hotbar', 'then one click uses it'], ['drag a hotbar slot off the bar', 'clear it'],
   ]],
   ['Keys', [
-    ['x', 'explore until something turns up (original keys)'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'], ['Shift+F7', 'living map: ripples, flicker, sway'],
+    ['x', 'explore until something turns up (original keys)'], ['i e m C M ~', 'pack, gear, spells, character, map, journal: tabs of one window'], ['F1', 'this card'], ['Esc', 'game menu, when nothing is open'], ['F6', 'sound: on, effects only, off'], ['F7', 'map lighting'], ['Shift+F7', 'living map: ripples, flicker, sway'],
     ['F8', 'retro moments'], ['F9', 'screen style (Shift+F9 back)'], ['Ctrl + / Ctrl −', 'interface size'], ['F11', 'full screen'], ['Ctrl+1 … Ctrl+0', 'hotbar slots'], ['?', "the game's own help"],
   ]],
 ];

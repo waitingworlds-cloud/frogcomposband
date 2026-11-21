@@ -22,6 +22,8 @@ function birthParse() {
     for (; y < rows.length; y++) {
       // with no realm line the sum of the bonuses (the "==" row) stands on a line of its own
       const lone = ends.length && !rows[y].slice(0, SPLIT - 3).trim() && /==/.test(rows[y].slice(SPLIT - 3, SPLIT + 4));
+      // a second magic realm stands alone under the first
+      if (!lone && out.fields.length && /^\s{5,}\S/.test(rows[y].slice(0, SPLIT)) && !rows[y].slice(SPLIT).trim() && !/:|\)/.test(rows[y])) { const pf = out.fields.filter(f => !f.side).pop(); if (pf && /^Magic/.test(pf.label)) { pf.value += ' · ' + rows[y].trim(); continue; } }
       const m = lone ? [0, '', ''] : /^([A-Z][A-Za-z ]{0,9}?)\s*:\s?(.*)$/.exec(rows[y].slice(0, SPLIT)); if (!m) break;
       const right = rows[y].slice(SPLIT).replace(/^=*/, s0 => ' '.repeat(s0.length)), f = { label: m[1], value: m[2].trim(), y, lone };
       if (!out.cols.length && y > 0 && right.trim() && !/:/.test(right) && !/\d/.test(right)) { const re = /\S+/g; let t; while ((t = re.exec(right))) { out.cols.push(t[0]); ends.push(SPLIT + t.index + t[0].length); starts.push(SPLIT + t.index); } out.words = !/STR\s+INT/.test(right); }
@@ -85,7 +87,7 @@ function birthHtml() {
   if (G.ov) return '';
   const b = birthParse(); if (!b || (!b.nchoice && !b.fields.length)) return '';
   const val = n => (b.fields.find(f => f.label === n) || {}).value || '';
-  let left = '';
+  let left = '', intro = '';
   if (b.fields.length) {
     const main = b.fields.filter(f => f.label !== 'Name' && !f.side), side = b.fields.filter(f => f.side);
     const tone = v => /^-/.test(v) ? 'neg' : /^\+0$|^100%$|^$/.test(v) ? 'zero' : 'pos';
@@ -96,15 +98,25 @@ function birthHtml() {
     const nameY = G.s.findIndex(r => /^Name\s*:/.test((r || '').replace(/\x01/g, ' ')));
     naming = nameY >= 0 && !!G.cv && G.cy === nameY && G.cx >= 7 && G.cx < 40;
     const canName = b.blocks.some(k => k.items && k.items.some(i => i.key === 'n'));
+    // the sheet is the form: each line that the game lets you change is a button (its "Change ..." entry leaves the list)
+    const chg = {}; b.blocks.forEach(k => k.items && k.items.forEach(i => { const m = /^Change (.+)$/.exec(i.label); if (m && i.key.length === 1) chg[m[1].toLowerCase().slice(0, 4)] = i; }));
+    const fgo = f => { const i = chg[f.label.toLowerCase().slice(0, 4)]; if (i) i.used = true; return i; };
+    if (chg.name) chg.name.used = true;
+    if (Object.keys(chg).length > 2 && !naming) intro = '<div class="bhd">Who will you be?</div><p class="bp">Click anything on your sheet to change it: your name, your people, your calling. When it reads right, continue.</p>';
     const nm = esc(val('Name'));
     left = `<div class="bsheet">${naming ? `<div class="bname bnaming">${nm}<i class="bcaret"></i></div><div class="bnhint">Type a name · <span class="key kb" data-key="\r">Enter</span> keep it · <span class="key kb" data-key="\x1b">Esc</span> cancel</div>`
-      : `<div class="bname"${canName ? ` data-key="n" data-tip="Your name&#10;click or press n to change it" style="cursor:text"` : ''}>${nm || 'Unnamed'}</div>`}
+      : `<div class="bname${canName ? ' go' : ''}"${canName ? ` data-key="n" data-tip="Your name&#10;click or press n to change it"` : ''}>${nm || 'Unnamed'}${canName ? '<span class="key kb">n</span>' : ''}</div>`}
       <div class="bsub">${esc([val('Sex'), val('Race'), val('Class')].filter(Boolean).join(' · '))}</div>
-      <div class="bfields">${main.filter(f => !f.lone).concat(side).map(f => `<div class="bf"><span class="lbl">${esc(f.label)}</span><b>${esc(f.value) || '<i>none</i>'}</b></div>`).join('')}</div>
+      <div class="bfields">${main.filter(f => !f.lone).concat(side).map(f => { const g = naming ? null : fgo(f); return `<div class="bf${g ? ' go' : ''}"${g ? ` data-key="${esc(g.key)}" data-tip="${esc(f.label)}&#10;click or press ${esc(g.key)} to change it"` : ''}><span class="lbl">${esc(f.label)}</span><b>${esc(f.value) || '<i>none</i>'}</b>${g ? `<span class="key kb">${esc(g.key)}</span>` : ''}</div>`; }).join('')}</div>
       <div class="sect" style="margin-top:14px">${b.words ? 'Skills' : 'Bonuses'}</div>${table}</div>`;
   }
-  let right = '';
+  let right = '', ret = null, back = null, anyCh = false;
+  for (const k of b.blocks) if (k.items) { k.items = k.items.filter(i => { if (i.key === 'RET') { ret = i; return false; } if (i.key === 'ESC') { back = i; return false; } return !i.used; }); if (k.items.length) anyCh = true; }
+  const navWord = t => /^next screen$/i.test(t) ? 'Continue' : /^prev(ious)? screen$/i.test(t) ? 'Back' : t;
   for (const k of b.blocks) {
+    if (k.type === 'p' && /^(Tip:|Use SHIFT\+choice to display help topic)/.test(k.html.replace(/<[^>]+>/g, '').trim())) continue;
+    if (k.type === 'p' && /^Note: You may adjust each starting stat/.test(k.html.replace(/<[^>]+>/g, '').trim())) { right += '<p class="bp">Raise what your calling leans on. Each step costs more the higher a stat goes, and you have 30 points in all. Point at a plus or minus to see its price.</p>'; continue; }
+    if (k.type === 'h' && /^Enter Your Starting Stats$/i.test(k.html)) k.html = 'Spend your starting points';   // the tip is about typing capital letters for help: pointing at a choice shows the same here
     if (k.type === 'h') right += `<div class="bhd">${k.html}</div>`;
     else if (k.type === 'p') right += `<p class="bp">${k.html}</p>`;
     else if (k.type === 'stats') right += `<div class="bst" style="grid-template-columns:90px 34px 64px 34px repeat(${Math.max(0, k.cols.length - 1)},70px)"><span></span><span></span><span class="bh">${esc(k.cols[0] || '')}</span><span></span>${k.cols.slice(1).map(c => `<span class="bh">${esc(c)}</span>`).join('')}
@@ -118,6 +130,7 @@ function birthHtml() {
       const ordered = k.cols > 1 ? k.items.filter(i => i.col === 0).concat(k.items.filter(i => i.col > 0)) : k.items, per = Math.ceil(ordered.length / cols);
       right += `<div class="bch" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${k.cols > 1 ? Math.max(k.items.filter(i => i.col === 0).length, k.items.filter(i => i.col > 0).length) : per},auto)">${ordered.map(i => `<div class="bc ${i.dim ? 'dim' : ''}" data-topic="${esc(i.html.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, '').trim())}" data-key="${esc(BKEY[i.key] || i.key)}"><span class="key kb">${esc(i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key)}</span><span>${i.html}</span></div>`).join('')}</div>`; }
   }
-  return `<div class="pane npanel birth${naming ? ' naming' : ''}" style="width:${left ? 1320 : 900}px"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
-    <div class="bbody">${left}<div class="bright">${right}</div></div></div>`;
+  return `<div class="pane npanel birth${naming ? ' naming' : ''}" style="width:${left ? 1320 : 900}px;${left ? 'min-height:736px;' : ''}display:flex;flex-direction:column;box-sizing:border-box"><div class="tabs"><div class="on">${left ? 'Forge your character' : 'FrogComposband'}</div></div>
+    <div class="bbody">${left}<div class="bright">${intro}${right}</div></div>
+    <div class="bfoot"><span class="abtn" data-key="\x1b"><span class="key">Esc</span>${esc(back ? navWord(back.label) : 'Back')}</span><span class="sub">${anyCh && !intro ? 'Point at a choice to read about it · Shift and its letter opens the full help page' : ''}</span><span class="grow"></span>${ret ? `<span class="abtn go" data-key="\r"><span class="key">Enter</span>${esc(navWord(ret.label))}</span>` : ''}</div></div>`;
 }

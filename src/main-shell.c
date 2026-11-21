@@ -863,6 +863,32 @@ static void send_frame(void)
             cptr e = _gf_elem(shell_proj_gf);
             if (e) o_fmt("\"gf\":\"%s\",", e);
         }
+        /* A screen drawn over a saved one is told apart from it cell by cell, so a letter that happens to match the
+           screen underneath would be lost. On a full screen (a sheet, a list, a page of help) what is drawn is a block
+           of rows: within each block, everything between its left and right edge belongs to it. */
+        static short fill_x0[SHELL_MAX_H], fill_x1[SHELL_MAX_H];
+        if (ov && character_icky)
+        {
+            int y0 = -1;
+            for (y = 0; y <= h; y++)
+            {
+                int rx0 = -1, rx1 = -1;
+                if (y < h)
+                {
+                    for (x = 0; x < w; x++)
+                        if (t->scr->a[y][x] != t->mem->a[y][x] || t->scr->c[y][x] != t->mem->c[y][x]) { if (rx0 < 0) rx0 = x; rx1 = x; }
+                    fill_x0[y] = rx0; fill_x1[y] = rx1;
+                }
+                if (rx0 >= 0) { if (y0 < 0) y0 = y; }
+                else if (y0 >= 0)
+                {
+                    int bx0 = w, bx1 = -1, yy;
+                    for (yy = y0; yy < y; yy++) { if (fill_x0[yy] < bx0) bx0 = fill_x0[yy]; if (fill_x1[yy] > bx1) bx1 = fill_x1[yy]; }
+                    for (yy = y0; yy < y; yy++) { fill_x0[yy] = bx0; fill_x1[yy] = bx1; }
+                    y0 = -1;
+                }
+            }
+        }
         o_raw("\"rows\":[");
         for (y = 0; y < h; y++)
         {
@@ -873,7 +899,8 @@ static void send_frame(void)
             {
                 rc[x] = c[x] ? c[x] : ' ';
                 /* a cell a pop-up has not touched is sent as "see through" */
-                if (ov && a[x] == t->mem->a[y][x] && c[x] == t->mem->c[y][x]) rc[x] = 1;
+                if (ov && a[x] == t->mem->a[y][x] && c[x] == t->mem->c[y][x]
+                    && !(character_icky && fill_x0[y] >= 0 && x >= fill_x0[y] && x <= fill_x1[y])) rc[x] = 1;
             }
             if (old_valid && !memcmp(a, old_a[y], w) && !memcmp(rc, old_c[y], w)) continue;
             memcpy(old_a[y], a, w);

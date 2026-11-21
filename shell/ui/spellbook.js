@@ -41,14 +41,18 @@ function spellsHtml() {
       <span class="spf" style="color:${fc}">${f != null ? f + '%' : ''}</span></div>`;
   }).join('');
   const books = bookish && SPB.books ? `<span class="spbooks">${(picking ? (UI.items || []).filter(i => i.o && i.k.trim()).map(i => ({ k: i.k, n: i.o.n, ki: i.o.ki, tv: i.o.tv })) : SPB.books).map(b => `<span class="spbk ${!picking && b.n === SPB.book ? 'on' : ''}" data-spbook="${esc(b.k)}" data-tip="${esc(cap(b.n.replace(/^(an?|the) /i, '')))}"><span class="slot t-book">${artHtml(b.ki, 28) || icon('book')}</span>${esc(spbBookName(b.n))}${picking ? `<span class="key">${esc(b.k)}</span>` : ''}</span>`).join('')}</span>` : '';
-  const title = picking ? 'Spells' : u.realm || 'Spells';
+  // choosing a book: the books themselves, large, in place of an empty list
+  const pk = !picking ? null : SPB.cmd === 'G' ? ['Learn a new spell', 'Which book will you learn from?'] : SPB.cmd === 'b' ? ['Your spellbooks', 'Which book do you want to read?'] : ['Cast a spell', 'Which book is it in?'];
+  const tiles = picking ? `<div class="spq">${pk[1]}</div><div class="spbigs">${(UI.items || []).filter(i => i.o && i.k.trim()).map(i => `<div class="spbig" data-spbook="${esc(i.k)}"><span class="slot t-book">${artHtml(i.o.ki, 56) || icon('book')}</span><div><b>${esc(spbBookName(i.o.n))}</b><i>${esc(cap(i.o.n.replace(/^(an?|the) /i, '').replace(/\s*\[.*$/, '')))}</i></div><span class="key">${esc(i.k)}</span></div>`).join('')}</div>` : '';
+  const title = picking ? pk[0] : V.study ? 'Learn a new spell' : u.realm || 'Spells';
   const hint = picking ? 'Pick a book to open it.' : !V.v ? 'Point at a spell to read what it does.' : `Click a ${V.word} to read it, then ${V.v}. Double-click ${V.v.toLowerCase()}s it at once.`;
   return `<div class="pane npanel spell2" style="--rh:${rh}px">
-    <div class="tabs multi"><div class="on">${esc(title)}</div>${books}<span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${u.unit === 'au' ? '' : u.unit === 'HP' ? `you have ${S.p.hp} life` : `you have ${S.p.sp} of ${S.p.msp} mana`}</span></div>
-    <div class="sh2"><div class="nrows ${two ? 'two' : ''}">${list || `<div class="sub" style="padding:18px 6px">${picking ? 'Choose one of your books above.' : 'Nothing here yet.'}</div>`}</div><div class="shcard">${spbCardHtml(cur, u, V, have, unit)}</div></div>
-    <div class="nfoot"><span class="sub">${hint}</span><span class="grow"></span>${V.study || picking || !/Study/.test(typeof hbStatus === 'function' ? hbStatus() : '') ? '' : '<span class="row" data-spstudy="1"><span class="key">G</span>learn a new spell</span>'}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
+    <div class="tabs multi"><div class="on">${esc(title)}</div>${picking ? '' : books}<span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${u.unit === 'au' ? '' : u.unit === 'HP' ? `you have ${S.p.hp} life` : `you have ${S.p.sp} of ${S.p.msp} mana`}</span></div>
+    <div class="sh2"><div class="nrows ${two ? 'two' : ''}">${picking ? tiles : list || '<div class="sub" style="padding:18px 6px">Nothing here yet.</div>'}</div><div class="shcard">${spbCardHtml(cur, u, V, have, unit)}</div></div>
+    <div class="nfoot"><span class="sub">${hint}</span><span class="grow"></span>${V.study || picking || !(typeof CAN_STUDY !== 'undefined' && CAN_STUDY) ? '' : '<span class="row" data-spstudy="1"><span class="key">G</span>learn a new spell</span>'}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
 }
 function spbCardHtml(r, u, V, have, unit) {
+  if (!r && spbPicking()) return `<div class="shempty"><div class="shemi">${icon('book')}</div><div>Pick a book.</div><div class="sub">Click it, or press its key.</div></div>`;
   if (!r) return `<div class="shempty"><div class="shemi">${icon('book')}</div><div>Point at a spell to see what it does.</div><div class="sub">${V.v ? `Click it, then ${V.v}.` : ''}</div></div>`;
   const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl, short = r.cost != null && r.cost > have, pinned = SPB.sel === r.n;
   const prof = r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '';

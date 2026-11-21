@@ -67,7 +67,7 @@ function exploreTick() {
   if (EXP_MEM.m.size !== EXP.size) { EXP.size = EXP_MEM.m.size; EXP.retried = false; }
   if (!st && EXP.goal) return exploreStop('No way there that you know');
   if (!st && !EXP.retried && Object.keys(EXP.bad).length) { EXP.bad = {}; EXP.retried = true; st = exploreStep(); }   // before giving up, try the places set aside once more
-  if (!st) return exploreStop('Nothing more to explore that you can reach');
+  if (!st) { EXP.doneLvl = EXP_MEM.lvl; schedule(); return exploreStop('Nothing more to explore that you can reach'); }
   // a locked door can take several tries to open: give it time before giving up on it
   { const mw = S.map.w, c = S.map.c[((S.map.h >> 1) + st.dy) * mw + (mw >> 1) + st.dx]; EXP.door = !!(c && c[0] && featClass(c[0]) === 'door'); }
   EXP.tgt = st.goal; sendRaw(`M 1 ${st.dx} ${st.dy}`);

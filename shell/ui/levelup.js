@@ -33,7 +33,7 @@ function lvlSaid() {   // what the game said on the turn you went up, but the le
 function lvlDraw(fresh) {
   const d = LV.data; if (!d) return;
   if (!LV.el) { LV.el = document.createElement('div'); LV.el.id = 'lvlcard'; document.getElementById('stage').appendChild(LV.el); }
-  const study = /Study/.test(hbStatus ? hbStatus() : '');
+  const study = typeof CAN_STUDY !== 'undefined' && CAN_STUDY;
   const said = lvlSaid();
   LV.el.innerHTML = `<div class="lvc ch"><div class="lvi ch">
     <div class="lvh"><div class="lvn">${d.lev}</div><div><b>Level ${d.lev}</b><span>${esc([S.p.race, S.p.cls].filter(Boolean).join(' '))}${d.lev - d.from > 1 ? ` · up ${d.lev - d.from} levels` : ''}</span></div><span class="grow"></span><span class="lvx" data-lvx="1" data-tip="Close (or just play on)">×</span></div>

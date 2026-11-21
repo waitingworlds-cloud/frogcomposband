@@ -27,7 +27,7 @@ function hubTabsHtml(cur) {
 function hubWrap(html) {
   if (!html) return '';
   const k = typeof UI !== 'undefined' && UI && UI.kind && uiOnTop() ? UI.kind : '';
-  if (k === 'shop' || k === 'home' || (k === 'items' && !itemsViewer() && !spbPicking()) || /class="[^"]*\b(death|nohub)\b/.test(html.slice(0, 200))) return html;
+  if (k === 'shop' || k === 'home' || (k === 'items' && !itemsViewer() && !spbPicking()) || /class="[^"]*\b(deathp?|nohub)\b/.test(html.slice(0, 200))) return html;
   HUB.cur = hubCur();
   return `<div class="pane npanel hub">${hubTabsHtml(HUB.cur)}<div class="hubb">${html}</div></div>`;
 }
