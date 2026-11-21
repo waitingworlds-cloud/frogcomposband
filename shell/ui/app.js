@@ -887,7 +887,7 @@ function pagerInfo(y0, y1) {
 const PAGE_NAMES = { 'kill count': 'Kills', 'current pets': 'Companions', 'alive uniques': 'Named foes still alive', 'wanted monsters': 'Bounties', 'self knowledge': 'About you', 'melee': 'Weapon damage',
   'race/class extra information': 'Class notes', 'current proficiency': 'Weapon skill', 'spell proficiency': 'Spell skill', 'shooting': 'Shooting damage' };
 function pagerHead(p) {
-  let cap = p.cap.replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1); cap = PAGE_NAMES[cap.toLowerCase()] || cap;
+  let cap = p.cap.replace(/^dump\d*\.doc$/i, 'A last record').replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1); cap = PAGE_NAMES[cap.toLowerCase()] || cap;
   const of = Math.max(p.of, 1), a = Math.min(p.at, of), b = Math.min(of, p.at + p.page), w = Math.max(4, Math.min(100, p.page / of * 100)), l = of > p.page ? (a / Math.max(1, of - p.page)) * (100 - w) : 0;
   const key = /Proficiency|Extra Information/i.test(p.cap) ? '<span class="pgn pgkey"><b>Un</b> untrained <b>Be</b> beginner <b>Sk</b> skilled <b>Ex</b> expert <b>Ma</b> master</span>' : '';
   return `<b>${esc(cap)}</b>${key}${of > p.page ? `<span class="pgn">lines ${a + 1}–${b} of ${of}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>` : ''}`;

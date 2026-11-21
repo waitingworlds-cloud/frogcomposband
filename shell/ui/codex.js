@@ -252,13 +252,37 @@ function spellSkillHtml(y0, y1, x0, x1, skip) {
       cur.rows.push({ n: m[2], code: m[3] || '', lvl: +m[4], sp: +m[5], fail: +m[6], desc: m[7].trim(), cast: +m[8], bad: +m[9], dim: a[x0 + t.indexOf(m[2])] !== 1 }); any++; continue; }
     if (cur) cur.notes.push(t.trim()); else return '';
   }
-  if (!any) return '';
+  if (!any) return PAGER && /^Spell Proficiency/.test(PAGER.cap) ? '<div class="ssw"><div class="ssb sse"><b>No book magic to practise</b><span>Spell skill is earned by casting from spell books. This character draws on other powers, which are listed under Powers.</span></div></div>' : '';
   const prof = books.some(b => b.rows.some(r => r.code));
   const row = r => { const st = SK_STEP[r.code] || [0, '']; const unk = /^unknown$/i.test(r.desc);
     return `<div class="ssr${r.dim ? ' dim' : ''}${prof ? '' : ' np'}"><span class="skn">${esc(r.n)}</span>${prof ? `<span class="skp s${st[0]}">${[1, 2, 3, 4].map(i => `<i${i <= st[0] ? ' class="on"' : ''}></i>`).join('')}</span><span class="skv">${st[1]}</span>` : ''}<span class="ssv">${r.lvl}</span><span class="ssv ssm">${r.sp}</span><span class="ssv${r.fail >= 50 ? ' bad' : r.fail <= 15 ? ' ok' : ''}">${r.fail}%</span><span class="ssd"${unk ? ' data-tip="You learn what it does once you can cast it"' : ''}>${unk ? '·' : esc(r.desc)}</span><span class="ssc">${r.cast ? `${r.cast}×${r.bad ? ` <em>${r.bad} failed</em>` : ''}` : '<i>never</i>'}</span></div>`; };
   const head = `<div class="ssr hd${prof ? '' : ' np'}"><span></span>${prof ? '<span></span><span class="skv">skill</span>' : ''}<span class="ssv" data-tip="The character level at which you can cast it">level</span><span class="ssv ssm">mana</span><span class="ssv" data-tip="Chance the spell fizzles">fail</span><span class="ssd">effect</span><span class="ssc" data-tip="How often you have cast it">cast</span></div>`;
   return `<div class="ssw">${books.map((b, i) => `${b.realm && (!i || books[i - 1].realm !== b.realm) ? `<div class="ssrm"><span>${esc(b.realm)}</span> magic</div>` : ''}<div class="ssb"><div class="ssh">${esc(b.n)}</div>${head}${b.rows.map(row).join('')}${b.notes.map(n => `<div class="ssn">${esc(n)}</div>`).join('')}</div>`).join('')}</div>`;
 }
+// The hall of fame: the game's score table as a ranked list with pictures. A row opens that
+// character's last record; the sort letters become chips.
+let FAME_SORT = '';
+const FAME_SORTS = [['S', 'Score', '\x13'], ['D', 'Date', '\x04'], ['N', 'Name', '\x0e'], ['R', 'People', '\x12'], ['C', 'Calling', '\x03']];
+function fameFind(y0, y1) { for (let y = y0; y <= Math.min(y1, y0 + 3); y++) if (/^\s*High Score Listing\s*$/.test(rowText(y))) return y; return -1; }
+function fameHtml(y0, y1) {
+  const top = fameFind(y0, y1); if (top < 0) return '';
+  const rows = []; let more = false;
+  for (let y = top + 1; y <= y1; y++) { const t = rowText(y).replace(/\x01/g, ' '); let m;
+    if ((m = /^\s([a-z])\)\s(.{15})\s([ \d]\d)\s(.{12})\s(.{13})\s*(\d+)\s+(\d+)\s(\S+)\s+(\S.*?)\s*$/.exec(t))) rows.push({ k: m[1], n: m[2].trim(), lv: +m[3], race: m[4].trim(), cls: m[5].trim(), score: +m[6], pos: +m[7], date: m[8], st: m[9], me: ((G.a[y] || [])[4] & 31) === 14 });
+    else if (/PageUp/.test(t)) more = true; }
+  if (!rows.length) return '';
+  const sorted = f => rows.every((r, i) => !i || f(rows[i - 1], r) <= 0) || rows.every((r, i) => !i || f(rows[i - 1], r) >= 0);
+  const cmp = { S: (a, b) => a.score - b.score, D: (a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0, N: (a, b) => a.n.toLowerCase() < b.n.toLowerCase() ? -1 : a.n.toLowerCase() > b.n.toLowerCase() ? 1 : 0, R: (a, b) => a.race < b.race ? -1 : a.race > b.race ? 1 : 0, C: (a, b) => a.cls < b.cls ? -1 : a.cls > b.cls ? 1 : 0 };
+  const fits = FAME_SORTS.map(x => x[0]).filter(k => sorted(cmp[k])); const sort = fits.includes(FAME_SORT) ? FAME_SORT : (FAME_SORT = fits[0] || '');
+  const MON = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = d => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d); return m ? `${+m[3]} ${MON[+m[2]] || ''} ${m[1]}` : d; };
+  const row = r => { const mon = /^Monster$/i.test(r.cls), art = typeof pickArtFor === 'function' ? (!mon && pickArtFor(r.cls, 'class')) || pickArtFor(r.race, '') : null;
+    const st = /^Dead/i.test(r.st) ? 'dead' : /^Winner/i.test(r.st) ? 'win' : 'alive';
+    return `<div class="fmr${r.me ? ' me' : ''} ${st}" data-key="${r.k}" data-tip="Read ${esc(r.n)}'s last record"><span class="fmp${sort === 'S' && r.pos <= 3 ? ' p' + r.pos : ''}">${r.pos}</span>${art ? `<canvas class="ptart" data-k="${art[0]}" data-n="${esc(art[1])}"></canvas>` : `<span class="ptart em">${esc(r.n.charAt(0).toUpperCase())}</span>`}<span class="fmn"><b>${esc(r.n)}${r.me ? '<em>you</em>' : ''}</b><i>Level ${r.lv} ${esc(r.race)}${mon ? '' : ' ' + esc(r.cls)}</i></span><span class="fms"><b>${r.score.toLocaleString('en-US')}</b><i>score</i></span><span class="fmd">${esc(day(r.date))}</span><span class="fmst">${st === 'dead' ? 'Fallen' : st === 'win' ? 'Winner' : 'Alive'}</span><span class="key">${r.k}</span></div>`; };
+  const chips = FAME_SORTS.map(x => `<span class="skt${x[0] === sort ? ' on' : ''}" data-fsort="${x[0]}" data-key="${x[2]}">${x[1]}</span>`).join('');
+  return `<div class="fmw${rows.length > 12 ? ' two' : ''}"><div class="skm"><span class="fml">Sort by</span>${chips}<span class="skd">Click a character to read their last record.</span></div><div class="fmc">${rows.map(row).join('')}</div>${more ? '<div class="fmg"><span class="btn" data-ks="FF55">Earlier</span><span class="btn" data-ks="FF56">More</span></div>' : ''}</div>`;
+}
+document.addEventListener('click', e => { const f = e.target.closest && e.target.closest('[data-fsort]'); if (f) FAME_SORT = f.dataset.fsort; }, true);
 // The journal's "about you" page: life rating and stat limits as tiles, then your people, calling, nature and
 // magic each as a card with its picture and the game's own account of it.
 function aboutHtml(y0, y1, x0, x1, skip) {
