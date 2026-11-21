@@ -410,3 +410,7 @@ canvas.ptart.none{visibility:hidden}
 .cde.tot{cursor:default;border-top:1px solid #4a4e54;border-bottom:none;margin-top:4px;min-height:34px}.cde.tot b{color:#b3ac9f;font-style:italic}.cde.tot:hover{background:none}
 .cda{width:40px;height:40px;display:flex;align-items:center;justify-content:center;text-align:left}.cde .cda.ptart{width:38px;height:38px}.cde .ptart.em{font-size:19px;text-align:center}
 .cdnone{padding:40px 10px;font:italic 17px Spectral,Georgia,serif;color:#8f8a80}
+.rcatk{margin:6px 0 8px}.rcatk i{display:block;font:600 11px Inter;letter-spacing:.1em;text-transform:uppercase;color:#8f8a80;font-style:normal;margin-bottom:3px}
+.rcatk div{display:flex;gap:10px;padding:2px 0;border-bottom:1px solid #1b1d20;font-size:15px}.rcatk b{width:90px;flex:none;font-weight:600;color:#f1ebe0}.rcatk span{color:#cfc8ba}
+.ohd{display:flex;align-items:baseline;gap:16px;margin:6px 0 4px}.ohd b{font:400 27px Fell;letter-spacing:.05em;color:#ffb070}.ohd i{font:italic 16px Spectral,Georgia,serif;color:#8f8a80}.ohd .btn{align-self:center}
+.optp{width:900px}

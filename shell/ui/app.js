@@ -334,18 +334,26 @@ function loreAsk(key) { const t = Date.now(); if (LORE_ASKED[key] && t - LORE_AS
 function loreIn(m) { if (/^m:/.test(m.key)) { LORE[m.key] = { h: loreRows(m.rows), t: Date.now() }; if (S && S.mons.some(x => 'm:' + x.r === m.key)) schedule(); } }
 // the game's recall page, its lines joined back into paragraphs to fit the side panel; "Label : value" lines stay lines
 function loreRows(list) {
-  const out = []; let para = null, grid = null;
+  const out = []; let para = null, grid = null, atk = null;
   list.forEach((r, n) => {
     const s = r.s.replace(/\s+$/, ''); if (n === 0 && /^Name\s*:/.test(s)) return;
     if (!s.trim()) { para = null; grid = null; return; }
     const seg = (x0, x1) => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
       for (let x = x0; x < x1; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h.replace(/ {2,}/g, ' ').trim(); };
+    // the attack table ("Attacks : Type  Effects" and a row for each blow) becomes a short list
+    const ah = /^Attacks\s*:\s*Type(\s+)Effects/.exec(s);
+    if (ah) { atk = { x: s.indexOf('Effects'), rows: [] }; out.push(atk); para = null; grid = null; return; }
+    if (atk && /^\s{6,}\S/.test(s)) { atk.rows.push([seg(0, atk.x), seg(atk.x, s.length)]); return; }
+    atk = null;
     if (/^[A-Z][A-Za-z ]{0,10}:\s/.test(s)) {   // "Level : 9    Speed: 1.0x": short facts, two to a row
       if (!grid) { grid = []; out.push(grid); } para = null;
-      const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) grid.push(seg(m.index, m.index + m[0].length));
+      const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) {
+        const raw = m[0]; if (/:\s*\??$/.test(raw)) continue;   // a fact you have not learned yet says nothing: leave it out
+        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1')); }
+      if (!grid.length) { out.pop(); grid = null; }
     } else { grid = null; const h = seg(0, s.length); if (para) para.h += ' ' + h; else { para = { h }; out.push(para); } }
   });
-  return out.map(p => Array.isArray(p) ? `<div class="rcfs">${p.map(f => `<span>${f}</span>`).join('')}</div>` : `<p>${p.h}</p>`).join('');
+  return out.map(p => Array.isArray(p) ? `<div class="rcfs">${p.map(f => `<span>${f}</span>`).join('')}</div>` : p.rows ? (p.rows.length ? `<div class="rcatk"><i>Attacks</i>${p.rows.map(([t, e]) => `<div><b>${t}</b><span>${e}</span></div>`).join('')}</div>` : '') : `<p>${p.h}</p>`).join('');
 }
 function recallHtml() {
   if (!S.mons.length) return '';
@@ -387,7 +395,7 @@ const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
 // the log keeps the game's questions with the key that answered them: say the answer in words, and drop the key lists
 // the game logs its own questions as you answer them: those that say nothing once answered are left out of the log
-const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*)$/i;
+const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
 function logTidy(s) {
   return String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
     .replace(/ gp\?/g, ' gold?')
@@ -433,10 +441,10 @@ function drawToken(g, x, y, T, r, uniq) {
 }
 
 /* ---------- tileset (optional): shell/ui/tiles/atlas.json, see tiles/README.md ---------- */
-let TS = null;
+let TS = null, TS_NEW = false;   // TS_NEW: the art has just arrived, so pictures drawn without it are drawn again
 function loadTiles() {
   fetch('tiles/atlas.json').then(r => r.ok ? r.json() : null).then(j => {
-    if (!j || !j.images || !j.images.length) return; let left = j.images.length; j.img = j.images.map(n => { const im = new Image(); im.onload = im.onerror = () => { if (--left === 0) { TS = j; fclassClear(); schedule(); } }; im.src = 'tiles/' + n; return im; });
+    if (!j || !j.images || !j.images.length) return; let left = j.images.length; j.img = j.images.map(n => { const im = new Image(); im.onload = im.onerror = () => { if (--left === 0) { TS = j; TS_NEW = true; fclassClear(); schedule(); } }; im.src = 'tiles/' + n; return im; });
   }).catch(() => {});
 }
 const tkey = s => String(s || '').toLowerCase().replace(/[&~#]/g, '').replace(/\s+/g, ' ').trim().replace(/^(an?|the) /, '');
@@ -815,8 +823,9 @@ function draw() {
   if (inGame) {
     if (!built) buildMain();
     const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
-    const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
-    if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
+    const pt = $('#port'); if (pt && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); sprite.flat = true; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, 4, 2, 64, tkey(S.p.cls).replace(/ /g, '-')) && !sprite(g, 'player', S.p.race, 4, 2, 64, 'default')) drawMob(g, MOBS['@'], 0, 0, 72); sprite.flat = false; }
+    if (nr || TS_NEW) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
+    TS_NEW = false;
     askView(); drawMap();
     setHtml($('#here'), hereHtml()); tipStale();
     const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
