@@ -27,7 +27,10 @@ let sendQ = Promise.resolve();
 function sendRaw(line) {
   // a walk of more than a step goes through the game's travel, which will not go in the dark: remember it, so it can be walked another way
   const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line);
-  if (mv && S && S.p && S.p.wild && !wildGo.busy) { if (Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1) return wildGo(S.px + +mv[2], S.py + +mv[3]); }
+  if (mv && S && S.p && S.p.wild && !wildGo.busy) { if (Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1) { // the part of the world in view is enough to find the way round a mountain
+      const m = S.map, ox = m ? S.px - (m.w >> 1) : 0, oy = m ? S.py - (m.h >> 1) : 0, tx = (m ? m.w >> 1 : 0) + +mv[2], ty = (m ? m.h >> 1 : 0) + +mv[3];
+      const route = m && tx >= 0 && ty >= 0 && tx < m.w && ty < m.h ? wildRoute({ c: m.c, w: m.w, h: m.h, px: m.w >> 1, py: m.h >> 1 }, tx, ty, ox, oy) : null;
+      return wildGo(S.px + +mv[2], S.py + +mv[3], route); } }
   else if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) { TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now(), sx: S.px, sy: S.py, hp: S.p.hp }; setTimeout(travelStalled, 520); }
   if (mv && S && S.p && TRAVEL && Date.now() - TRAVEL.t < 8 && TRAVEL.sx === S.px && TRAVEL.sy === S.py && !(typeof EXP !== 'undefined' && EXP.on)) { WALK = { k: mv[1], x: TRAVEL.x, y: TRAVEL.y, hp: S.p.hp, pos: S.px + ',' + S.py, at: Date.now(), t0: Date.now(), n: WALK_N, where: S.p.place + '/' + S.p.dlvl }; WALK_N = 0; }
   else if (/^X /.test(line)) { WALK = null; if (WILD) { clearInterval(WILD.timer); WILD = null; } }   // any key of yours ends a walk that was under way
@@ -39,7 +42,7 @@ let TRAVEL = null, WALK = null, WALK_N = 0;
 let WILD = null;
 // The way across the world map to a place: round the mountain chains (which nobody walks through), and by land rather than
 // through deep water or lava where there is a choice. u is the world map as the game sent it.
-function wildRoute(u, tx, ty) {
+function wildRoute(u, tx, ty, ox = 0, oy = 0) {
   if (!u || !u.c || !u.w) return null;
   const W = u.w, H = u.h, N = W * H, cost = new Float64Array(N), prev = new Int32Array(N).fill(-1), dist = new Float64Array(N).fill(Infinity);
   for (let i = 0; i < N; i++) { const c = u.c[i], f = Array.isArray(c) ? c[0] : c; if (!f) { cost[i] = 0; continue; } const k = featClass(f), n = ((DICT.f[f] || [''])[0] || '').toLowerCase();
@@ -55,7 +58,7 @@ function wildRoute(u, tx, ty) {
   }
   if (prev[t] < 0) return null;
   const path = {}; for (let c = t; c !== s0 && c >= 0; c = prev[c]) path[prev[c]] = c;   // from each square on the way, the next one
-  return { W, path, hard: dist[t] >= 500 };
+  return { W, path, hard: dist[t] >= 500, ox, oy };
 }
 function wildGo(x, y, route) {
   clearInterval(WILD && WILD.timer); WILD = { x, y, pos: '', at: Date.now(), hp: S.p.hp, n: 0, route };
@@ -65,7 +68,7 @@ function wildGo(x, y, route) {
     const pos = S.px + ',' + S.py;
     if (pos === w.pos) { if (Date.now() - w.at > 700) stop(); return; }   // no step came of the last ask: the way is shut
     if (w.pos && msgTop().trim() && !WALK_OK.test(msgTop())) return stop();
-    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; { const nx = w.route && w.route.path[S.py * w.route.W + S.px], rx = nx != null ? nx % w.route.W : null, ry = nx != null ? (nx / w.route.W) | 0 : null;
+    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; { const r = w.route, lx = r ? S.px - r.ox : -1, ly = r ? S.py - r.oy : -1, nx = r && lx >= 0 && ly >= 0 && lx < r.W ? r.path[ly * r.W + lx] : null, rx = nx != null ? nx % r.W + r.ox : null, ry = nx != null ? ((nx / r.W) | 0) + r.oy : null;
       sendRaw(nx != null ? `M 1 ${rx - S.px} ${ry - S.py}` : `M 1 ${Math.sign(w.x - S.px)} ${Math.sign(w.y - S.py)}`); } wildGo.busy = false;
   }, 70);
 }
