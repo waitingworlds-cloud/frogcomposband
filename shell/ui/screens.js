@@ -119,32 +119,6 @@ const SP_ELEM = [[/acid|corro/i, '#a6e05a'], [/lightning|zap|shock|thunder|storm
   [/dark|nether|shadow|death|drain|curse|doom|vampir|necro/i, '#a06ad0'], [/heal|cure|bless|holy|\blight\b|sun|star|radian|prayer|protection/i, '#ffe08a'],
   [/mana|chaos|missile|arcane|teleport|blink|portal|time|gravity|nexus|dimension/i, '#c08aff']];
 function spElem(n) { const m = SP_ELEM.find(([re]) => re.test(n)); return m ? m[1] : ''; }
-function spellsHtml() {
-  const u = UI, rows = u.rows, big = rows.length <= 14;
-  const prompt = (G.s[0] || '').replace(/\x01/g, ' ').trim();
-  const cur = rows.find(r => r.n === spHover) || rows.find(r => r.n === uiSel) || (u.sel >= 0 ? rows[u.sel] : null);
-  const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
-  const have = u.unit === 'HP' ? S.p.hp : u.unit === 'au' ? S.p.au : S.p.sp;   // a cost above what you have shows red
-  const study = /\bStudy\b/i.test(prompt);   // learning: a spell you do not know yet but may learn stands out
-  const cards = rows.map((r, i) => {
-    const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
-    const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl;   // a spell above your level: not yet yours to learn or cast
-    return `<div class="spc ${r.dim || early || (!r.ok && !study) ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'} ${el ? 'el' : ''}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}>
-      <span class="key kb">${esc(r.k)}</span>
-      <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? (early ? 'needs level ' : 'level ') + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
-      ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
-      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}"${r.cost > have ? ` data-tip="You have ${have} ${unit}: not enough to cast this safely."` : ''}>${icon('potion')}<b>${r.cost}</b></span>` : ''}
-      ${f != null ? `<span class="ring" style="--p:${Math.min(100, f)};--rc:${fc}"><span class="rv">${f}%</span></span>` : ''}</div>`;
-  }).join('');
-  const detail = cur ? `<div class="spd"><div class="spn" style="font-size:24px">${esc(cur.n)}</div><div class="grow" style="font-size:17px;line-height:1.35;color:#d9d2c4">${esc(cur.desc || '')}${cur.info ? `<div style="color:#ffcf9e;margin-top:4px">${esc(cur.info)}</div>` : ''}</div>
-     <div class="facts" style="grid-template-columns:auto auto;gap:4px 22px">${cur.cost != null ? `<div><span class="lbl">costs</span><b>${cur.cost} ${unit}</b></div>` : ''}${cur.fail != null ? `<div><span class="lbl">fails</span><b>${cur.fail}%</b></div>` : ''}${cur.lvl != null ? `<div><span class="lbl">level</span><b>${cur.lvl}</b></div>` : ''}</div></div>`
-    : `<div class="spd"><div class="sub">Point at a spell to read what it does.</div></div>`;
-  return `<div class="pane npanel" style="width:${rows.length > 28 ? 1500 : 1180}px">
-    <div class="tabs"><div class="on">${esc(u.realm || 'Spells')}</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${u.unit === 'au' ? '' : u.unit === 'HP' ? `you have ${S.p.hp} life` : `you have ${S.p.sp} mana`}</span></div>
-    <div class="spg" style="grid-template-columns:repeat(${rows.length > 28 ? 3 : 2},1fr)">${cards}</div>${detail}
-    <div class="nfoot"><span class="live">${esc(prompt)}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
-}
-
 const SHOP_TIPS = { B: 'Buy everything on the shelves', S: 'Pay to swap the stock for new goods', R: 'Pay to have an item held for you', '?': 'The game&#39;s help for this place', '\x1b': 'Leave' };
 // The shop works by pointing: click a thing to see it on the card at the right, set how many, press Buy (or Sell).
 // Nothing is asked by letter. The card sends the game the item and the count in one go ("B b slot count").
@@ -326,7 +300,7 @@ function nativeHtml() {
   if (!(G.ov || G.icky)) return '';
   const dh = deathHtml(); if (dh) return dh;
   if (!UI || !UI.kind || !uiOnTop()) return optsHtml() || menuHtml();
-  if (UI.kind === 'items') return itemsHtml();
+  if (UI.kind === 'items') return spbPicking() ? spellsHtml() : itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
   if (UI.kind === 'home') return homeHtml();

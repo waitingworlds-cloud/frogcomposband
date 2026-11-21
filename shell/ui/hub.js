@@ -8,6 +8,7 @@ const HUB = { last: '', t: 0, hold: 0, cur: '' };
 const HUB_KEY = { i: 'pack', e: 'gear', m: 'spells', b: 'spells', G: 'spells', U: 'spells', C: 'char', M: 'map', '~': 'journal', '=': 'opts', '?': 'help' };
 function hubCur() {
   if (typeof UI !== 'undefined' && UI && UI.kind && uiOnTop()) {
+    if (UI.kind === 'items' && spbPicking()) return 'spells';
     if (UI.kind === 'items') return itemsViewer() ? (itemsTab().loc === 1 ? 'gear' : 'pack') : '';
     if (UI.kind === 'spells') return 'spells';
     if (UI.kind === 'char') return 'char';
@@ -26,7 +27,7 @@ function hubTabsHtml(cur) {
 function hubWrap(html) {
   if (!html) return '';
   const k = typeof UI !== 'undefined' && UI && UI.kind && uiOnTop() ? UI.kind : '';
-  if (k === 'shop' || k === 'home' || (k === 'items' && !itemsViewer()) || /class="[^"]*\b(death|nohub)\b/.test(html.slice(0, 200))) return html;
+  if (k === 'shop' || k === 'home' || (k === 'items' && !itemsViewer() && !spbPicking()) || /class="[^"]*\b(death|nohub)\b/.test(html.slice(0, 200))) return html;
   HUB.cur = hubCur();
   return `<div class="pane npanel hub">${hubTabsHtml(HUB.cur)}<div class="hubb">${html}</div></div>`;
 }
@@ -40,6 +41,7 @@ function hubHoldHtml() { return Date.now() < HUB.hold ? `<div class="pane npanel
 function hubGo(id) {
   const t = HUB_TABS.find(t => t[0] === id); if (!t || !S || !S.map) return;
   HUB.last = id; HUB.t = Date.now(); HUB.hold = Date.now() + 700;
+  if (id === 'spells') SPB.auto = Date.now();
   sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t[2]), 110); schedule();
   setTimeout(schedule, 720);
 }

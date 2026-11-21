@@ -22,6 +22,17 @@
 .hubb.term{gap:24px;align-items:stretch}.hubb.term>.charp{width:600px!important;padding:0 8px 0 0!important;overflow:hidden;flex:none}.hubb.term>.charp>.tabs{display:none}
 .hubb>.npanel>.tabs:not(.multi)>div{display:none}.hubb>.npanel>.tabs:not(.multi){border:0;min-height:0;margin:0 0 6px;padding:0}
 .hubb>.menup{padding:0!important}
+.npanel.spell2 .sprow{grid-template-columns:26px 12px 1fr 62px 62px 56px;cursor:pointer}.spell2 .sprow.dim .n,.spell2 .sprow.dim .spm{opacity:.45}
+.spdot{width:9px;height:9px;border-radius:50%;background:var(--el,#5a5750);box-shadow:0 0 8px var(--el,transparent);justify-self:center}
+.spell2 .sprow .spm{justify-content:flex-end;font-size:15px}.spell2 .sprow .spm b{font-size:16px;min-width:0}.spell2 .sprow .spm.short b{color:#ff7a66}
+.spell2 .sprow .spf{font:600 15px Inter;text-align:right}
+.spell2 .nrows.two{display:grid;grid-template-columns:1fr 1fr;column-gap:18px;align-content:start}
+.spbooks{display:flex;gap:8px;align-items:center;margin-left:22px}
+.spbk{display:flex;align-items:center;gap:9px;height:40px;padding:0 13px 0 6px;font:500 17px Spectral,serif;color:#b3ac9f;background:linear-gradient(#1b1d20,#121315);box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;cursor:pointer;white-space:nowrap}
+.spbk:hover{color:#ffcf9e;box-shadow:0 0 0 1px #000,0 0 0 2px #7a5a36}.spbk.on{color:#ffcf9e;box-shadow:0 0 0 1px #000,0 0 0 2px var(--em);cursor:default}.spbk .slot{width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.spicon{color:var(--el,#ffb070);box-shadow:inset 0 0 22px color-mix(in srgb,var(--el,#ff8a3c) 30%,transparent),0 0 0 1px #000,0 0 0 2px #2e3135}.spicon svg{width:52px;height:52px}
+.spell2 .facts{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;margin-bottom:12px}.spell2 .facts .lbl{display:block}.spell2 .facts b{font:600 19px Inter;color:#f4efe4}
+.spwarn{color:#ff9a86;font:italic 15px Spectral,serif;margin-bottom:8px}
 .hubterm{flex:1;min-width:0;display:flex;flex-direction:column}.hubterm .t-w{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.hubterm canvas{display:block}
 .hubterm .pgh{margin:0 0 10px}.hubterm .pgf{margin:10px 0 0}
 #banner.ask{top:150px;width:540px;max-width:none;padding:24px 28px 22px;border:1px solid #000;border-top:3px solid #ff8a3c;box-shadow:0 18px 60px #000d,0 0 0 1px #3a3d42,inset 0 1px 0 #ffffff14;text-align:center;pointer-events:auto}
@@ -230,5 +241,5 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="t-h pgh"></div><canvas id="termc" class="t-c"></canvas><div id="termf" class="t-f pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script><script src="hub.js"></script>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script><script src="spellbook.js"></script><script src="hub.js"></script>
 </body></html>

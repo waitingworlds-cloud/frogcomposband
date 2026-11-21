@@ -100,7 +100,7 @@ function hbCtx(ev) {
   const h = ev.target.closest && ev.target.closest('[data-hb]');
   if (h && playing()) { hbLoad(); const i = +h.dataset.hb, s = HB.slots[i]; if (!s) return ['Hotbar slot ' + HB_KEYS[i], [{ k: '', n: 'Drag a spell or an item here', dim: true, run: () => {} }]];
     return [s.n, [{ k: 'u', n: s.t === 'o' ? s.verb : 'Cast', run: () => hbUse(i) }, { k: 'c', n: 'Clear this slot', run: () => hbClear(i) }]]; }
-  const sp = ev.target.closest && ev.target.closest('.spc[data-sp]');
+  const sp = ev.target.closest && ev.target.closest('.sprow[data-sp]');
   if (sp && UI && UI.kind === 'spells') { const r = UI.rows.find(r => r.n === sp.dataset.sp); if (r) return [r.n, [{ k: 'm', n: 'Cast it', run: () => sendText(r.k) }, { k: 'h', n: 'Put on the hotbar', run: () => hbSet(-1, hbFromSpell(r)) }]]; }
   return null;
 }
@@ -111,7 +111,7 @@ document.addEventListener('mousedown', ev => {
   if (ev.button !== 0 || CTX) return;
   const h = ev.target.closest && ev.target.closest('[data-hb]');
   if (h) { hbLoad(); const i = +h.dataset.hb; if (HB.slots[i]) HBDRAG = { from: i, s: HB.slots[i], x: ev.clientX, y: ev.clientY, on: false }; return; }
-  const sp = ev.target.closest && ev.target.closest('.spc[data-sp]');
+  const sp = ev.target.closest && ev.target.closest('.sprow[data-sp]');
   if (sp && UI && UI.kind === 'spells') { const r = UI.rows.find(r => r.n === sp.dataset.sp); if (r) HBDRAG = { from: -1, s: hbFromSpell(r), x: ev.clientX, y: ev.clientY, on: false }; }
 }, true);
 document.addEventListener('mousemove', ev => {
