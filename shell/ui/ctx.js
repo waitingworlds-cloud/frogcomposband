@@ -9,7 +9,7 @@ let AIM = 0;             // when set, answer the game's next "Direction" prompt 
 
 const dirKey = (dx, dy) => String.fromCharCode(48 + (dy < 0 ? 7 : dy > 0 ? 1 : 4) + Math.sign(dx) + 1);
 const cmd = c => '\\' + c;                       // '\' makes the game read the next key as a plain command, whatever the keymap
-function cmdPick(c, name) { PICK = { name, t: Date.now(), tabbed: 0 }; sendText(cmd(c)); }
+function cmdPick(c, name) { PICK = { name, c, t: Date.now(), tabbed: 0 }; sendText(cmd(c)); }
 function cmdAim(c, dx, dy) { sendRaw(`T ${dx} ${dy}`); AIM = Date.now(); sendText(cmd(c)); }
 
 /* ---------- what you can do ---------- */
@@ -39,7 +39,7 @@ function cellItems(cell) {
   if (m) {
     const nm = cap(m.n.replace(/^(an?|the) /i, ''));
     out.push({ k: 'a', n: (adj ? 'Attack ' : 'Charge ') + nm, run: () => sendRaw(`M 1 ${dx} ${dy}`), hot: !m.pet && !m.friendly });
-    out.push({ k: 'f', n: 'Fire at it', run: () => cmdAim('f', dx, dy), dim: !m.los });
+    if ((S.equip || []).some(e => e.slot === 'Shooting' && e.o)) out.push({ k: 'f', n: 'Fire at it', run: () => cmdAim('f', dx, dy), dim: !m.los });   // only with something to shoot with
     out.push({ k: 'v', n: 'Throw at it', run: () => cmdAim('v', dx, dy), dim: !m.los });
     if (S.p.msp > 0 || S.p.realm) out.push({ k: 'm', n: 'Cast a spell at it', run: () => cmdAim('m', dx, dy), dim: !m.los });
     out.push({ k: 't', n: 'Target it', run: () => sendRaw(`T ${dx} ${dy}`) });
@@ -119,7 +119,7 @@ function ctxOnUi(m) {
   if (Date.now() - PICK.t > 4000) { PICK = null; return; }
   if (m.kind !== 'items') return;
   const hit = m.items.find(it => it.o && (PICK.ki != null ? it.o.ki === PICK.ki : it.o.n === PICK.name) && it.k.trim());
-  if (hit) { PICK = null; sendText(hit.k); return; }
+  if (hit) { const c = PICK.c; PICK = null; sendText(hit.k); if (typeof LASTPICK !== 'undefined') LASTPICK = { o: hit.o, c, t: Date.now() }; return; }
   if (m.tabs && m.tabs.length > 1 && PICK.tabbed < m.tabs.length - 1) { PICK.tabbed++; sendText('/'); return; }
   PICK = null;   // not offered here: leave the choice to you
 }

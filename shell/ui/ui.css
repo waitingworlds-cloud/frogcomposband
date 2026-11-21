@@ -425,6 +425,7 @@ canvas.ptart.none{visibility:hidden}
 .chwi div{display:flex;flex-direction:column;min-width:0}.chwi b{font:500 17px Spectral,Georgia,serif;color:#f1ebe0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chwi span{font:600 11px Inter;letter-spacing:.1em;text-transform:uppercase;color:#8f8a80}
 .chrec{display:flex;align-items:center;gap:16px;padding:14px 0 6px;border-top:1px solid #2e3135;margin-top:12px}
 /* letters for keyboard play step aside while the mouse is in use */
+body.mouse #ctx .cti>.key,body.mouse #ctx .cth{display:none}body.mouse #ctx .cti{padding-left:18px;padding-right:22px}
 body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse .pt .ptk{visibility:hidden}
 .pgt .pr.phd .pc,.pgt .pr.phd .pc span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;font-size:1.1em;color:#ffb070!important}
 .pgt .pc.phw,.pgt .pc.phw span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;color:#ffb070!important}
@@ -465,3 +466,5 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 #banner.calm0{animation:bnf0 5.5s linear forwards}#banner.calm1{animation:bnf1 5.5s linear forwards}
 
 .pgh .pgn.pgkey{font-style:normal;margin-left:18px;color:#9c9488}.pgh .pgn.pgkey b{font:600 12px/1 Georgia,serif;color:#e8c98a;margin-left:10px;letter-spacing:0}
+/* a row with nothing in its count column lends that room to the name, so fewer names are cut short */
+.npanel .tr>.num:empty{display:none}.npanel .tr:has(>.num:empty)>.n{grid-column:3/5}

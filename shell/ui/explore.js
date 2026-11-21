@@ -31,17 +31,19 @@ const expFoes = () => S.mons.filter(m => !m.pet && !m.friendly);
 const expItems = () => new Set(S.floor.map(o => (S.px + o.dx) + ',' + (S.py + o.dy) + ',' + o.n));
 function exploreStart() {
   if (!playing() || EXP.on) return;
-  if (expFoes().length) { postToast('Not while something is in sight'); return; }
+  // a creature asleep some way off does not hold you here: explore goes on and stops if it wakes or you come up beside it
+  const foes = expFoes(), near = foes.filter(m => !m.asleep || m.dist <= 2).sort((a, b) => a.dist - b.dist)[0];
+  if (near) { postToast(near.asleep ? cap(near.n.replace(/^(an?|the) /i, '')) + ' sleeps right beside you' : 'Not while ' + near.n.replace(/^(an?) /i, 'the ') + ' is awake in sight'); return; }
   if (S.p.dlvl && (S.equip || []).some(e => e.slot === 'Light' && !e.o)) { postToast('You carry no light: wield a torch first'); return; }
-  Object.assign(EXP, { on: true, goal: '', fetch: '', seen: null, chase: null, pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() }); exploreRemember();
-  postToast('Exploring · any key stops'); clearInterval(EXP.timer); EXP.timer = setInterval(exploreTick, 90);
+  Object.assign(EXP, { on: true, goal: '', fetch: '', seen: null, sleep: new Set(foes.map(f => f.i)), chase: null, pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() }); exploreRemember();
+  postToast(foes.length ? 'Exploring quietly past the sleeper · any key stops' : 'Exploring · any key stops'); clearInterval(EXP.timer); EXP.timer = setInterval(exploreTick, 90);
 }
 // walk to a square (or after a creature) the game cannot route to because it forgot the dark floor between; false when no remembered way
 function exploreGoto(dx, dy, mon) {
   if (!playing() || !S.map) return false; exploreRemember();
   const goal = (S.px + dx) + ',' + (S.py + dy); Object.assign(EXP, { goal, fetch: '', chase: mon ? mon.i : null, bad: {} });
   const st = exploreStep(); if (!st) { EXP.goal = ''; return false; }
-  exploreStop(); Object.assign(EXP, { on: true, goal, fetch: '', chase: mon ? mon.i : null, seen: new Set(expFoes().map(f => f.i)), pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() });
+  exploreStop(); Object.assign(EXP, { on: true, goal, fetch: '', sleep: null, chase: mon ? mon.i : null, seen: new Set(expFoes().map(f => f.i)), pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() });
   clearInterval(EXP.timer); EXP.timer = setInterval(exploreTick, 90); exploreTick(); return true;
 }
 function exploreStop(why) { if (!EXP.on) return; EXP.on = false; clearInterval(EXP.timer); if (why) postToast(why); }
@@ -53,7 +55,10 @@ function exploreTick() {
     if (m) EXP.goal = (S.px + m.dx) + ',' + (S.py + m.dy); else EXP.chase = null;   // lost sight of it: carry on to where it was
   }
   if (EXP.goal && expFoes().some(f => f.dist <= 1)) return exploreStop();
-  if (EXP.chase == null) { const f = expFoes().sort((a, b) => a.dist - b.dist)[0]; if (f && !(EXP.goal && EXP.seen && EXP.seen.has(f.i))) { if (typeof sndPlay === 'function') sndPlay('warn'); return exploreStop(cap(f.n) + ' comes into view'); } }
+  if (EXP.chase == null) {
+    const slp = EXP.sleep, f = expFoes().filter(m => !(slp && slp.has(m.i) && m.asleep && m.dist > 1)).sort((a, b) => a.dist - b.dist)[0];
+    if (f && !(EXP.goal && !EXP.fetch && EXP.seen && EXP.seen.has(f.i))) { if (typeof sndPlay === 'function') sndPlay('warn'); return exploreStop(cap(f.n) + (slp && slp.has(f.i) ? (f.asleep ? ' sleeps right beside you' : ' wakes up') : ' comes into view')); }
+  }
   if (S.p.hp < EXP.hp) return exploreStop('You are hurt');
   EXP.hp = S.p.hp;
   const roam = !EXP.goal || !!EXP.fetch;   // exploring (and fetching what it finds), as against walking to a place you clicked

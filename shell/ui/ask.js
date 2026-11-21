@@ -52,14 +52,15 @@ function askHtml() {
     }
     // a few of the game's questions read better said plainly
     let q = a.q, sub = '', m2;
-    if ((m2 = /^This is the entrance of (.+?) \(Danger level: (\d+)\) Do you really go into this dungeon\?$/.exec(q))) { q = `Enter the ${m2[1].replace(/^the /i, '')}?`; sub = `Danger level ${m2[2]}`; }
+    if ((m2 = /^This is the entrance of (.+?) \(Danger level: (\d+)\) Do you really go into this dungeon\?$/.exec(q))) { const dn = m2[1].replace(/^the /i, ''); q = `Enter ${/^(Angband|Camelot|Hell|Heaven|Numenor|R'lyeh|Mount |Asgard|Atlantis|Random )/.test(dn) ? '' : 'the '}${dn}?`; sub = `Danger level ${m2[2]}`; }
     else if ((m2 = /^Really (.+)\?$/.exec(q))) q = cap(m2[1]) + '?';
     return { cls: 'mid', html: `<div class="askh">${esc(q)}</div>${sub ? `<div class="asks">${esc(sub)}</div>` : ''}<div class="askb">${bs.join('')}</div>` };
   }
   if (a.t === 'qty') {
     const v = a.v == null ? a.lo : Math.max(a.lo, Math.min(a.hi, a.v)), half = Math.max(a.lo, Math.ceil(a.hi / 2));
     const head = pick ? `<div class="askit"><div class="slot t-${tvIcon(pick.tv)}">${artHtml(pick.ki, 44) || icon(tvIcon(pick.tv))}</div><span>${esc(cap(pick.n.replace(/^(\d+|an?|the) /i, '')))}</span></div>` : '';
-    return { cls: 'mid', html: `<div class="askh">How many?</div>${head}
+    const qv = typeof LASTPICK !== 'undefined' && LASTPICK && LASTPICK.c && Date.now() - LASTPICK.t < 8000 ? { d: 'Drop', v: 'Throw', k: 'Destroy', E: 'Eat', q: 'Quaff', r: 'Read', w: 'Take' }[LASTPICK.c] : '';
+    return { cls: 'mid', html: `<div class="askh">${qv ? qv + ' how many?' : 'How many?'}</div>${head}
       <div class="shqty askq"><span class="key kb ${v <= a.lo ? 'off' : ''}" data-askq="-1" data-tip="One fewer (Left)">&minus;</span><b class="num">${v}</b><span class="key kb ${v >= a.hi ? 'off' : ''}" data-askq="1" data-tip="One more (Right)">+</span>
       <span class="shchip" data-askq="=${a.lo}">${a.lo}</span>${a.hi > 3 ? `<span class="shchip" data-askq="=${half}">half</span>` : ''}<span class="shchip" data-askq="=${a.hi}">all ${a.hi}</span></div>
       <div class="askb">${btn('\r', 'OK', 'go', 'Enter')}${cancel()}</div>` };

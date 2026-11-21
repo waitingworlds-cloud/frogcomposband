@@ -211,7 +211,9 @@ function liveHtml() {
     flush();
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
-  if (/^You (are|were) (wearing|wielding|shooting with|carrying) /.test(out.replace(/<[^>]+>/g, ''))) out = out.replace(/ \([a-z]\)\.(<\/span>)$/, '.$1');   // the slot letter means nothing here
+  const pl0 = out.replace(/<[^>]+>/g, '');
+  if (/^You (are|were) (wearing|wielding|shooting with|carrying) /.test(pl0)) out = out.replace(/\s*(<\/span><span[^>]*>)?\s*\([a-z]\)\.(<\/span>)$/, '$1.$2');   // the slot letter means nothing here
+  if (LIGHT_ON.test(pl0)) out = out.replace('You are wearing ', 'Your light is now ');
   out = shotTidy(out);
   return lookKeys(out) + qtyKeys();
 }
@@ -256,7 +258,7 @@ function rectText(r) {   // r = [x,y,w,h]; rows of {text, attr of first ink}
   }
   return out;
 }
-const DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
+const DIRS = ['\u2192', '\u2198', '\u2193', '\u2199', '\u2190', '\u2196', '\u2191', '\u2197'];   // an arrow reads at a glance where 'NW 12' has to be worked out
 function dirOf(dx, dy) { if (!dx && !dy) return 'here'; const a = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)); return DIRS[(a + 8) % 8] + ' ' + Math.max(Math.abs(dx), Math.abs(dy)); }
 function tvIcon(tv) {
   if (tv >= 90 && tv <= 109) return 'book';
@@ -446,14 +448,17 @@ function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n +=
 const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
 // in the heat of a fight "The Arrow (3d4) (+0,+0) hits" reads as "The Arrow hits": the numbers stay on the item itself
 const shotTidy = s => s.replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)* in your pack)/g, '');
+const LIGHT_ON = /^You are wearing (?:a|an|the) [^.]*\b(?:Torch|Lantern|Lamp)\b/;
 function logTidy(s) {
   s = shotTidy(String(s));
-  return String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
+  const lit = LIGHT_ON.test(s.replace(/<[^>]+>/g, ''));
+  s = String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
     .replace(/ gp\?/g, ' gold?')
     .replace(/^((?:<color:\w>)?You (?:are|were) (?:wearing|wielding|shooting with|carrying)[^.]*?) \([a-z]\)\./, '$1.')
     .replace(/^((?:<color:\w>)?The [^.]*?) \(\d+d\d+\)(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails|breaks|disappears|sticks))/, '$1')
     .replace(/\s*(?:<color:\w>)?\[(?:y\/n(?:\/Auto)?|Y\/N|Y,n)\](?:<\/color>)?/g, '')
     .replace(/\s*=>\s*(?:<color:\w>)?(.)(?:<\/color>)?\./g, (m0, k) => ({ y: ' <color:y>Yes.</color>', Y: ' <color:y>Yes.</color>', n: ' <color:y>No.</color>', N: ' <color:y>No.</color>', A: ' <color:y>Always.</color>' })[k] || '');
+  return lit ? s.replace('You are wearing ', 'Your light is now ') : s;
 }
 function consoleHtml() {
   const cnt = { q: countTv(t => t === 75), r: countTv(t => t === 70), E: countTv(t => t === 80), a: countTv(t => t === 65 || t === 66 || t === 55) };
@@ -755,6 +760,7 @@ function drawMap() {
     const wp = !am && !lm && !G.icky && (Math.abs(hover.dx) > 1 || Math.abs(hover.dy) > 1) && !monAt[hover.dx + ',' + hover.dy] ? walkPath(hover.dx, hover.dy) : null;
     if (wp) { g.save(); for (let i = 0; i < wp.length - 1; i++) { const [wx, wy] = wp[i]; g.fillStyle = `rgba(255,207,158,${.75 - .35 * i / wp.length})`; g.beginPath(); g.arc(ox + (pcx + wx + .5) * T, oy + (pcy + wy + .5) * T, Math.max(2, T * .08), 0, 7); g.fill(); } g.restore(); }
   }
+  if (atHover && !document.querySelector('[data-at="' + atHover + '"]:hover')) atHover = '';   // the row went away under a still mouse (you picked the thing up): its mark goes too
   if (atHover) {   // the side list row under the mouse: mark its square and draw the line to it
     const [adx, ady] = atHover.split(',').map(Number), ax = ox + (pcx + adx) * T, ay = oy + (pcy + ady) * T, k = T * .3;
     g.save(); g.strokeStyle = 'rgba(255,207,158,.55)'; g.lineWidth = 1.5; g.setLineDash([T * .16, T * .14]); g.beginPath(); g.moveTo(ox + (pcx + .5) * T, oy + (pcy + .5) * T); g.lineTo(ax + T / 2, ay + T / 2); g.stroke(); g.setLineDash([]);
