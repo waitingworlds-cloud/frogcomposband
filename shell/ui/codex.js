@@ -114,3 +114,35 @@ function dungeonsHtml(y0, y1, x0, x1, skip) {
   if (!rows && !say) return '';
   return `<div class="kcw">${say ? `<div class="kcsay">${esc(say)}</div>` : ''}<div class="kcl">${rows}</div>${rest}</div>`;
 }
+
+// The help's contents pages (its opening page and each topic's list of chapters): the game draws them as a lettered
+// list; here each chapter is a card under its heading, and a click opens it. The letters still work.
+const HELP_WORDS = {
+  'General Information': ['The game in brief', 'what kind of game this is, and how it is won'], 'Creating a Character': ['Making a character', 'peoples, callings and starting choices'],
+  'Commands': ['Keys', 'every key and what it does'], 'Frequently Asked Questions': ['Common questions', 'short answers to common puzzles'], 'Common Mistakes to Avoid': ['Mistakes to avoid', 'how new adventurers die'],
+  'Races, Classes and Personalities': ['Peoples, callings and natures', 'every one of them in full'], 'The Towns and Wilderness': ['Towns and the wild', 'shops, buildings and the land between'],
+  'The Dungeons': ['Dungeons', 'levels, stairs, traps and danger'], 'Objects': ['Items', 'what things do, and how you learn it'], 'Monsters and Pets': ['Creatures and companions', 'what they can do; keeping pets'],
+  'Attacking and Weapons': ['Fighting', 'blows, criticals and shooting'], 'Defending and Armor': ['Defence', 'armour, resistances and saving throws'], 'Spellcasting': ['Magic', 'realms, books and failure'],
+  'Status Effects': ['Conditions', 'poison, fear, stunning and the rest'], 'Glossary/List of Concepts': ['Glossary', 'the game\'s words explained'], 'Options': ['Options', 'what each setting changes'],
+  'User Preference Files': ['Settings files', 'for seasoned players'], 'The Speed System': ['Speed', 'how speed turns into turns'], 'The Proficiency System': ['Practice', 'how skills grow with use'],
+  'The Mogaminator': ['Pickup rules', 'the game\'s own rule language, in full'], 'Subwindows': ['Extra windows', 'for the plain-text version of the game'] };
+function helpMenuHtml(y0, y1, x0, x1, skip) {
+  const secs = []; let cur = null, title = '', gap = true, n = 0, more = '';
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); let m;
+    if (!t) { gap = true; continue; }
+    if ((m = /^\[([a-zA-Z0-9])\]\s+(\S.*)$/.exec(t))) { if (!cur || (gap && cur.items.length)) secs.push(cur = { head: '', items: [] }); cur.items.push({ k: m[1], n: m[2].trim() }); n++; gap = false; continue; }
+    if (/^\(\?\) Help System Commands$/.test(t)) { more = '?'; continue; }
+    if (/^\[\?\]\s/.test(t)) { more = '?'; continue; }
+    if (/^Please choose one of the following/i.test(t)) continue;
+    if (!title && !n) { title = t.replace(/\.$/, ''); gap = true; continue; }
+    if (/:$/.test(t) && t.length < 40) { secs.push(cur = { head: t.replace(/:$/, ''), items: [] }); gap = false; continue; }
+    return '';   // running text: not a contents page
+  }
+  if (n < 2) return '';
+  const home = title === 'Welcome to the Online Help System';
+  const card = it => { const w = home && HELP_WORDS[it.n]; return `<div class="mcard" data-key="${esc(it.k)}"><span class="key">${esc(it.k)}</span><span class="ml"><span class="mw">${esc(w ? w[0] : it.n)}</span>${w ? `<small class="mwd">${esc(w[1])}</small>` : ''}</span></div>`; };
+  return `<div class="hlpw${secs.length > 1 || n > 9 ? '' : ' one'}"><div class="hlpt">${esc(home ? 'What would you like to know?' : title)}</div>
+    ${secs.filter(g => g.items.length).map(g => `<div class="msec">${g.head ? `<div class="mhead">${esc(g.head)}</div>` : ''}<div class="hlpg">${g.items.map(card).join('')}</div></div>`).join('')}
+    </div>`;
+}

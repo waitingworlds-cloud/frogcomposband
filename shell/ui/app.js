@@ -894,11 +894,14 @@ function pagerHead(p) {
 }
 function pagerFoot(p) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  let h = k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : 'close');
+  const hlp = /^Help file '/.test(p.cap || ''), deep = hlp && !/^Help file 'start\.txt'/.test(p.cap);   // the help keeps its own trail: Esc steps back a page, ! goes to its first page, q leaves it
+  let h = k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : deep ? 'back' : 'close');
+  if (deep) h += k('!', 'data-key="!"', 'all topics') + k('q', 'data-key="q"', 'close');
+  if (hlp && p.of > p.page) h += k('&lt;', 'data-key="&lt;"', 'previous part') + k('&gt;', 'data-key="&gt;"', 'next part');
   if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
   if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
-  if (/\?/.test(p.keys)) h += k('?', 'data-key="?"', 'help');
-  return h + '<span class="pgw">wheel scrolls</span>';
+  if (/\?/.test(p.keys) && !hlp) h += k('?', 'data-key="?"', 'help');
+  return h + (p.of > p.page ? '<span class="pgw">wheel scrolls</span>' : '');
 }
 
 /* ---------- frame ---------- */
@@ -933,6 +936,7 @@ function draw() {
   // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
   const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
   if (!page) CHARVIEW = 'summary';
+  if (typeof HUB !== 'undefined' && HUB.hold) { if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
   const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!nh);
   if (page) show = false;

@@ -41,10 +41,10 @@ function hubTermHtml(side) {
 function hubHoldHtml() { return Date.now() < HUB.hold ? `<div class="pane npanel hub">${hubTabsHtml(HUB.last)}<div class="hubb"></div></div>` : ''; }
 function hubGo(id) {
   const t = HUB_TABS.find(t => t[0] === id); if (!t || !S || !S.map) return;
-  HUB.last = id; HUB.t = Date.now(); HUB.hold = Date.now() + 700;
+  HUB.last = id; HUB.t = Date.now(); HUB.gap = 0; HUB.hold = Date.now() + 1500;   // long enough for a slow machine: the frame is replaced the moment the page arrives
   if (id === 'spells') SPB.auto = Date.now();
   sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t[2]), 110); schedule();
-  setTimeout(schedule, 720);
+  setTimeout(schedule, 1520);
 }
 document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-hub]'); if (!t) return;

@@ -35,7 +35,7 @@ function exploreStart() {
   const foes = expFoes(), near = foes.filter(m => !m.asleep || m.dist <= 2).sort((a, b) => a.dist - b.dist)[0];
   if (near) { postToast(near.asleep ? cap(near.n.replace(/^(an?|the) /i, '')) + ' sleeps right beside you' : 'Not while ' + near.n.replace(/^(an?) /i, 'the ') + ' is awake in sight'); return; }
   if (S.p.dlvl && (S.equip || []).some(e => e.slot === 'Light' && !e.o)) { postToast('You carry no light: wield a torch first'); return; }
-  Object.assign(EXP, { on: true, goal: '', fetch: '', seen: null, sleep: new Set(foes.map(f => f.i)), chase: null, pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() }); exploreRemember();
+  Object.assign(EXP, { on: true, goal: '', fetch: '', seen: null, sleep: new Set(foes.map(f => f.i)), jam: {}, chase: null, pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() }); exploreRemember();
   postToast(foes.length ? 'Exploring quietly past the sleeper · any key stops' : 'Exploring · any key stops'); clearInterval(EXP.timer); EXP.timer = setInterval(exploreTick, 90);
 }
 // walk to a square (or after a creature) the game cannot route to because it forgot the dark floor between; false when no remembered way
@@ -81,14 +81,15 @@ function exploreTick() {
   const dropFetch = () => { EXP.got.add(EXP.fetch); EXP.fetch = ''; EXP.goal = ''; EXP.fail = 0; };
   if (EXP.goal && pos === EXP.goal) return exploreStop();
   if (pos === EXP.pos && ++EXP.still < 4) return;   // the last step has not landed yet
-  if (pos === EXP.pos) { if (++EXP.fail >= (EXP.door ? 14 : EXP.goal ? 8 : 3) && EXP.tgt) { if (EXP.fetch) dropFetch(); else if (EXP.goal) return exploreStop('Something is in the way'); else EXP.bad[EXP.tgt] = 1; EXP.fail = 0; } } else EXP.fail = 0;   // a door opening costs a step; a wall that will not give, the goal is dropped
+  const jam = /door appears to be stuck/i.test(msgTop());   // a jammed door will not give to more of the same: leave it after a few tries, and do not come back to it
+  if (pos === EXP.pos) { if (++EXP.fail >= (jam ? 3 : EXP.door ? 14 : EXP.goal ? 8 : 3) && EXP.tgt) { if (EXP.fetch) dropFetch(); else if (EXP.goal) return exploreStop(jam ? 'The door is stuck fast' : 'Something is in the way'); else { EXP.bad[EXP.tgt] = 1; if (jam) (EXP.jam = EXP.jam || {})[EXP.tgt] = 1; } EXP.fail = 0; } } else EXP.fail = 0;   // a door opening costs a step; a wall that will not give, the goal is dropped
   if (pos === EXP.tgt && !EXP.goal) EXP.bad[EXP.tgt] = 1;   // stood there and the unknown beside it stayed unknown: nothing more to see from it
   EXP.pos = pos; EXP.still = 0;
   let st = exploreStep();
   if (EXP_MEM.m.size !== EXP.size) { EXP.size = EXP_MEM.m.size; EXP.retried = false; }
   if (!st && EXP.fetch) { dropFetch(); st = exploreStep(); }   // no way to it: leave it and explore on
   if (!st && EXP.goal) return exploreStop('No way there that you know');
-  if (!st && !EXP.retried && Object.keys(EXP.bad).length) { EXP.bad = {}; EXP.retried = true; st = exploreStep(); }   // before giving up, try the places set aside once more
+  if (!st && !EXP.retried && Object.keys(EXP.bad).length) { EXP.bad = Object.assign({}, EXP.jam); EXP.retried = true; st = exploreStep(); }   // before giving up, try the places set aside once more
   if (!st) { EXP.doneLvl = EXP_MEM.lvl; schedule(); return exploreStop('Nothing more to explore that you can reach'); }
   // a locked door can take several tries to open: give it time before giving up on it
   { const mw = S.map.w, c = S.map.c[((S.map.h >> 1) + st.dy) * mw + (mw >> 1) + st.dx]; EXP.door = !!(c && c[0] && featClass(c[0]) === 'door'); }

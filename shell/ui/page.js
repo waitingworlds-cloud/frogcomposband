@@ -114,6 +114,8 @@ function hubPageHtml(side) {
   const ros = rosm ? rosterHtml(y0, y1, x0, x1, skip, { k: 'kills', c: 'pets', a: 'alive', w: 'wanted' }[rosm[1].charAt(0).toLowerCase()]) : '';
   if (ros) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${ros}</div><div class="t-f pgf">${foot}</div>`);
   const jq = PAGER && !side ? /(?:^|, )(Quests|Dungeons)\s*$/.exec(PAGER.cap) : null, jqh = jq ? (jq[1] === 'Quests' ? questsHtml : dungeonsHtml)(y0, y1, x0, x1, skip) : '';
+  const hlp = PAGER && !side && /^Help file '/.test(PAGER.cap) ? helpMenuHtml(y0, y1, x0, x1, skip) : '';
+  if (hlp) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${hlp}</div><div class="t-f pgf">${foot}</div>`);
   if (jqh) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${jqh}</div><div class="t-f pgf">${foot}</div>`);
   const nw = Math.max(40, x1 - x0 + 1), nh = y1 - y0 + 1, sideW = side ? 624 : 0;
   const availW = 1452 - sideW, availH = HUB_H - 58 - 40 - (head ? 42 : 0) - (foot ? 48 : 0);
