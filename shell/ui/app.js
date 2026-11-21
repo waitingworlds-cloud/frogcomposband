@@ -311,7 +311,7 @@ let CAN_STUDY = false;   // the game says there is a spell to learn
 function effectsHtml() {
   if (G.icky || G.ov) return lastEff || '<div class="sub" style="font-size:14px">nothing unusual</div>';
   const out = [];
-  for (const r of rectText(S.reff)) if (r) out.push(r);
+  for (const r of rectText(S.reff)) if (r && !/^\??\s*for help\s*$/.test(r.text == null ? String(r) : r.text) && (r.text == null ? String(r) : r.text).trim() !== '?') out.push(r);   // the beginner's "? for help" hint is not a condition: Help has its own button
   // the status bar packs several short words into one line, each in its own colour
   const sb = S.rstatus, y = sb[1];
   if (y < G.h) {
