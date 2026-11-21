@@ -149,15 +149,20 @@ function floatHtml() {
   let { x0, y0, x1, y1 } = b; PAGER = null; BROWSE = null;
   const txt = y => rowText(y).slice(x0, x1 + 1), rc = /^\s*Name\s*:\s*(.+?) \((.)\)\s*$/.exec(txt(y0));
   RECALL = !!rc; if (rc) y0++;
+  // an item's write-up: its picture, name and weight head the card
+  const itm = !rc && y1 > y0 ? /^\s*(\S.*?)\s{2,}(\d+(?:\.\d)?) lbs?\s*$/.exec(txt(y0)) : null; let ihead = '';
+  if (itm) { const nm = itm[1], all = [...((S && S.pack) || []), ...((S && S.equip) || []).map(e => e && e.o), ...((S && S.floor) || [])].filter(o => o && o.n);
+    const o = all.find(o => o.n === nm) || all.find(o => nm.startsWith(o.n) || o.n.startsWith(nm)), art = o && o.ki != null ? artHtml(o.ki, 72) : '';
+    ihead = `<div class="pgh fhead ihead">${art}<b>${typeof nameHtml === 'function' ? nameHtml(cap(nm)) : esc(cap(nm))}</b><span class="pgn">${esc(itm[2])} lb</span></div>`; y0++; }
   let wait = '', more = false;
   for (let y = y1; y >= y0; y--) { const t = txt(y).trim(); if (!t) { if (y === y1) y1--; continue; } if (/^\[Press [^\]]*\]$|^-more-$|^\[.*to continue.*\]$/i.test(t)) { wait = t; if (y === y1) y1--; } break; }
   while (y1 > y0 && !txt(y1).trim()) y1--; while (y0 < y1 && !txt(y0).trim()) y0++;
   more = /press any key|-more-|continue/i.test(wait) || /press any (other )?key|press space/i.test(G.s.join('\n'));
   const nw = Math.max(48, x1 - x0 + 1), fs = 18, cw = Math.round(Math.min(fs * .56, 800 / nw) * 100) / 100, lh = 25;
-  let rows = ''; for (let y = y0; y <= y1; y++) rows += `<div class="pr${y === y0 && !rc ? ' ptitle' : ''}" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, false)}</div>`;
+  let rows = ''; for (let y = y0; y <= y1; y++) rows += `<div class="pr${y === y0 && !rc && !itm ? ' ptitle' : ''}" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, false)}</div>`;
   PGEO = { x0, cw };
   const caret = G.cv && G.cx >= x0 && G.cx <= x1 + 1 && G.cy >= y0 && G.cy <= y1 ? `<i class="mcaret" style="left:${(G.cx - x0) * cw}px;top:${(G.cy - y0) * lh + lh - 3}px;width:${cw}px"></i>` : '';
-  const head = rc ? `<div class="pgh fhead"><canvas class="rmob" data-n="${esc(rc[1])}"></canvas><b>${esc(rc[1])}</b><span class="pgn">what you know of it</span></div>` : '';
+  const head = rc ? `<div class="pgh fhead"><canvas class="rmob" data-n="${esc(rc[1])}"></canvas><b>${esc(rc[1])}</b><span class="pgn">what you know of it</span></div>` : ihead;
   const foot = rc && !more ? '<span class="abtn" data-key="r"><span class="key">r</span>Back</span><span class="abtn" data-key="Esc"><span class="key">Esc</span>Stop looking</span>' : more ? '<span class="abtn go" data-key=" "><span class="key">Space</span>Continue</span>' : '<span class="abtn" data-key="Esc"><span class="key">Esc</span>Close</span>';
   return `<div class="pane npanel fcard">${head}<div class="pgt" style="width:${Math.ceil(nw * cw)}px;font-size:${fs * Math.min(1, cw / (fs * .56))}px;--lh:${lh}px">${rows}${caret}</div><div class="askb ffoot">${foot}</div></div>`;
 }
