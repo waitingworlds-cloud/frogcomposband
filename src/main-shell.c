@@ -323,6 +323,21 @@ static void shell_command(char *line)
             Term_keypress('\\'); Term_keypress('`');
         }
     }
+    else if (line[0] == 'B' && line[1] == ' ')
+    {
+        /* the shop's buy and sell cards: "B b <shelf slot> <count>" or "B s <p|q> <slot> <count>".
+         * Only taken while the shop waits for a command; the shop then does the trade as if b or s
+         * had been pressed, with the item and count already answered */
+        int slot = 0, amt = 0; char wh = 'p';
+        if (line[2] == 'b' && sscanf(line + 4, "%d %d", &slot, &amt) == 2)
+        {
+            if (shell_shop_request('b', 0, slot, amt)) Term_keypress('b');
+        }
+        else if (line[2] == 's' && sscanf(line + 4, "%c %d %d", &wh, &slot, &amt) == 3)
+        {
+            if (shell_shop_request('s', wh, slot, amt)) Term_keypress('s');
+        }
+    }
     else if (line[0] == 'T' && line[1] == ' ')
     {
         /* right-click menu: aim at this square (a monster you can see there, else the square itself).
