@@ -10,6 +10,8 @@ function exploreRemember() {
   const lvl = S.p.place + '|' + S.p.dlvl + '|' + (S.p.depth || 0); if (lvl !== EXP_MEM.lvl) { EXP_MEM.lvl = lvl; EXP_MEM.m = new Map(); }
   const mw = S.map.w, sx = mw >> 1, sy = S.map.h >> 1, cells = S.map.c;
   for (let i = 0; i < cells.length; i++) { const c = cells[i]; if (!c || !c[0]) continue; EXP_MEM.m.set((S.px + i % mw - sx) + ',' + (S.py + ((i / mw) | 0) - sy), EXP_AVOID[featClass(c[0])] ? 0 : 1); }
+  // keep a square's distance from anything rooted that would hit you as you pass
+  for (const f of S.mons || []) if (f.still && !f.pet && !f.friendly) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const k = (S.px + f.dx + dx) + ',' + (S.py + f.dy + dy); if (EXP_MEM.m.has(k)) EXP_MEM.m.set(k, 0); }
 }
 // the first step towards the nearest remembered square you can walk to that touches the unknown
 function exploreStep() {
@@ -29,13 +31,14 @@ const EXP_JUNK = /\b(Corpse|Skeleton|Skull|Statue|Shard of Pottery|Broken (Stick
 const expAsk = () => /-more-|Press Space to continue|\?\s*$|\[y\/n\]|:\s*$/.test(msgTop());
 const expFoes = () => S.mons.filter(m => !m.pet && !m.friendly);
 // what holds explore back: a sleeper right beside you, or an awake creature you can see or that is close. One only sensed through the walls, far off, does not.
-const expThreat = m => m.asleep ? m.dist <= 2 : !!(m.los || m.dist <= 5);
+// A creature rooted to the spot with no magic (a mold) only matters right beside it: explore walks around it.
+const expThreat = m => m.still ? m.dist <= 1 : m.asleep ? m.dist <= 2 : !!(m.los || m.dist <= 5);
 const expItems = () => new Set(S.floor.map(o => (S.px + o.dx) + ',' + (S.py + o.dy) + ',' + o.n));
 function exploreStart() {
   if (!playing() || EXP.on) return;
   // a creature asleep some way off does not hold you here: explore goes on and stops if it wakes or you come up beside it
   const foes = expFoes(), near = foes.filter(expThreat).sort((a, b) => a.dist - b.dist)[0];
-  if (near) { postToast(near.asleep ? cap(near.n.replace(/^(an?|the) /i, '')) + ' sleeps right beside you' : 'Not while ' + near.n.replace(/^(an?) /i, 'the ') + ' is awake in sight'); return; }
+  if (near) { postToast(near.still ? 'Step away from ' + near.n.replace(/^(an?) /i, 'the ') + ' first' : near.asleep ? cap(near.n.replace(/^(an?|the) /i, '')) + ' sleeps right beside you' : 'Not while ' + near.n.replace(/^(an?) /i, 'the ') + ' is awake in sight'); return; }
   if (S.p.dlvl && (S.equip || []).some(e => e.slot === 'Light' && !e.o)) { postToast('You carry no light: wield a torch first'); return; }
   Object.assign(EXP, { on: true, goal: '', fetch: '', seen: null, sleep: new Set(foes.filter(f => f.asleep && f.los).map(f => f.i)), jam: {}, chase: null, pos: '', still: 0, fail: 0, tgt: '', bad: {}, hp: S.p.hp, items: expItems() }); exploreRemember();
   postToast(foes.some(f => f.asleep && f.los) ? 'Exploring quietly past the sleeper · any key stops' : 'Exploring · any key stops'); clearInterval(EXP.timer); EXP.timer = setInterval(exploreTick, 90);
@@ -58,8 +61,8 @@ function exploreTick() {
   }
   if (EXP.goal && expFoes().some(f => f.dist <= 1)) return exploreStop();
   if (EXP.chase == null) {
-    const slp = EXP.sleep, f = expFoes().filter(m => !(slp && slp.has(m.i) && m.asleep && m.dist > 1) && (m.los || m.dist <= 5)).sort((a, b) => a.dist - b.dist)[0];
-    if (f && !(EXP.goal && !EXP.fetch && EXP.seen && EXP.seen.has(f.i))) { if (typeof sndPlay === 'function') sndPlay('warn'); return exploreStop(cap(f.n) + (slp && slp.has(f.i) ? (f.asleep ? ' sleeps right beside you' : ' wakes up') : f.asleep ? ' sleeps ahead' : ' comes into view')); }
+    const slp = EXP.sleep, f = expFoes().filter(m => !(slp && slp.has(m.i) && m.asleep && m.dist > 1) && (m.still ? m.dist <= 1 : m.los || m.dist <= 5)).sort((a, b) => a.dist - b.dist)[0];
+    if (f && !(EXP.goal && !EXP.fetch && EXP.seen && EXP.seen.has(f.i))) { if (typeof sndPlay === 'function') sndPlay('warn'); return exploreStop(cap(f.n) + (slp && slp.has(f.i) ? (f.asleep ? ' sleeps right beside you' : ' wakes up') : f.still ? ' is right beside you' : f.asleep ? ' sleeps ahead' : ' comes into view')); }
   }
   if (S.p.hp < EXP.hp) return exploreStop('You are hurt');
   EXP.hp = S.p.hp;

@@ -305,16 +305,22 @@ function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 590 / u.
 function lmapHtml() {
   const u = UI, g = lmapGeo(), pois = [];
   let known = 0;
-  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); const nm = (DICT.f[f] || [''])[0]; if (cls === 'up' || cls === 'down' || cls === 'shop' || (u.wild && /^town$/i.test(nm))) pois.push({ n: u.wild && cls === 'down' ? 'Dungeon' : nm, cls: u.wild ? 'place' : cls, x: i % u.w, y: (i / u.w) | 0 }); });
+  const named = {}; for (const [x, y, n] of u.pl || []) named[x + ',' + y] = n;   // the towns and dungeons by name
+  const theDun = n => (/^(Angband|Camelot|Hell|Heaven|Numenor|R'lyeh|Mount |Asgard|Atlantis|Random )/.test(n) ? '' : 'the ') + n.replace(/^the /i, '');
+  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); const nm = (DICT.f[f] || [''])[0], x = i % u.w, y = (i / u.w) | 0, pn = named[x + ',' + y], town = u.wild && /^town$/i.test(nm);
+    if (cls === 'up' || cls === 'down' || cls === 'shop' || town) pois.push({ n: pn ? (town ? pn : u.wild ? cap(theDun(pn)) : 'Way into ' + theDun(pn)) : u.wild && cls === 'down' ? 'Dungeon' : nm, kind: u.wild ? (town ? 'town' : 'dungeon') : '', cls: u.wild ? 'place' : cls, x, y }); });
   pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
   const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
   if (u.wild) { list.length = 0; pois.slice(0, 12).forEach(p => list.push(p)); }
+  // the world: every town you can walk to, then the nearest dungeons
+  const goBtn = p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`;
+  const wildGo = u.wild && (u.pl || []).length ? `<div class="lmgo"><span class="catr">towns</span>${pois.filter(p => p.kind === 'town').slice(0, 10).map(goBtn).join('')}</div><div class="lmgo"><span class="catr">dungeons</span>${pois.filter(p => p.kind === 'dungeon').slice(0, 7).map(goBtn).join('')}</div>` : '';
   const leg = [['#fff6e6', 'You'], ['#ff5a3c', 'Creature'], ['#7fd0f0', 'Stairs'], pois.some(p => p.cls === 'shop') ? ['#ffb070', 'Shop'] : ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
   if (u.wild) leg.splice(0, leg.length, ['#fff6e6', 'You'], ['#ffb070', 'Town'], ['#7fd0f0', 'Dungeon'], ['#3c5530', 'Open land'], ['#2f5a2a', 'Forest'], ['#2f5f86', 'Water'], ['#5a5e64', 'Mountains'], ['#b8441c', 'Lava']);
   return `<div class="pane npanel lmapp">
     <div class="lmhd"><b>${u.wild ? 'The world' : esc(u.place)}</b>${u.dlvl ? `<span>level ${u.dlvl} · ${u.dlvl * 50} ft</span>` : ''}<span class="grow"></span>${leg.map(([c, n]) => `<span class="lmlg"><i style="background:${c}"></i>${n}</span>`).join('')}</div>
     <div class="lmbox"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
-    ${list.length ? `<div class="lmgo"><span class="catr">go to</span>${list.map(p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>` : ''}
+    ${wildGo || !list.length ? wildGo : `<div class="lmgo"><span class="catr">go to</span>${list.map(p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}"${p.kind ? ` data-tip="${p.kind === 'town' ? 'A town' : 'A dungeon'}"` : ''}>${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>`}
     <div class="nfoot"><span class="sub">${u.wild ? 'The whole land. Click a place to travel there.' : 'Click anywhere you have explored to walk there.'}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
 }
 let LM_HI = null;
@@ -328,6 +334,12 @@ function lmapDraw() {
     if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
   if (LM_HI) { const [hx, hy] = LM_HI.split(',').map(Number); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.beginPath(); x.arc(hx * s + s / 2, hy * s + s / 2, Math.max(9, s * 1.6), 0, 7); x.stroke(); x.fillStyle = '#ff8a3c'; x.fillRect(hx * s - 1, hy * s - 1, s + 2, s + 2); }
   x.fillStyle = '#fff6e6'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.strokeRect(u.px * s - 4, u.py * s - 4, s + 8, s + 8);
+  if (u.wild) {   // the towns by name, on the map itself
+    x.font = '600 12px "Inter", system-ui, sans-serif'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    for (const [tx, ty, n] of u.pl || []) { const f = u.c[ty * u.w + tx], fid = Array.isArray(f) ? f[0] : f; if (!/^town$/i.test((DICT.f[fid] || [''])[0])) continue;
+      const w = x.measureText(n).width, left = tx * s + s + 5 + w > g.W - 4, lx = left ? tx * s - 5 - w : tx * s + s + 5, ly = ty * s + s / 2;
+      x.strokeStyle = 'rgba(8,9,10,.85)'; x.lineWidth = 3.5; x.strokeText(n, lx, ly); x.fillStyle = '#ffd9b0'; x.fillText(n, lx, ly); }
+  }
 }
 let NATIVE_SIDE = false;
 const SKL = ['very bad', 'bad', 'poor', 'fair', 'good', 'very good', 'excellent', 'superb', 'heroic', 'legendary'];
@@ -596,7 +608,8 @@ document.addEventListener('mousemove', ev => {
   if (tipEl) { const [a, b] = tipEl.dataset.tip.split('\n'); return showTip(esc(a) + (b ? `<div class="hint">${esc(b)}</div>` : ''), ev); }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];
-    const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
+    const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); const pl = (UI.pl || []).find(p => p[0] === cx && p[1] === cy); if (pl) out.push('<b>' + esc(pl[2]) + '</b>');
+    if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
     return showTip(out.join('<br>'), ev);
   }
   if (ev.target.id === 'mini' && playing()) {

@@ -632,6 +632,23 @@ void shell_ui_levelmap(void)
         }
     }
     o_close(']');
+    /* the names of the towns and dungeons you know of: the map itself only says "town" and "entrance" */
+    o_raw(",\"pl\":[");
+    if (!dun_level) for (y = 0; y < cur_hgt; y++)
+    {
+        for (x = 0; x < cur_wid; x++)
+        {
+            cave_type *c = &cave[y][x];
+            cptr nm = NULL;
+            int f;
+            if (!(c->info & CAVE_MARK) || !c->special) continue;
+            f = c->mimic ? c->mimic : c->feat;
+            if (have_flag(f_info[f].flags, FF_ENTRANCE)) { if (c->special < max_d_idx) nm = d_name + d_info[c->special].name; }
+            else if (p_ptr->wild_mode && f == feat_town) nm = town_name(c->special);
+            if (nm && *nm) { o_fmt("[%d,%d,", x, y); o_str(nm); o_raw("],"); }
+        }
+    }
+    o_close(']');
     o_raw("}");
     o_send();
     ui_live = TRUE;
@@ -770,6 +787,7 @@ static void send_state(void)
         if (r->flags1 & RF1_UNIQUE) o_kint("uniq", 1);
         if (MON_CSLEEP(m)) o_kint("asleep", 1);
         if (MON_MONFEAR(m)) o_kint("afraid", 1);
+        if ((r->flags1 & RF1_NEVER_MOVE) && !r->spells) o_kint("still", 1);   /* rooted to the spot and no magic: only a danger beside it */
         if (is_pet(m)) o_kint("pet", 1);
         else if (is_friendly(m)) o_kint("friendly", 1);
         if (target_who == i) o_kint("target", 1);
