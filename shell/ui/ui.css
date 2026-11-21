@@ -478,7 +478,7 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 .hlpw{width:900px;max-width:100%;margin:0 auto;padding:6px 4px 10px}.hlpw.one{width:640px}.hlpt{font:400 30px/1.2 Fell,serif;letter-spacing:.04em;color:#f4efe4;margin:6px 2px 18px}
 .hlpw .mhead{color:#ff8a3c}.hlpg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px 12px}.hlpw.one .hlpg{grid-template-columns:1fr 1fr}.hlpw .mcard{min-height:52px;padding:6px 14px}.hlpw .msec{margin-bottom:18px}
 .hlpm{margin-top:4px;opacity:.85}
-body.mouse .mcard>.key{display:none}
+body.mouse .mcard>.key{display:none}body.mouse .gmr.mcard{grid-template-columns:1fr}
 /* the journal's pickup rules, one plain line each */
 .rlw{width:900px;max-width:100%;margin:0 auto;padding:4px 4px 10px}.rli{display:flex;align-items:center;gap:16px;font:italic 400 16px/1.35 Spectral,serif;color:#b3ac9f;margin:2px 2px 12px;padding-bottom:10px;border-bottom:1px solid #2e3135}.rli .rlb{margin-left:auto;display:flex;gap:8px;font-style:normal;white-space:nowrap}
 .rlc{columns:2;column-gap:34px}.rlw{width:1180px}.rl{break-inside:avoid;display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;min-height:25px;padding:0 4px;border-bottom:1px solid #0006;box-shadow:0 1px 0 #2a2d31;font:400 16.5px/1.3 Spectral,serif;color:#d9d2c5}

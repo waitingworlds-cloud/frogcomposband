@@ -30,8 +30,8 @@ function controlsKey(e) {
 }
 
 // Esc with nothing open: a small game menu. Every entry is the game's own key, so nothing here is new to learn
-const GMENU = [['C', 'Character sheet', 'C'], ['i', 'Pack', 'i'], ['e', 'Equipment', 'e'], ['M', 'Level map', 'M'], ['~', 'Knowledge', '~'], ['Ctrl+P', 'Message history', '\x10'],
-  ['=', 'Options', '='], ['?', 'Game help', '?'], ['F1', 'Mouse and new keys', 'F1'], ['Ctrl+S', 'Save', '\x13'], ['Ctrl+X', 'Save and quit', '\x18']];
+const GMENU = [['C', 'Character', 'C'], ['i', 'Pack', 'i'], ['e', 'Gear', 'e'], ['M', 'Map', 'M'], ['~', 'Journal', '~'], ['Ctrl+P', 'Messages', '\x10'],
+  ['=', 'Options', '='], ['?', 'Help', '?'], ['F1', 'Mouse and keys', 'F1'], ['X', 'Every command', 'X'], ['Ctrl+S', 'Save', '\x13'], ['Ctrl+X', 'Save and quit', '\x18']];
 function gmenuToggle(force) {
   let el = document.getElementById('gmenu');
   if (el && force !== true) { el.remove(); return; }
