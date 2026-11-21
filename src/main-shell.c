@@ -338,6 +338,20 @@ static void shell_command(char *line)
             if (shell_shop_request('s', wh, slot, amt)) Term_keypress('s');
         }
     }
+    else if (line[0] == 'H' && line[1] == ' ')
+    {
+        /* the home's and museum's cards: "H g <shelf slot> <count>" takes, "H d <p|q> <slot> <count>" leaves */
+        extern bool shell_home_request(int req, int where, int slot, int amt);
+        int slot = 0, amt = 0; char wh = 'p';
+        if (line[2] == 'g' && sscanf(line + 4, "%d %d", &slot, &amt) == 2)
+        {
+            if (shell_home_request('g', 0, slot, amt)) Term_keypress('g');
+        }
+        else if (line[2] == 'd' && sscanf(line + 4, "%c %d %d", &wh, &slot, &amt) == 3)
+        {
+            if (shell_home_request('d', wh, slot, amt)) Term_keypress('d');
+        }
+    }
     else if (line[0] == 'T' && line[1] == ' ')
     {
         /* right-click menu: aim at this square (a monster you can see there, else the square itself).

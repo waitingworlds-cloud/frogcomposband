@@ -138,6 +138,17 @@ static void _examine(_ui_context_ptr context);
 static void _get(_ui_context_ptr context);
 static void _ui(_ui_context_ptr context);
 extern inv_ptr shell_home_inv;
+/* a move asked for from the interface's own card: the item and the count are chosen there and its
+ * button is the confirmation. req: 0 none, 'g' take shelf slot, 'd' leave here from pack/quiver */
+static bool _shell_idle = FALSE;
+static int  _shell_req = 0, _shell_where = 0, _shell_slot = 0, _shell_amt = 0;
+bool shell_home_request(int req, int where, int slot, int amt)
+{
+    if (!shell_home_inv || !_shell_idle || slot <= 0 || amt <= 0) return FALSE;
+    if (req != 'g' && req != 'd') return FALSE;
+    _shell_req = req; _shell_where = where; _shell_slot = slot; _shell_amt = amt;
+    return TRUE;
+}
 
 void home_ui(void)
 {
@@ -182,7 +193,10 @@ static void _ui(_ui_context_ptr context)
 
         _display(context);
 
+        _shell_idle = TRUE;
         cmd = inkey_special(TRUE);
+        _shell_idle = FALSE;
+        if (cmd != 'g' && cmd != 'd') _shell_req = 0;
         msg_line_clear();
         msg_boundary(); /* turn_count is unchanging while in home/museum */
         if (cmd == ESCAPE || cmd == 'q' || cmd == 'Q') break;
@@ -338,6 +352,34 @@ static void _display(_ui_context_ptr context)
             if (object_is_artifact(obj)) shell_ui_int("art", 1);
             else if (obj->name2) shell_ui_int("ego", 1);
         }
+        /* what you carry, which could be left here */
+        {
+            int pass;
+            for (pass = 0; pass < 2; pass++)
+            {
+                slot_t smax = pass ? quiver_max() : pack_max();
+                for (slot = 1; slot <= smax; slot++)
+                {
+                    obj_ptr obj = pass ? quiver_obj(slot) : pack_obj(slot);
+                    char    name[MAX_NLEN], lab[2];
+                    if (!obj) continue;
+                    object_desc(name, obj, 0);
+                    lab[0] = slot_label(slot); lab[1] = 0;
+                    shell_ui_row();
+                    shell_ui_str("wh", pass ? "q" : "p");
+                    shell_ui_str("k", lab);
+                    shell_ui_int("sl", slot);
+                    shell_ui_str("n", name);
+                    shell_ui_int("tv", obj->tval);
+                    shell_ui_int("ki", obj->k_idx);
+                    shell_ui_int("num", obj->number);
+                    shell_ui_int("w", obj->weight);
+                    shell_ui_int("score", obj_value(obj));
+                    if (object_is_artifact(obj)) shell_ui_int("art", 1);
+                    else if (obj->name2) shell_ui_int("ego", 1);
+                }
+            }
+        }
         shell_ui_close();
     }
 }
@@ -369,6 +411,18 @@ static void _get(_ui_context_ptr context)
         obj_ptr obj;
         int     amt = 1;
 
+        if (_shell_req == 'g')
+        {
+            /* chosen on the interface's card */
+            _shell_req = 0;
+            slot = _shell_slot;
+            obj = inv_obj(context->inv, slot);
+            if (!obj) break;
+            amt = MAX(1, MIN(_shell_amt, obj->number));
+        }
+        else
+        {
+        _shell_req = 0;
         if (!msg_command("<color:y>Get which item <color:w>(<color:keypress>Esc</color> "
                          "to cancel)</color>?</color>", &cmd)) break;
         if (cmd < 'a' || cmd > 'z') continue;
@@ -380,6 +434,7 @@ static void _get(_ui_context_ptr context)
         if (obj->number > 1)
         {
             if (!msg_input_num("Quantity", &amt, 1, obj->number)) continue;
+        }
         }
         if (amt < obj->number)
         {
@@ -439,6 +494,7 @@ static void _drop(_ui_context_ptr context)
     obj_prompt_t prompt = {0};
     int          amt = 1;
     bool         new_id = FALSE;
+    bool         direct = FALSE;
 
     if (inv_loc(context->inv) == INV_MUSEUM)
     {
@@ -455,7 +511,18 @@ static void _drop(_ui_context_ptr context)
     prompt.where[2] = INV_QUIVER;
     obj_prompt_add_special_packs(&prompt);
 
-    obj_prompt(&prompt);
+    if (_shell_req == 'd')
+    {
+        /* chosen on the interface's card */
+        prompt.obj = _shell_where == 'q' ? quiver_obj(_shell_slot) : pack_obj(_shell_slot);
+        direct = TRUE;
+        _shell_req = 0;
+    }
+    else
+    {
+        _shell_req = 0;
+        obj_prompt(&prompt);
+    }
     if (!prompt.obj) return;
 
     if (prompt.obj->loc.where == INV_EQUIP)
@@ -476,14 +543,16 @@ static void _drop(_ui_context_ptr context)
 
         object_desc(name, prompt.obj, OD_COLOR_CODED);
         string_printf(s, "Really donate %s to the museum? <color:y>[y/n]</color>", name);
-        c = msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
+        c = direct ? 'y' : msg_prompt(string_buffer(s), "ny", PROMPT_YES_NO);
         string_free(s);
         if (c == 'n') return;
     }
     else
         amt = prompt.obj->number;
 
-    if (prompt.obj->number > 1)
+    if (direct)
+        amt = MAX(1, MIN(_shell_amt, prompt.obj->number));
+    else if (prompt.obj->number > 1)
     {
         if (!msg_input_num("Quantity", &amt, 1, prompt.obj->number)) return;
     }
