@@ -43,14 +43,17 @@ function itemsHtml() {
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
-  const room = 730 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
+  const room = (viewer ? 730 : 590) - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
   // a tab is a button: the game steps through its tabs with "/", so a click sends as many as it takes
   const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
-  const ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
+  let ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
+  // a "which one?" list with a single tab is headed by the question itself
+  const q1 = !viewer && u.tabs.length <= 1 && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '') : '';
+  if (q1) ask = '';
   return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
-    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
+    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
     <div class="sh2"><div class="nrows">${rows}</div><div class="shcard">${itemsCardHtml(cur, equip, viewer)}</div></div>
-    <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(ask)}</span><span class="grow"></span>
+    <div class="nfoot">${q1 ? '<span class="sub">Click one, or press its key.</span>' : `<span class="live" style="white-space:pre-line">${rich(ask)}</span>`}<span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
   </div>`;
 }
