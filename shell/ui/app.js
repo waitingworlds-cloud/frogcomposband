@@ -26,7 +26,7 @@ const hex = bytes => bytes.map(b => (b & 255).toString(16).padStart(2, '0')).joi
 let sendQ = Promise.resolve();
 function sendRaw(line) {
   // a walk of more than a step goes through the game's travel, which will not go in the dark: remember it, so it can be walked another way
-  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line); if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now() };
+  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line); if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) { TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now(), sx: S.px, sy: S.py, hp: S.p.hp }; setTimeout(travelStalled, 520); }
   sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {}));
 }
 let TRAVEL = null;
@@ -36,6 +36,16 @@ function travelRetry() {
   if (!/You cannot see!|No route is found/.test(msgTop())) return;
   const t = TRAVEL; TRAVEL = null; if (typeof EXP !== 'undefined' && EXP.on) return;
   setTimeout(() => { if (playing() && !(typeof EXP !== 'undefined' && EXP.on) && !exploreGoto(t.x - S.px, t.y - S.py)) postToast('No way there that you know'); }, 60);
+}
+// the game's travel gives up after a step whenever a creature is in view. If the walk just asked for stalled that way, and nothing
+// is beside you and you are unhurt, carry it on a step at a time (that walk stops for anything new, for a hit, and beside a foe)
+function travelStalled() {
+  const t = TRAVEL; if (!t || !S || !S.p || !playing() || Date.now() - t.t > 2500 || (typeof EXP !== 'undefined' && EXP.on)) return;
+  if (G.icky || G.ov || msgTop().trim() || (typeof UI !== 'undefined' && UI && uiOnTop())) return;
+  if ((S.px === t.x && S.py === t.y) || Math.max(Math.abs(S.px - t.sx), Math.abs(S.py - t.sy)) > 1 || S.p.hp < t.hp) return;
+  const foes = (S.mons || []).filter(m => !m.pet && !m.friendly); if (!foes.length || foes.some(m => m.dist <= 1)) return;
+  TRAVEL = null; const dx = t.x - S.px, dy = t.y - S.py;
+  exploreGoto(dx, dy, foes.find(m => m.dx === dx && m.dy === dy));
 }
 // the spell last picked from the spell list, so aiming it can show how wide it bursts
 let CAST = { n: '', t: 0 };
@@ -168,6 +178,7 @@ function liveHtml() {
     flush();
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
+  if (/^You (are|were) (wearing|wielding|shooting with|carrying) /.test(out.replace(/<[^>]+>/g, ''))) out = out.replace(/ \([a-z]\)\.(<\/span>)$/, '.$1');   // the slot letter means nothing here
   return lookKeys(out) + qtyKeys();
 }
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
@@ -386,7 +397,7 @@ function floorHtml() {
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
   return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${recallHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
-  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
+  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk the level and pick up what you find, until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
 const RL_KEY = { f: 't', a: 'z' };   // the roguelike keys show their own letters; a click always sends the plain command

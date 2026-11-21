@@ -18,6 +18,8 @@ function hereActs() {
     if ((!c || c.cls !== 'down') && hereFind('down')) acts.push({ stair: '>', label: 'Walk to the stairs down' });
     if ((!c || c.cls !== 'up') && !hereFind('down') && hereFind('up')) acts.push({ stair: '<', label: 'Walk to the stairs up' });
   }
+  // in the dark with a torch in the pack: one button holds it up
+  if (S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39)) acts.unshift({ wlight: 1, label: 'Hold up a light', art: S.pack.find(o => o.tv === 39) });
   if (c && c.cls === 'shop') acts.push({ raw: 'M 1 0 0', cap: 'click', label: /^building$/i.test(c.name) ? 'Go inside' : 'Go into the ' + c.name.replace(/^(the )/i, '') });
   return acts;
 }
@@ -29,7 +31,7 @@ function hereFind(cls) {
 }
 function hereStairs(k) { const b = hereFind(k === '>' ? 'down' : 'up'); if (!b || !playing()) return; STAIR_AT = { x: S.px + b.dx, y: S.py + b.dy, k, t: Date.now() }; sendRaw(`M 1 ${b.dx} ${b.dy}`); }
 function hereHtml() {
-  return hereActs().map((a, i) => `<span class="abtn ${i ? '' : 'go'}" ${a.stair ? `data-herestair="${esc(a.stair)}" data-tip="Walks there and takes them"` : a.raw ? `data-hereraw="${esc(a.raw)}"` : `data-key="${esc(a.key)}"`}>${a.art && artHtml(a.art.ki, 30) ? `<span class="hart">${artHtml(a.art.ki, 30)}</span>` : ''}${a.raw || a.stair ? '' : `<span class="key">${esc(a.cap)}</span>`}${esc(a.label)}</span>`).join('');
+  return hereActs().map((a, i) => `<span class="abtn ${i ? '' : 'go'}" ${a.wlight ? 'data-wlight="1" data-tip="You are in the dark. This holds up a light from your pack."' : a.stair ? `data-herestair="${esc(a.stair)}" data-tip="Walks there and takes them"` : a.raw ? `data-hereraw="${esc(a.raw)}"` : `data-key="${esc(a.key)}"`}>${a.art && artHtml(a.art.ki, 30) ? `<span class="hart">${artHtml(a.art.ki, 30)}</span>` : ''}${a.raw || a.stair || a.wlight ? '' : `<span class="key">${esc(a.cap)}</span>`}${esc(a.label)}</span>`).join('');
 }
 document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-hereraw]'); if (t) { ev.stopPropagation(); sendRaw(t.dataset.hereraw); return; }

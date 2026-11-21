@@ -434,3 +434,5 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 
 .ptx b.two{white-space:normal;line-height:1.02;font-size:19px;padding:2px 0 1px}
 .ptl:not(.big) .ptnow{position:static;align-self:flex-start;margin-top:3px;white-space:nowrap}
+
+.srow .price .wth{font:italic 400 13px Spectral,Georgia,serif;color:#8f8a80;margin-right:2px}

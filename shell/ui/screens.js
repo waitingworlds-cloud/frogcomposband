@@ -164,7 +164,7 @@ function shopHtml() {
     return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${dead ? 'cant' : ''} ${cur && shopId(cur) === id ? (SHOP.sel === id ? 'sel' : 'hov') : ''}"${act}>
     ${selling ? '' : `<span class="key kb" data-tip="With the keys: ${W.mus ? 'x' : W.kget}, then ${esc(r.k)}">${esc(r.k)}</span>`}<div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
     <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.num > 1 && W.home ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
-    <span class="price num"${W.home ? ' style="color:#c9b28a" data-tip="The game&#39;s score for it"' : ''}>${W.home ? (r.score || 0).toLocaleString() : selling && u.nosell ? '' : selling && !r.price ? '<i>no interest</i>' : r.price.toLocaleString()}</span></div>`; }).join('')
+    <span class="price num"${W.home ? ' style="color:#c9b28a" data-tip="About what it is worth, in gold"' : ''}>${W.home ? (r.score ? '<i class="wth">worth</i> ' + r.score.toLocaleString() : '') : selling && u.nosell ? '' : selling && !r.price ? '<i>no interest</i>' : r.price.toLocaleString()}</span></div>`; }).join('')
     || `<div class="sub" style="padding:20px">${tab === 'sell' ? (W.home ? 'Your pack is empty.' : 'You carry nothing this shop takes.') : W.mus ? 'Nothing has been donated yet.' : W.home ? 'Your home is empty. Leave things here from the other tab.' : 'The shelves are empty.'}</div>`;
   const cmds = W.mus ? [['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']] : W.home ? [['r', 'destroy'], ['?', 'help'], ['\x1b', 'leave']] : [['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
   const tot = W.home ? buy.reduce((a, r) => a + r.w * r.num, 0) : 0;
@@ -179,7 +179,7 @@ function shopHtml() {
       </div>
       <div class="shcard">${asking ? shopAskHtml(msg, W, buy, sell) : shopCardHtml(cur)}</div>
     </div>
-    <div class="live shmsg">${asking ? '' : lookKeys(esc(msg))}</div>
+    <div class="live shmsg">${asking || /^Unrecognized command/.test(msg) ? '' : lookKeys(esc(msg))}</div>
     <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"${SHOP_TIPS[k] ? ` data-tip="${SHOP_TIPS[k]}"` : ''}><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span><span class="sub">keys: ${W.mus ? '' : `<b>${W.kget}</b> ${W.get.toLowerCase()} · `}<b>${W.kput}</b> ${W.put.toLowerCase()} · arrows, Tab and Enter work on the list</span></div></div>`;
 }
 // the game's own questions in a shop (asked when you use the keys: b, s and their kind) as a card with buttons
