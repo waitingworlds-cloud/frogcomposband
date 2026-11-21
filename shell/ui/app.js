@@ -377,11 +377,22 @@ function mobsHtml(g) {
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 // "a Dagger (1d5) (+0,+0) {average}" as a name and small tags: the name reads cleanly, the numbers sit beside it in
 // plain little chips, and a bonus of nothing at all is not shown
+// the game's inscription codes said plainly: @ma = "a" picks it when you cast, !k = it asks before you destroy it, =g = picked up without asking.
+// Anything else (your own words, a code we do not know) shows as written.
+const INS_VERB = { m: 'cast', b: 'browse', G: 'study', r: 'read', q: 'drink', a: 'aim', z: 'zap', u: 'use', E: 'eat', f: 'fire', v: 'throw', w: 'wield', d: 'drop', A: 'activate', k: 'destroy', s: 'sell', g: 'pick up', t: 'take off' };
+function insTags(w) {
+  const keys = [], guards = [], out = [];
+  const rest = w.replace(/@([A-Za-z])([A-Za-z0-9])/g, (x, c, k) => { keys.push([c, k]); return ''; }).replace(/@([0-9])/g, (x, k) => { keys.push(['', k]); return ''; }).replace(/!([A-Za-z*])/g, (x, c) => { guards.push(c); return ''; }).replace(/=g/g, () => { out.push({ t: 'auto pickup', c: 'ins', tip: 'More of these are picked up without asking\nwritten on it: ' + w }); return ''; });
+  if (rest.trim() || !(keys.length || guards.length || out.length)) return [{ t: w, c: 'ins', tip: 'Your note on it' }];
+  if (guards.length) out.unshift({ t: 'guarded', c: 'ins', tip: 'The game asks before you ' + (guards.includes('*') ? 'do anything with it' : guards.map(c => INS_VERB[c] || c).join(' or ') + ' it') + '\nwritten on it: ' + w });
+  if (keys.length) out.unshift({ t: 'key ' + [...new Set(keys.map(k => k[1]))].join(' '), c: 'ins', tip: keys.map(([c, k]) => `Press ${k} to pick it when you ${INS_VERB[c] || 'use it'}`).join('\n') + '\nwritten on it: ' + w });
+  return out;
+}
 const NAME_Q = { average: ['plain', 'Nothing special about it'], good: ['good', 'Better than plain'], excellent: ['excellent', 'A fine piece with a power of its own'], special: ['special', 'One of a kind'], unidentified: ['unknown', 'You do not know what it does yet'], cursed: ['cursed', ''], bad: ['poor', 'Worse than plain'], awful: ['awful', ''], terrible: ['terrible', ''], enchanted: ['enchanted', 'It has some magic on it'], tried: ['tried', 'You used one and saw nothing happen'], empty: ['empty', 'No charges left'] };
 function nameParts(n) {
   let s = String(n), m; const tags = [];
   for (let i = 0; i < 8; i++) {
-    if ((m = /\s*\{([^}]*)\}$/.exec(s))) { for (const w of m[1].split(/,\s*/).reverse()) { const q = NAME_Q[w.toLowerCase()]; tags.unshift(q ? { t: q[0], c: 'q q-' + w.toLowerCase(), tip: q[1] } : /^\d+% off$/.test(w) ? { t: w, c: 'off', tip: 'It was marked down when you bought it' } : { t: w, c: 'ins', tip: 'Your note on it' }); } }
+    if ((m = /\s*\{([^}]*)\}$/.exec(s))) { for (const w of m[1].split(/,\s*/).reverse()) { const q = NAME_Q[w.toLowerCase()]; tags.unshift(...(q ? [{ t: q[0], c: 'q q-' + w.toLowerCase(), tip: q[1] }] : /^\d+% off$/.test(w) ? [{ t: w, c: 'off', tip: 'It was marked down when you bought it' }] : insTags(w))); } }
     else if ((m = /\s*\(with (\d+) turns? of light\)$/.exec(s))) tags.unshift({ t: (+m[1]).toLocaleString() + ' turns', tip: 'Light left in it' });
     else if ((m = /\s*\((\d+) charges?\)$/.exec(s))) tags.unshift({ t: m[1] + (m[1] === '1' ? ' charge' : ' charges'), tip: 'Uses left before it needs recharging' });
     else if ((m = /\s*\((\d+d\d+)\)$/.exec(s))) tags.unshift({ t: m[1], c: 'dmg', tip: 'Damage each hit: ' + m[1].replace('d', ' dice of ') });
