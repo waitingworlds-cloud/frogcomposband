@@ -482,7 +482,7 @@ function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n +=
 // the game logs its own questions as you answer them: those that say nothing once answered are left out of the log
 const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
 // in the heat of a fight "The Arrow (3d4) (+0,+0) hits" reads as "The Arrow hits": the numbers stay on the item itself
-const shotTidy = s => s.replace(/ \(\+0,\+0\)/g, '').replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)* in your pack)/g, '');
+const shotTidy = s => s.replace(/ \(\+0,\+0\)/g, '').replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)*(?: in your pack| you are (?:wearing|wielding|carrying|shooting with)))/g, '');
 const LIGHT_ON = /^You are wearing (?:a|an|the) [^.]*\b(?:Torch|Lantern|Lamp)\b/;
 function logTidy(s) {
   s = shotTidy(String(s));
