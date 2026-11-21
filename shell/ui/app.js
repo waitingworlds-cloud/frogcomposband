@@ -55,7 +55,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (shopKey(e) || itemsKey(e) || hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (askKey(e) || shopKey(e) || itemsKey(e) || hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -793,15 +793,17 @@ function draw() {
   const inGame = !!(S && S.p && S.map);
   document.body.classList.add('main');
   $('#stage').style.setProperty('--vw', VW + 'px');
+  let ask = null;
   if (inGame) {
     if (!built) buildMain();
     const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
     const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();
-    const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
+    const bn = $('#banner'); ask = askHtml(); const live = ask || G.icky || G.ov ? '' : liveHtml();
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
-    setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : '';
+    if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
+    else { setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : ''; }
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
@@ -809,6 +811,7 @@ function draw() {
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
+  else if (ask && G.ov) show = false;
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
   t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
   const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);

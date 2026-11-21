@@ -11,6 +11,20 @@
 #banner{position:absolute;left:50%;top:44px;transform:translateX(-50%);max-width:78%;display:none;z-index:6;padding:9px 20px 10px 18px;font:500 19px/1.38 Spectral,serif;color:#f1ebe0;
  background:linear-gradient(#17191cf2,#0d0e10f2);border:1px solid #000;border-left:3px solid #ff8a3c;box-shadow:0 8px 26px #000b,inset 0 1px 0 #ffffff14;text-shadow:0 1px 2px #000}
 #banner.on{display:block}
+#banner.ask{top:150px;width:540px;max-width:none;padding:24px 28px 22px;border:1px solid #000;border-top:3px solid #ff8a3c;box-shadow:0 18px 60px #000d,0 0 0 1px #3a3d42,inset 0 1px 0 #ffffff14;text-align:center;pointer-events:auto}
+#banner.ask.strip{top:44px;width:760px;padding:14px 18px 14px 22px;text-align:left}#banner.ask.look{width:900px}
+.askh{font:400 26px/1.25 Fell,serif;letter-spacing:.03em;color:#f4ead8}.askh.lite{font-size:21px}
+.asks{font:italic 16px/1.3 Spectral,serif;color:#b3ac9f;margin-top:3px}
+.askb{display:flex;gap:10px;justify-content:center;margin-top:18px}.askb.col{flex-direction:column}.askb.wrap{flex-wrap:wrap;justify-content:flex-start;margin-top:12px;gap:8px}
+.askrow{display:flex;align-items:center;gap:10px}.askrow .grow{min-width:0}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:44px;min-width:120px;padding:0 16px;font:400 19px/1 Fell,serif;letter-spacing:.05em;color:#e9e3d6;background:linear-gradient(#22252a,#15171a);border:1px solid #000;box-shadow:0 0 0 1px #3a3d42;cursor:pointer;pointer-events:auto;white-space:nowrap;text-shadow:none}
+.abtn:hover{color:#ffcf9e;box-shadow:0 0 0 1px #7a5a36}
+.abtn.go{color:#1a0f06;background:linear-gradient(#ffb574,#e8752a);box-shadow:0 0 0 1px #7a3d12,inset 0 1px 0 #ffd9b0}.abtn.go:hover{filter:brightness(1.1);color:#1a0f06}
+.abtn.warn{color:#fff;background:linear-gradient(#e0574a,#a82a20);box-shadow:0 0 0 1px #6a1a12,inset 0 1px 0 #ffb0a4}.abtn.warn:hover{filter:brightness(1.12);color:#fff}
+.abtn.go .key,.abtn.warn .key{background:#0003;color:inherit;border-color:#0004;box-shadow:none}
+.strip .abtn{height:38px;min-width:0;font-size:17px;padding:0 13px}
+.askq{justify-content:center;margin:16px 0 0}.askit{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;font:500 18px Spectral,serif;color:#d9d2c4}.askit .slot{width:48px;height:48px}
+.askf{margin-top:14px;min-height:42px;padding:8px 12px;text-align:left;font:500 20px/1.3 Spectral,serif;color:#ffcf9e;background:#0a0b0c;border:1px solid #000;box-shadow:0 0 0 1px #3a3d42,inset 0 2px 6px #000}
 #banner .caret{display:inline-block;width:9px;height:2px;background:#ffb070;margin-left:2px;animation:bl 1s steps(2) infinite}
 @keyframes bl{50%{opacity:0}}
 #term .pane{padding:18px 22px;display:block}
@@ -203,5 +217,5 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="pgh"></div><canvas id="termc"></canvas><div id="termf" class="pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script>
 </body></html>
