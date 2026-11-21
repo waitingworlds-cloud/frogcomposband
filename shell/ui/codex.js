@@ -177,3 +177,39 @@ function rulesHtml(y0, y1, x0, x1, skip) {
   return `<div class="rlw"><div class="rli">${off ? esc(off) : `${count ? count + ' rules. ' : ''}The game reads them from the top, and the first one that fits an item decides what happens to it.`}
     <span class="rlb"><span class="btn" data-key="a">How rules work</span><span class="btn go" data-jump="_">Change the rules</span></span></div><div class="rlc">${rows.join('')}</div></div>`;
 }
+
+// The journal's weapon and shooting pages: the game sets each weapon as a column of "Key : value" lines beside a little
+// table of hit chances. Here each weapon is a card: its picture and name, the numbers in plain words, damage, and the
+// chance to hit as bars.
+const CS_KEY = { 'Weight': 'Weight', 'Profic': 'Practice', 'To Hit': 'To hit', 'To Dam': 'To damage', 'Blows': 'Blows a turn', 'Shots': 'Shots a turn', 'Mult': 'Multiplier', 'Xtra Dam': 'Extra damage', 'Range': 'Range', 'Breakage': 'Chance to break',
+  'Crits': 'Critical hits', 'Normal': 'Against most things' };
+const CS_HEAD = [/^Hand #(\d+)$/, /^Attack$/, /^Shooting$/, /^Ammo #(\d+)$/];
+function combatHtml(y0, y1, x0, x1, skip) {
+  const blocks = []; let cur = null, sec = null;
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; let t = rowText(y).slice(x0, x1 + 1).replace(/\s+$/, ''); if (!t.trim()) continue; let m, acc = null;
+    if ((m = /\s{2,}(Accuracy|AC\s+Hit|(\d+)\s+(\d+)%)\s*$/.exec(t))) { acc = m[2] ? [+m[2], +m[3]] : 0; t = t.slice(0, m.index); }
+    const s = t.trim(), a = y => (G.a[y] || [])[rowText(y).search(/\S/)] & 31;
+    if (s) {
+      if ((m = /^([\w# ]+?)\s*:\s*(\S.*)$/.exec(s)) && CS_HEAD.some(r => r.test(m[1].trim()))) { const k = m[1].trim(); blocks.push(cur = { k, name: m[2], secs: [sec = { head: '', rows: [] }], acc: [] }); }
+      else if (!cur) return '';
+      else if ((m = /^([\w ]+?)\s*:\s*(\S.*)$/.exec(s))) sec.rows.push({ k: m[1].trim(), v: m[2], col: (G.a[y] || [])[rowText(y).indexOf(m[2], x0)] });
+      else if (s.length < 24 && !/[.:]$/.test(s)) cur.secs.push(sec = { head: s, rows: [] });
+      else sec.rows.push({ k: '', v: s });
+    }
+    if (acc && cur) cur.acc.push(acc);
+  }
+  if (!blocks.length) return '';
+  const find = n => { const all = [...((S && S.equip) || []), ...((S && S.pack) || [])].map(e => e.o || e).filter(o => o && o.n); return all.find(o => o.n === n) || all.find(o => nameParts(o.n).base.replace(/^(\d+|an?|the) /i, '') === nameParts(n).base.replace(/^(\d+|an?|the) /i, '')); };
+  const lab = k => { let m; return (m = /^Hand #(\d+)$/.exec(k)) ? (blocks.filter(b => /^Hand/.test(b.k)).length > 1 ? 'In hand ' + m[1] : 'In your hand') : k === 'Attack' ? 'Your own attack' : k === 'Shooting' ? 'You shoot with' : (m = /^Ammo #(\d+)$/.exec(k)) ? 'What you shoot' : k; };
+  const val = r => { let v = r.v, m; if (r.k === 'Crits' && (m = /^([\d.]+)x(?:\s+\(([\d.]+)%\))?$/.exec(v))) return `<b>&times;${m[1]}</b>${m[2] ? `<small>${m[2]}% of hits</small>` : ''}`;
+    if ((m = /^(-?\d+) \+ (-?\d+) = (-?\d+)$/.exec(v))) return `<b>${+m[3] >= 0 ? '+' : ''}${m[3]}</b><small>${m[1]} from it, ${m[2]} from you</small>`;
+    if ((m = /^(\S+)\s+\((.+)\)$/.exec(v))) return `<b>${esc(m[1])}</b><small>${esc(m[2].replace(/^\+0 To Hit$/, 'no bonus yet').replace(/To Hit/, 'to hit').replace(/^Multiplier Applies$/, 'the multiplier applies').replace(/^Multiplier Does Not Apply$/, 'the multiplier does not apply'))}</small>`;
+    if ((m = /^(\S+)\s+\[(.+)\]$/.exec(v))) return `<b>${esc(m[1])}</b><small>&times;${esc(m[2].replace(/x$/, ''))}</small>`;
+    return `<b>${esc(v.replace(/ lbs$/, ' lb'))}</b>`; };
+  const card = b => { const o = find(b.name), ic = o ? tvIcon(o.tv) : b.k === 'Attack' ? 'sword' : 'sword';
+    return `<div class="cs"><div class="csh"><div class="slot big t-${ic}">${(o && artHtml(o.ki, 64)) || (b.k === 'Attack' && S && S.p && S.p.form ? `<canvas class="ptart csart" data-k="mon" data-n="${esc(S.p.form)}"></canvas>` : '') || icon(ic)}</div><div><div class="csl">${esc(lab(b.k))}</div><div class="csn">${nameHtml(b.name.replace(/^(\d+|an?|the|Your) /i, ''), cap)}</div></div></div>
+      <div class="csb${b.acc.length ? '' : ' solo'}"><div class="csc">${b.secs.filter(g => g.rows.length).map(g => `${g.head ? `<div class="cst">${esc(g.head === 'Damage' ? 'Damage each turn' : g.head)}</div>` : ''}<div class="csg">${g.rows.map(r => `<div class="csr${g.head ? ' dmg' : ''}"><span>${esc(CS_KEY[r.k] || r.k)}</span><span${r.col != null && g.head && !CS_KEY[r.k] ? ` style="color:${readable(col(r.col))}"` : ''}>${val(r)}</span></div>`).join('')}</div>`).join('')}</div>
+      ${b.acc.length ? `<div class="csa"><div class="cst">Chance to hit</div><div class="csah"><span>target's armour</span></div>${b.acc.map(([ac, p]) => `<div class="csar"><span>${ac}</span><i><u style="width:${Math.max(2, p)}%"></u></i><b>${p}%</b></div>`).join('')}</div>` : ''}</div></div>`; };
+  return `<div class="csw">${blocks.map(card).join('')}</div>`;
+}

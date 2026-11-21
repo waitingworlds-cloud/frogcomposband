@@ -115,6 +115,8 @@ function hubPageHtml(side) {
   if (ros) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${ros}</div><div class="t-f pgf">${foot}</div>`);
   const jq = PAGER && !side ? /(?:^|, )(Quests|Dungeons)\s*$/.exec(PAGER.cap) : null, jqh = jq ? (jq[1] === 'Quests' ? questsHtml : dungeonsHtml)(y0, y1, x0, x1, skip) : '';
   const hlp = PAGER && !side && /^Help file '/.test(PAGER.cap) ? helpMenuHtml(y0, y1, x0, x1, skip) : '';
+  const cmb = PAGER && !side && /(?:^|, )(Melee|Shooting)\s*$/.test(PAGER.cap) ? combatHtml(y0, y1, x0, x1, skip) : '';
+  if (cmb) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${cmb}</div><div class="t-f pgf">${foot}</div>`);
   const rul = PAGER && !side && /Mogaminator Preferences/.test(PAGER.cap) ? rulesHtml(y0, y1, x0, x1, skip) : '';
   if (rul) return frame(`<div class="t-h pgh">${head.replace(/Mogaminator Preferences/i, 'Pickup rules')}</div><div class="t-w top cdw">${rul}</div><div class="t-f pgf">${foot.replace(/<span class="pgb" data-key="\?">.*?<\/span><\/span>|<span class="pgb" data-key="\?"><span class="key">\?<\/span>help<\/span>/, '')}</div>`);
   if (hlp) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${hlp}</div><div class="t-f pgf">${foot}</div>`);

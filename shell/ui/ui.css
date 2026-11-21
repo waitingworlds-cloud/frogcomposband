@@ -484,3 +484,13 @@ body.mouse .mcard>.key{display:none}
 .rlc{columns:2;column-gap:34px}.rlw{width:1180px}.rl{break-inside:avoid;display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;min-height:25px;padding:0 4px;border-bottom:1px solid #0006;box-shadow:0 1px 0 #2a2d31;font:400 16.5px/1.3 Spectral,serif;color:#d9d2c5}
 .rl .rlt b{font-weight:500;color:#f4efe4}.rla{justify-self:start;font:600 11.5px/18px Inter,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:0 8px;border-radius:3px;border:1px solid #34373c;color:#a9a294;background:#17191c}
 .rla.a-pick{color:#9fce8a;border-color:#2f4a2c}.rla.a-destroy{color:#ff9a86;border-color:#5a2c26}.rla.a-ask{color:#ffb070;border-color:#6a4020}
+/* the journal's weapon and shooting pages as cards */
+.csw{width:1180px;max-width:100%;margin:0 auto;padding:4px 4px 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,582px));justify-content:center;gap:16px;align-items:start}
+.cs{background:linear-gradient(#1a1c1f,#141618);border:1px solid #2c2f34;box-shadow:inset 0 1px 0 #ffffff0d;border-radius:3px;padding:14px 16px 16px}
+.csh{display:flex;align-items:center;gap:14px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #2e3135}.csh .slot.big{width:68px;height:68px;flex:none}.csl{font:600 12px Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#ff8a3c;margin-bottom:3px}.csn{font:400 24px/1.15 Fell,serif;color:#f4efe4}
+.csb{display:grid;grid-template-columns:1fr 190px;gap:22px}.cst{font:600 12px Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8f897d;margin:10px 0 6px}.csc>.csg:first-child{margin-top:0}
+.csr{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:3px 0;border-bottom:1px solid #ffffff0a;font:400 16px/1.3 Spectral,serif;color:#b3ac9f}.csr>span:last-child{text-align:right;color:#e6dfd2}.csr b{font:600 16px Inter,system-ui,sans-serif;color:inherit}.csr small{display:block;font:italic 400 12.5px/1.2 Spectral,serif;color:#8f897d}
+.csr.dmg b{font-size:19px;color:#ffcfa8}.csr.dmg span[style] b{color:inherit}
+.csa .cst{margin-top:0}.csah{font:italic 400 12.5px Spectral,serif;color:#8f897d;margin-bottom:5px}.csar{display:grid;grid-template-columns:34px 1fr 40px;gap:8px;align-items:center;height:20px;font:500 13px Inter,system-ui,sans-serif;color:#a9a294}.csar>span{text-align:right}.csar i{height:7px;background:#0d0e10;border:1px solid #2c2f34;border-radius:2px;overflow:hidden}.csar u{display:block;height:100%;background:linear-gradient(90deg,#b65a1e,#ff8a3c)}.csar b{font-weight:600;color:#e6dfd2;text-align:right}
+.csb.solo{grid-template-columns:1fr}
+canvas.csart{width:60px;height:60px;display:block}
