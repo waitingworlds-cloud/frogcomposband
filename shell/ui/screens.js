@@ -40,7 +40,7 @@ function itemsHtml() {
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
     const has = !!(o && it.k.trim()), mark = has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
     rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
-      <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
+      <span class="n nowrap">${o ? nameHtml(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
       <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
@@ -84,7 +84,7 @@ function itemsCardHtml(it, worn, viewer) {
     ITEMS.acts = acts;
     foot = `<div class="iacts">${acts.map((a, i) => `<div class="iact ${i === 0 ? 'main' : ''}" data-iact="${i}">${i === 0 ? '<span class="key">Enter</span>' : ''}${esc(a.n)}</div>`).join('')}</div>`;
   }
-  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(o.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${esc(cap(one))}</div><div class="dir">${it.slot ? esc(it.slot) + ' · ' : ''}${o.num > 1 ? o.num + ' · ' : ''}${lb(o.w)} lb</div></div></div>
+  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(o.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${nameHtml(one, cap)}</div><div class="dir">${it.slot ? esc(it.slot) + ' · ' : ''}${o.num > 1 ? o.num + ' · ' : ''}${lb(o.w)} lb</div></div></div>
     <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>
     <div class="shbuy">${foot}</div>`;
 }
@@ -163,7 +163,7 @@ function shopHtml() {
     const act = asking ? (selling ? '' : ` data-key="${esc(r.k)}"`) : ` data-shop="${id}"`;
     return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${dead ? 'cant' : ''} ${cur && shopId(cur) === id ? (SHOP.sel === id ? 'sel' : 'hov') : ''}"${act}>
     ${selling ? '' : `<span class="key kb" data-tip="With the keys: ${W.mus ? 'x' : W.kget}, then ${esc(r.k)}">${esc(r.k)}</span>`}<div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
-    <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.num > 1 && W.home ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
+    <div class="grow" style="min-width:0"><div class="n nowrap">${nameHtml(r.n)}</div><div class="dir">${lb(r.w)} lb${r.num > 1 && W.home ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
     <span class="price num"${W.home ? ' style="color:#c9b28a" data-tip="About what it is worth, in gold"' : ''}>${W.home ? (r.score ? '<i class="wth">worth</i> ' + r.score.toLocaleString() : '') : selling && u.nosell ? '' : selling && !r.price ? '<i>no interest</i>' : r.price.toLocaleString()}</span></div>`; }).join('')
     || `<div class="sub" style="padding:20px">${tab === 'sell' ? (W.home ? 'Your pack is empty.' : 'You carry nothing this shop takes.') : W.mus ? 'Nothing has been donated yet.' : W.home ? 'Your home is empty. Leave things here from the other tab.' : 'The shelves are empty.'}</div>`;
   const cmds = W.mus ? [['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']] : W.home ? [['r', 'destroy'], ['?', 'help'], ['\x1b', 'leave']] : [['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
@@ -235,7 +235,7 @@ function shopCardHtml(r) {
       <div class="sub shafter">${cant ? '' : `Leaves you with <b>${(gold + (selling ? total : -total)).toLocaleString()}</b> gold`}</div>`;
   const final = W.mus && selling, sure = final && SHOP.sure === id;
   const label = sure ? 'Yes, donate it for good' : `${verb}${q > 1 ? ' ' + q : ''}${free ? '' : ` for ${total.toLocaleString()} gold`}`;
-  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(r.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${esc(cap(one))}</div><div class="dir">${r.num > 1 ? `${r.num} ${selling ? 'in your pack' : W.home ? 'here' : 'in stock'} · ` : ''}${lb(r.w)} lb${r.num > 1 ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div></div>
+  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(r.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${nameHtml(one, cap)}</div><div class="dir">${r.num > 1 ? `${r.num} ${selling ? 'in your pack' : W.home ? 'here' : 'in stock'} · ` : ''}${lb(r.w)} lb${r.num > 1 ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div></div>
     <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>
     <div class="shbuy">${pinned ? step : ''}${sum}
       ${final && pinned ? `<div class="sub shafter" style="color:#ff9a86">${sure ? 'It can never be taken back.' : 'Donations are final.'}</div>` : ''}
@@ -468,7 +468,7 @@ function cellTip(cell) {
   const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
   if (!cell.dx && !cell.dy) out.push('<b>You</b>');
   if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${(DICT.r[m.r] || [])[3] != null ? 'level ' + DICT.r[m.r][3] + (threat(m) ? ` <b style="color:${threat(m) === 'deadly' ? '#ff8a70' : '#ffc46a'}">${threat(m)}</b>` : '') + ' · ' : ''}${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
-  for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
+  for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(nameHtml(o.n));
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc(cap((DICT.f[c[0]] || [''])[0]))}</span>`);
   if (lookMode()) return (out.join('<br>') || 'here') + `<div class="hint">${lookMode() === 'target' ? 'click: target this' : 'click: look here'}</div>`;
   if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : (() => { const b = aimPath(cell.dx, cell.dy); return b ? (b.why === 'wall' ? 'a wall is in the way · ' : `it would hit ${esc(b.m.n.replace(/^(an?|the) /i, 'the '))} first · `) : ''; })() + 'click: aim here'}</div>`;

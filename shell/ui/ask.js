@@ -58,7 +58,7 @@ function askHtml() {
   }
   if (a.t === 'qty') {
     const v = a.v == null ? a.lo : Math.max(a.lo, Math.min(a.hi, a.v)), half = Math.max(a.lo, Math.ceil(a.hi / 2));
-    const head = pick ? `<div class="askit"><div class="slot t-${tvIcon(pick.tv)}">${artHtml(pick.ki, 44) || icon(tvIcon(pick.tv))}</div><span>${esc(cap(pick.n.replace(/^(\d+|an?|the) /i, '')))}</span></div>` : '';
+    const head = pick ? `<div class="askit"><div class="slot t-${tvIcon(pick.tv)}">${artHtml(pick.ki, 44) || icon(tvIcon(pick.tv))}</div><span>${nameHtml(pick.n.replace(/^(\d+|an?|the) /i, ''), cap)}</span></div>` : '';
     const qv = typeof LASTPICK !== 'undefined' && LASTPICK && LASTPICK.c && Date.now() - LASTPICK.t < 8000 ? { d: 'Drop', v: 'Throw', k: 'Destroy', E: 'Eat', q: 'Quaff', r: 'Read', w: 'Take' }[LASTPICK.c] : '';
     return { cls: 'mid', html: `<div class="askh">${qv ? qv + ' how many?' : 'How many?'}</div>${head}
       <div class="shqty askq"><span class="key kb ${v <= a.lo ? 'off' : ''}" data-askq="-1" data-tip="One fewer (Left)">&minus;</span><b class="num">${v}</b><span class="key kb ${v >= a.hi ? 'off' : ''}" data-askq="1" data-tip="One more (Right)">+</span>

@@ -373,6 +373,28 @@ function mobsHtml(g) {
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+// "a Dagger (1d5) (+0,+0) {average}" as a name and small tags: the name reads cleanly, the numbers sit beside it in
+// plain little chips, and a bonus of nothing at all is not shown
+const NAME_Q = { average: ['plain', 'Nothing special about it'], good: ['good', 'Better than plain'], excellent: ['excellent', 'A fine piece with a power of its own'], special: ['special', 'One of a kind'], unidentified: ['unknown', 'You do not know what it does yet'], cursed: ['cursed', ''], bad: ['poor', 'Worse than plain'], awful: ['awful', ''], terrible: ['terrible', ''], enchanted: ['enchanted', 'It has some magic on it'], tried: ['tried', 'You used one and saw nothing happen'], empty: ['empty', 'No charges left'] };
+function nameParts(n) {
+  let s = String(n), m; const tags = [];
+  for (let i = 0; i < 8; i++) {
+    if ((m = /\s*\{([^}]*)\}$/.exec(s))) { for (const w of m[1].split(/,\s*/).reverse()) { const q = NAME_Q[w.toLowerCase()]; tags.unshift(q ? { t: q[0], c: 'q q-' + w.toLowerCase(), tip: q[1] } : /^\d+% off$/.test(w) ? { t: w, c: 'off', tip: 'It was marked down when you bought it' } : { t: w, c: 'ins', tip: 'Your note on it' }); } }
+    else if ((m = /\s*\(with (\d+) turns? of light\)$/.exec(s))) tags.unshift({ t: (+m[1]).toLocaleString() + ' turns', tip: 'Light left in it' });
+    else if ((m = /\s*\((\d+) charges?\)$/.exec(s))) tags.unshift({ t: m[1] + (m[1] === '1' ? ' charge' : ' charges'), tip: 'Uses left before it needs recharging' });
+    else if ((m = /\s*\((\d+d\d+)\)$/.exec(s))) tags.unshift({ t: m[1], c: 'dmg', tip: 'Damage each hit: ' + m[1].replace('d', ' dice of ') });
+    else if ((m = /\s*\(([+-]\d+),([+-]\d+)\)$/.exec(s))) { if (+m[1] || +m[2]) tags.unshift({ t: m[1].replace('-', '−') + ' / ' + m[2].replace('-', '−'), c: +m[1] < 0 || +m[2] < 0 ? 'neg' : 'pos', tip: `${m[1]} to hit, ${m[2]} to damage` }); }
+    else if ((m = /\s*\(x(\d+(?:\.\d+)?)\)$/.exec(s))) tags.unshift({ t: '×' + (+m[1]), c: 'dmg', tip: 'Multiplies the damage of what it shoots' });
+    else if ((m = /\s*\[(\d+),([+-]\d+)\]$/.exec(s))) tags.unshift({ t: 'armour ' + m[1] + (+m[2] ? ' ' + m[2].replace('-', '−') : ''), c: +m[2] < 0 ? 'neg' : '', tip: `Armour ${m[1]}${+m[2] ? ', ' + m[2] + ' from enchantment' : ''}` });
+    else if ((m = /\s*\[(\d+)\]$/.exec(s))) tags.unshift(/Quiver/.test(s) ? { t: 'holds ' + m[1], tip: 'How many arrows, bolts or shots it carries' } : { t: 'armour ' + m[1], tip: `Armour ${m[1]}` });
+    else if ((m = /\s*\[([+-]\d+)\]$/.exec(s))) tags.unshift({ t: 'armour ' + m[1].replace('-', '−'), c: +m[1] < 0 ? 'neg' : 'pos', tip: `${m[1]} to armour` });
+    else if ((m = /\s*\(([+-]\d+)\)$/.exec(s))) { const arm = tags[0] && /^armour/.test(tags[0].t); if (+m[1]) tags.unshift({ t: m[1].replace('-', '−') + (arm ? ' to hit' : ''), c: +m[1] < 0 ? 'neg' : 'pos', tip: arm ? `${m[1]} to hit while you wear it` : `${m[1]} to what it improves` }); }
+    else break;
+    s = s.slice(0, m.index);
+  }
+  return { base: s, tags };
+}
+function nameHtml(n, f) { const p = nameParts(n); return esc(f ? f(p.base) : p.base) + p.tags.map(t => `<span class="ich ${t.c || ''}"${t.tip ? ` data-tip="${esc(t.tip)}"` : ''}>${esc(t.t)}</span>`).join(''); }
 // Recall: the creature under the pointer (on the map or in the list above), else your target, else the nearest.
 // It stays on the last one pointed at, so you can move over to read it.
 let RC_HOVER = null; const LORE = {}, LORE_ASKED = {};
@@ -431,7 +453,7 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk over and pick it up' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk over and pick it up' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${nameHtml(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
@@ -447,7 +469,7 @@ function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n +=
 // the game logs its own questions as you answer them: those that say nothing once answered are left out of the log
 const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
 // in the heat of a fight "The Arrow (3d4) (+0,+0) hits" reads as "The Arrow hits": the numbers stay on the item itself
-const shotTidy = s => s.replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)* in your pack)/g, '');
+const shotTidy = s => s.replace(/ \(\+0,\+0\)/g, '').replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)* in your pack)/g, '');
 const LIGHT_ON = /^You are wearing (?:a|an|the) [^.]*\b(?:Torch|Lantern|Lamp)\b/;
 function logTidy(s) {
   s = shotTidy(String(s));

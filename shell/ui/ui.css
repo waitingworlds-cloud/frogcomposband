@@ -468,3 +468,9 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 .pgh .pgn.pgkey{font-style:normal;margin-left:18px;color:#9c9488}.pgh .pgn.pgkey b{font:600 12px/1 Georgia,serif;color:#e8c98a;margin-left:10px;letter-spacing:0}
 /* a row with nothing in its count column lends that room to the name, so fewer names are cut short */
 .npanel .tr>.num:empty{display:none}.npanel .tr:has(>.num:empty)>.n{grid-column:3/5}
+/* the little tags after an item's name: its dice, bonuses, armour, charges and what you know of its make */
+.ich{display:inline-block;vertical-align:1px;margin-left:8px;padding:0 6px;font:600 12px/17px Inter,system-ui,sans-serif;letter-spacing:.02em;color:#a9a294;border:1px solid #34373c;border-radius:3px;background:#17191c;font-style:normal;white-space:nowrap}
+.ich+.ich{margin-left:5px}.ich.dmg{color:#e0c79a}.ich.pos{color:#9fce8a;border-color:#2f4a2c}.ich.neg{color:#ff9a86;border-color:#5a2c26}
+.ich.q-good{color:#9fce8a}.ich.q-excellent{color:#7fd4ff;border-color:#27485a}.ich.q-special{color:#ffb070;border-color:#6a4020}.ich.q-unidentified,.ich.q-tried{color:#8d8779;font-style:italic}.ich.q-cursed,.ich.q-awful,.ich.q-terrible,.ich.q-bad{color:#ff9a86;border-color:#5a2c26}.ich.ins{color:#c9b28a}
+.shn .ich{font-size:13px;line-height:19px;vertical-align:4px}
+.ich.off{color:#a9c98c}.srow .ich.off{display:none}
