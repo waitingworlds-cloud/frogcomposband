@@ -653,6 +653,7 @@ function drawMap() {
   const cellAt = (x, y) => (x < 0 || y < 0 || x >= mw || y >= mh) ? 0 : cells[y * mw + x];
   const isWall = c => c && c[0] && featClass(c[0]) === 'wall';
   const x0 = Math.max(0, Math.floor(-ox / T)), x1 = Math.min(mw - 1, Math.ceil((W - ox) / T)), y0 = Math.max(0, Math.floor(-oy / T)), y1 = Math.min(mh - 1, Math.ceil((H - oy) / T));
+  const dayOut = S.p && !S.p.dlvl && !S.p.wild && S.p.hour >= 6 && S.p.hour < 18 ? Math.min(1, .65 + .12 * Math.min(S.p.hour - 6, 17 - S.p.hour)) : 0;   // above ground by day: the open ground takes a wash of daylight
   const later = [], fxl = [], lon = LIGHT.on, gridOk = !S.stale && !G.icky && !G.ov && BASE, ml = S.rmsg;
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = cells[y * mw + x], gy = S.gy + y - pcy, gx = S.gx + x - pcx;
@@ -669,7 +670,7 @@ function drawMap() {
     const fd = DICT.f[f] || ['', 46, 1], fcol = col(fd[2]), v = rnd(x + S.px, y + S.py);
     if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
     if (!f) { /* something seen on ground we have not mapped */ }
-    else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } }
+    else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } else if (dayOut && (cls === 'floor' || cls === 'grass' || cls === 'tree' || cls === 'other')) { g.fillStyle = cls === 'grass' || cls === 'tree' ? `rgba(104,140,78,${.3 * dayOut})` : `rgba(164,146,110,${.22 * dayOut})`; g.fillRect(sx, sy, T, T); } }
     else
     if (cls === 'wall') {
       const below = cellAt(x, y + 1), open = below && below[0] && !isWall(below);
