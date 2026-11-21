@@ -436,3 +436,25 @@ body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse
 .ptl:not(.big) .ptnow{position:static;align-self:flex-start;margin-top:3px;white-space:nowrap}
 
 .srow .price .wth{font:italic 400 13px Spectral,Georgia,serif;color:#8f8a80;margin-right:2px}
+
+.kcw{width:100%;max-width:1320px;display:flex;flex-direction:column;gap:10px;padding:2px 6px}
+.kcsay{font:italic 400 18px Spectral,Georgia,serif;color:#c9c2b4}
+.kcl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px;align-content:start}
+.kce{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 8px;min-height:58px;background:linear-gradient(#1b1d20,#121315);box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135}
+.kce .ptart{width:46px;height:46px}.kce .ptart.em{font-size:22px}.kce .ptx b{font-size:19px}
+.kce em{font:600 20px Inter;font-style:normal;color:#ffcf6a;margin-left:auto;white-space:nowrap}
+.kctot{font:400 17px Spectral,Georgia,serif;color:#b3ac9f;border-top:1px solid #2e3135;padding-top:10px}
+.qcw{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:10px;padding:2px 6px}
+.qcs{font:400 16px Fell,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;color:#e8c98a;margin-top:6px}
+.qcs.completed{color:#9fc48a}.qcs.failed{color:#d08a7a}
+.qc{border:1px solid #2e3135;border-left:3px solid #b5733a;border-radius:6px;background:#17191c;padding:12px 18px}
+.qc.cont{border-left-color:#3a3d42}
+.qch{display:flex;align-items:baseline;gap:14px}
+.qch b{font:400 24px Fell,Georgia,serif;color:#f4efe4;letter-spacing:.04em}
+.qcl{margin-left:auto;font:400 15px Spectral,Georgia,serif;color:#e8c98a;border:1px solid #4a3c28;border-radius:999px;padding:2px 12px;white-space:nowrap}
+.qc p{margin:8px 0 0;font:400 18px/1.5 Spectral,Georgia,serif;color:#c9c2b4;max-width:68ch}
+.qd{display:grid;grid-template-columns:1fr 110px 130px 150px;gap:12px;align-items:baseline;padding:7px 18px;border-bottom:1px solid #24272b;font:400 16px Spectral,Georgia,serif;color:#b3ac9f}
+.qd b{font:500 18px Spectral,Georgia,serif;color:#e6dfd0}
+.kcbs{display:flex;flex-wrap:wrap;gap:8px}
+.kcb{display:inline-flex;align-items:baseline;gap:7px;padding:5px 12px;border:1px solid #2e3135;border-radius:6px;background:#17191c;font:400 15px Spectral,Georgia,serif;color:#b3ac9f}
+.kcb b{font:400 19px Fell,Georgia,serif;color:#e8c98a}

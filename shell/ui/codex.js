@@ -49,3 +49,68 @@ document.addEventListener('click', ev => {
   const r = ev.target.closest && ev.target.closest('[data-bgy]'); if (!r || ev.button !== 0 || !BROWSE) return;
   browsePick(+r.dataset.bgx, +r.dataset.bgy, ev.detail >= 2);
 });
+
+// The journal's rosters (what you have slain, who travels with you). The game writes them as a page of text lines;
+// here each line is a tile with the creature's picture. Paging stays the game's own.
+function rosterMon(name) {   // the picture for a creature named in the plural ("Goombas", "pile of coins")
+  if (!TS || !TS.mon) return ''; const n = tkey(name.replace(/^pile of /i, ''));
+  const b = n.replace(/^the /, ''); const tries = [n, b, 'the ' + b, n.replace(/s$/, ''), n.replace(/es$/, ''), n.replace(/ies$/, 'y'), n.replace(/ves$/, 'f'), n.replace(/men$/, 'man'), n.replace(/mice$/, 'mouse'), n.replace(/(\w+)s (\w+)$/, '$1 $2'), n.replace(/s of /, ' of ')];
+  for (const t of tries) if (TS.mon[t]) return t;
+  return '';
+}
+function rosterHtml(y0, y1, x0, x1, skip, mode) {
+  let say = '', tot = [], tiles = '', bands = ''; const pets = mode === 'pets';
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); if (!t || /^[- ]{6,}$/.test(t)) continue; let m;
+    if ((m = /^(Total|Upkeep): (.*)$/.exec(t))) { tot.push(m[1] === 'Upkeep' ? 'upkeep ' + m[2].replace(/\.$/, '') : m[2].replace(/\.$/, '')); continue; }
+    if (/^You have (defeated|turned in) |^No known uniques/.test(t)) { say = t.replace('No known uniques alive.', 'No named foe you know of is still alive.').replace('turned in all wanted monsters', 'claimed every bounty on the list'); continue; }
+    if (mode === 'alive') {
+      if ((m = /^Total\s+alive:\s*(\d+)$/.exec(t))) { tot.push(m[1] + ' still alive that you know of'); continue; }
+      if ((m = /^(Surface|Level\s+(\d+)-\s*(\d*))\s+alive:\s*(\d+)$/.exec(t))) { if (+m[4]) bands += `<span class="kcb"><b>${m[4]}</b>${m[2] ? (m[3] ? 'levels ' + m[2] + ' to ' + m[3] : 'below level 100') : 'on the surface'}</span>`; continue; }
+    }
+    if (mode === 'wanted') {
+      if ((m = /^Today target\s*:\s*(.*)$/.exec(t))) { say = /^unknown$/i.test(m[1]) ? 'You have not learned today\'s bounty yet.' : 'Today\'s bounty: ' + m[1] + '.'; continue; }
+      if (/^List of wanted monsters$/.test(t)) continue;
+    }
+    let name = t, n = '', sub = '';
+    if (pets) { if ((m = /^(.*?) \((?:L(\d+), )?([^()]*)\)$/.exec(t))) { name = m[1]; sub = [m[2] ? 'level ' + m[2] : '', m[3]].filter(Boolean).join(' · '); } }
+    else if (mode === 'alive') { if ((m = /^(.*) \(level (\d+)\)$/.exec(t))) { name = m[1]; sub = 'level ' + m[2]; } }
+    else if (mode === 'wanted') sub = 'wanted';
+    else if ((m = /^(\d+) (.*)$/.exec(t))) { n = m[1]; name = m[2]; } else sub = 'one of a kind';
+    const art = rosterMon(name.replace(/^(?:your|a|an) /i, ''));
+    tiles += `<div class="kce">${art ? `<canvas class="ptart" data-k="mon" data-n="${esc(art)}"></canvas>` : `<span class="ptart em">${esc(name.replace(/^(pile of|the) /i, '').charAt(0).toUpperCase())}</span>`}<div class="ptx"><b>${esc(cap(name))}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>${n ? `<em>&times;${esc(n)}</em>` : ''}</div>`;
+  }
+  if (!tiles && !say) return '';
+  return `<div class="kcw">${say ? `<div class="kcsay">${esc(say)}</div>` : ''}${bands ? `<div class="kcbs">${bands}</div>` : ''}<div class="kcl">${tiles}</div>${tot.length ? `<div class="kctot">${esc(cap(tot.join(' · ')))}</div>` : ''}</div>`;
+}
+
+// The journal's quest page: each quest is a card (its name, how dangerous it is, what is asked of you); quests that
+// are over become one line each with how deep, at what level and when. Paging stays the game's own.
+function questsHtml(y0, y1, x0, x1, skip) {
+  const out = []; let cur = null, sec = '';
+  const flush = () => { if (cur) { out.push(`<div class="qc${cur.cont ? ' cont' : ''}"><div class="qch"><b>${esc(cur.name)}</b>${cur.lvl ? `<span class="qcl" data-tip="How dangerous it is: about the depth it is meant for">danger ${esc(cur.lvl)}</span>` : ''}</div>${cur.txt.length ? `<p>${esc(cur.txt.join(' '))}</p>` : ''}</div>`); cur = null; } };
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); if (!t) continue; let m;
+    if ((m = /^(Current|Completed|Failed) Quests$/.exec(t))) { flush(); sec = m[1]; out.push(`<div class="qcs ${sec.toLowerCase()}">${{ Current: 'What is asked of you now', Completed: 'Done', Failed: 'Failed' }[sec]}</div>`); continue; }
+    if ((m = /^(.*?)\s+\(Lvl (\d+)\)$/.exec(t))) { flush(); cur = { name: m[1], lvl: m[2], txt: [] }; continue; }
+    if ((m = /^(.*?)\s{2,}DL(\d+)\s*(.*)$/.exec(t))) { flush(); const r = m[3].trim(), d = /^CL(\d+)\s*(?:Day (\d+), (\d+:\d+))?/.exec(r);
+      out.push(`<div class="qd"><b>${esc(m[1])}</b><span>depth ${esc(m[2])}</span><span>${d ? 'at level ' + esc(d[1]) : esc(r.toLowerCase())}</span><span>${d && d[2] ? 'day ' + esc(d[2]) + ', ' + esc(d[3]) : ''}</span></div>`); continue; }
+    if (!cur) cur = { name: sec ? '' : 'Continued', cont: 1, txt: [] };
+    cur.txt.push(t);
+  }
+  flush();
+  return out.length ? `<div class="qcw">${out.join('')}</div>` : '';
+}
+// The journal's dungeons page: where you are now, and how deep you have been in each place you know.
+function dungeonsHtml(y0, y1, x0, x1, skip) {
+  let say = '', rows = '', rest = '';
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); if (!t) continue; let m;
+    if ((m = /^Now, you are exploring level (\d+) of (.*?)\.$/.exec(t))) { say = `You are on level ${m[1]} of ${m[2]}.`; continue; }
+    if ((m = /^(!?)\s*(.*?)\s*: level\s+(\d+)$/.exec(t))) { const f = (typeof TS !== 'undefined' && TS && TS.feat && TS.feat[tkey('entrance')]) ? `<canvas class="ptart" data-k="feat" data-n="entrance"></canvas>` : `<span class="ptart em">${esc(m[2].charAt(0).toUpperCase())}</span>`;
+      rows += `<div class="kce">${f}<div class="ptx"><b>${esc(m[2])}</b><span>deepest so far: level ${esc(m[3])}${m[1] ? ' · its master is beaten' : ''}</span></div></div>`; continue; }
+    rest += `<div class="kcsay">${esc(t)}</div>`;
+  }
+  if (!rows && !say) return '';
+  return `<div class="kcw">${say ? `<div class="kcsay">${esc(say)}</div>` : ''}<div class="kcl">${rows}</div>${rest}</div>`;
+}

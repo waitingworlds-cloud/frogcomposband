@@ -108,6 +108,12 @@ function hubPageHtml(side) {
   // the journal's knowledge lists are drawn as a picture list, not as the game's text table
   const cdx = BROWSE && !over ? codexHtml(BROWSE, y0, y1) : '';
   if (cdx) return frame(`<div class="t-h pgh"><b>${esc(BROWSE.name)}</b></div><div class="t-w top cdw">${cdx}</div><div class="t-f pgf">${foot}</div>`);
+  // what you have slain and who travels with you: tiles with pictures, not lines of text
+  const rosm = PAGER && !side ? /(Kill Count|Current Pets|Alive Uniques|Wanted monsters)\s*$/i.exec(PAGER.cap) : null;
+  const ros = rosm ? rosterHtml(y0, y1, x0, x1, skip, { k: 'kills', c: 'pets', a: 'alive', w: 'wanted' }[rosm[1].charAt(0).toLowerCase()]) : '';
+  if (ros) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${ros}</div><div class="t-f pgf">${foot}</div>`);
+  const jq = PAGER && !side ? /(?:^|, )(Quests|Dungeons)\s*$/.exec(PAGER.cap) : null, jqh = jq ? (jq[1] === 'Quests' ? questsHtml : dungeonsHtml)(y0, y1, x0, x1, skip) : '';
+  if (jqh) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${jqh}</div><div class="t-f pgf">${foot}</div>`);
   const nw = Math.max(40, x1 - x0 + 1), nh = y1 - y0 + 1, sideW = side ? 624 : 0;
   const availW = 1452 - sideW, availH = HUB_H - 58 - 40 - (head ? 42 : 0) - (foot ? 48 : 0);
   let lh = Math.min(27, availH / Math.max(nh, 20)), fs = Math.min(19, lh / 1.34), cw = fs * .56;

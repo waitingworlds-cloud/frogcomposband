@@ -17,7 +17,7 @@ const PICK_IN_MON = { 'undead': 'Lich, Mummy, Vampire', 'orc/troll/giant': 'Gian
 // a line of our own for the choices that have no page in the game's help
 const PICK_SAY = {
   'beginner': 'A gentler start: fewer choices to make and a simpler world. Best for a first run.', 'normal': 'The full game, with every people, calling and option open.', 'monster': 'Play as a creature of the dungeon and grow into its mightier forms.',
-  'random': 'Let fate decide.', 'male': '', 'female': '',
+  'random': 'Let fate decide.', 'quick start': 'The same kind of character as last time, ready to go.', 'male': '', 'female': '',
 };
 // game speed has its own words (its Normal is not the game type's Normal)
 const PICK_SPEED = { 'normal': 'The full-length game, at the classic pace.', 'coffee-break': 'A shorter game: you grow faster and the way down is quicker.', 'instant coffee': 'Shorter still, for a single sitting.' };
@@ -25,6 +25,7 @@ const PICK_SPEED = { 'normal': 'The full-length game, at the classic pace.', 'co
 const _pm = n => ['mon', n], _pp = n => ['player', n], _pb = n => ['obj', n];
 const PICK_ART = {
   'beginner': _pm('giant green frog'), 'normal': _pp('paladin'), 'monster': _pm('mature red dragon'),
+  'quick start': _pp('default'),
   'human': _pm('swordsman'), 'elf': _pm('elf lord'), 'hobbit/dwarf': _pm('nar, the dwarf'), 'fairy': _pm('shadow fairy'), 'angel/demon': _pm('archon'), 'orc/troll/giant': _pm('cave troll'), 'shapeshifter': _pp('werewolf'), 'undead': _pm('skeleton human'), 'other': _pm('mind flayer'),
   'amberite': _pm('lord borel of hendrake'), 'barbarian': _pp('berserker'), 'demigod': _pp('demigod'), 'dunadan': _pm('ranger'), 'igor': _pp('igor'),
   'dark-elf': _pm('dark elf'), 'high-elf': _pm('elf lord'), 'tomte': _pm('gnome mage'), 'wood-elf': _pm('high-elven ranger'),
@@ -100,7 +101,7 @@ const BPICK = { hov: -1, sig: '' };
 // one block of choices as tiles. items: [{key,label,html,dim}], head: the plain heading line (for the sub lines)
 function pickTiles(items, heading, sub) {
   const kind = /calling/i.test(heading) ? 'class' : '', n = items.length, big = n <= 4, small = n > 15;
-  const cols = big ? Math.min(3, n) : small ? 4 : n > 9 ? 3 : n > 4 ? 3 : 2;
+  const cols = big ? n : small ? 4 : n > 9 ? 3 : n > 4 ? 3 : 2;
   TOPIC_FILE = pickFile(heading);
   const sig = heading + '|' + items.map(i => i.key).join(''); if (BPICK.sig !== sig) { BPICK.sig = sig; BPICK.hov = -1; }
   return `<div class="ptl ${big ? 'big' : small ? 'small' : ''}" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${items.map((i, ix) => {
