@@ -293,7 +293,10 @@ function charHtml() {
     <div class="resg">${res.map(r => `<div class="rs ${r.pct > 0 ? 'on' : r.pct < 0 ? 'bad' : ''}"><span>${esc(r.n)}</span><b>${r.pct ? r.pct + '%' : '–'}</b></div>`).join('')}</div>
     <div class="sub" style="font-size:14px;margin-top:8px">The full sheet is on the right. Arrow keys and Page Down scroll it.</div></div>`;
 }
-function nativeAfter() { lmapDraw(); }
+function nativeAfter() {
+  lmapDraw();
+  document.querySelectorAll('#native .rmob').forEach(c => { if (c._ok) return; const d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', c.dataset.n, 0, 0, 72); sprite.flat = false; });
+}
 
 function nativeHtml() {
   NATIVE_SIDE = false;
