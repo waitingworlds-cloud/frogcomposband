@@ -2,15 +2,15 @@
 // journal, messages, options and help all appear in the same frame, at the same size, with tabs across the top to
 // move between them. Each tab presses the same key the keyboard would.
 'use strict';
-const HUB_TABS = [['pack', 'Pack', 'i'], ['gear', 'Gear', 'e'], ['spells', 'Spells', 'm'], ['char', 'Character', 'C'], ['map', 'Map', 'M'],
+const HUB_TABS = [['pack', 'Pack', 'i'], ['gear', 'Gear', 'e'], ['spells', 'Spells', 'm'], ['powers', 'Powers', 'U'], ['char', 'Character', 'C'], ['map', 'Map', 'M'],
   ['journal', 'Journal', '~'], ['log', 'Messages', '\x10', 'Ctrl P'], ['opts', 'Options', '='], ['help', 'Help', '?']];
 const HUB = { last: '', t: 0, hold: 0, cur: '' };
-const HUB_KEY = { i: 'pack', e: 'gear', m: 'spells', b: 'spells', G: 'spells', U: 'spells', C: 'char', M: 'map', '~': 'journal', '=': 'opts', '?': 'help' };
+const HUB_KEY = { i: 'pack', e: 'gear', m: 'spells', b: 'spells', G: 'spells', U: 'powers', C: 'char', M: 'map', '~': 'journal', '=': 'opts', '?': 'help' };
 function hubCur() {
   if (typeof UI !== 'undefined' && UI && UI.kind && uiOnTop()) {
     if (UI.kind === 'items' && spbPicking()) return 'spells';
     if (UI.kind === 'items') return itemsViewer() ? (itemsTab().loc === 1 ? 'gear' : 'pack') : '';
-    if (UI.kind === 'spells') return 'spells';
+    if (UI.kind === 'spells') return /power/i.test(UI.realm || '') ? 'powers' : 'spells';
     if (UI.kind === 'char') return 'char';
     if (UI.kind === 'lmap') return 'map';
   }
@@ -21,7 +21,7 @@ function hubCur() {
 }
 function hubTabsHtml(cur) {
   if (S && S.p && S.p.hp < 0) return `<div class="hubt"><div class="hubtab on"><span>${cur === 'log' ? 'Last messages' : cur === 'char' ? 'Character' : 'The fallen'}</span></div><span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;   // the dead have nowhere else to go
-  const tabs = HUB_TABS.filter(t => t[0] !== 'spells' || (S && S.p && (S.p.msp > 0 || S.p.realm)) || cur === 'spells');
+  const tabs = HUB_TABS.filter(t => t[0] === 'spells' ? (S && S.p && (S.p.msp > 0 || S.p.realm)) || cur === 'spells' : t[0] === 'powers' ? (S && S.p && S.p.powers) || cur === 'powers' : true);
   return `<div class="hubt">${tabs.map(([id, label, key, name]) => `<div class="hubtab${id === cur ? ' on' : ''}" data-hub="${id}"><span>${label}</span><span class="key">${esc(name || key)}</span></div>`).join('')}<span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;
 }
 // wrap a native panel in the frame (shops, your home and death keep their own; so does a "which one?" list)

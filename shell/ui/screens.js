@@ -332,7 +332,7 @@ function charHtml() {
   const bars = d => { let i = SKL.indexOf(d.toLowerCase().replace(/\[.*$/, '').trim()); if (i < 0) i = 9; const n = Math.max(1, Math.round((i + 1) * .8)); return `<span class="sbar">${Array.from({ length: 8 }, (_, k) => `<i class="${k < n ? 'on' : ''} ${i >= 8 ? 'hero' : ''}"></i>`).join('')}</span>`; };
   return `<div class="pane npanel charp" style="width:660px">
     <div class="tabs"><div class="on">Character</div></div>
-    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(p.race)} ${esc(p.cls)}</span></div>
+    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(heroKind(p))}</span></div>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${[u.sex, p.pers + ' personality', p.realm ? p.realm + ' realm' : ''].filter(Boolean).map(t => `<span class="grp" style="font-size:15px;padding:4px 10px">${esc(t)}</span>`).join('')}</div>
     <div class="catr">progress</div>
     <div class="ptiles">${tile(u.kills.toLocaleString(), 'kills')}${tile(u.uniques, 'uniques slain')}${tile(u.arts < 0 ? 'n/a' : u.arts, 'artifacts found')}${tile(u.maxdepth ? u.maxdepth * 50 + ' ft' : 'none', 'deepest dive')}${tile('Day ' + p.day, 'at ' + p.hour + ':' + String(p.min).padStart(2, '0'))}${tile(h + 'h ' + String(m).padStart(2, '0') + 'm', 'played')}</div>

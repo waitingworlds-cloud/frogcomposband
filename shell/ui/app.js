@@ -293,8 +293,8 @@ const STAT_TIPS = ['Strength: melee damage, how much you can carry, digging.', '
 function leftHtml() {
   const p = S.p, st = ['str', 'int', 'wis', 'dex', 'con', 'chr'];
   return `<div class="rail l" style="grid-row:1/3;grid-column:1">
-  <div class="who" data-key="${esc(cmd('C'))}" data-tip="Character level ${p.lev} ${esc(p.race)} ${esc(p.cls)}&#10;click or press C: character sheet" style="cursor:pointer"><div style="position:relative;width:86px"><div class="portrait ch"><div class="in ch"><canvas id="port"></canvas></div></div><div class="lvl"><b>${p.lev}</b></div></div>
-    <div style="min-width:0"><div class="name nowrap" style="font-size:${p.name.length > 9 ? 28 : p.name.length > 6 ? 34 : 42}px">${esc(p.name)}</div><div class="sub" style="margin-top:5px;line-height:1.25">${esc(p.race)} ${esc(p.cls)}<br>${esc([p.realm, p.pers].filter(Boolean).join(' · '))}</div></div></div>
+  <div class="who" data-key="${esc(cmd('C'))}" data-tip="Character level ${p.lev} ${esc(heroKind(p))}&#10;click or press C: character sheet" style="cursor:pointer"><div style="position:relative;width:86px"><div class="portrait ch"><div class="in ch"><canvas id="port"></canvas></div></div><div class="lvl"><b>${p.lev}</b></div></div>
+    <div style="min-width:0"><div class="name nowrap" style="font-size:${p.name.length > 9 ? 28 : p.name.length > 6 ? 34 : 42}px">${esc(p.name)}</div><div class="sub" style="margin-top:5px;line-height:1.25">${esc(heroKind(p))}<br>${esc([p.realm, p.pers].filter(Boolean).join(' · '))}</div></div></div>
   <div data-tip="Life ${p.hp} of ${p.mhp}. At zero you die.&#10;Resting (R) brings it back.">${vb('hp', 'Life', p.hp, p.mhp)}</div>${p.msp > 0 ? `<div data-tip="Mana ${p.sp} of ${p.msp}, spent on spells.&#10;It comes back as you rest.">${vb('sp', 'Mana', p.sp, p.msp)}</div>` : ''}
   <div class="row" data-tip="Experience ${p.exp.toLocaleString()}. Level ${p.lev + 1} at ${p.expNext.toLocaleString()}." style="gap:10px;margin:1px 2px 0"><span class="lbl">level ${p.lev}</span><div class="xp grow"><i style="width:${Math.max(0, Math.min(100, p.exp / Math.max(1, p.expNext) * 100))}%"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${Math.max(0, p.expNext - p.exp).toLocaleString()} to go</span></div>
   <div class="tiles">${[['armour', p.ac, '', 'Armour class. The higher it is, the less often blows land and the less they hurt.'], ['speed', (p.speed >= 0 ? '+' : '') + p.speed, p.speed > 0 ? 'color:#b9d6a0' : p.speed < 0 ? 'color:#ff7a66' : '', 'Speed. +10 is twice as many moves as a normal creature; below zero you are slowed.'], ['gold', p.au.toLocaleString(), 'color:#ffcf6a', 'Gold, for the shops in town.']].map(([a, b, c, tip]) => `<div class="tile ch" data-tip="${tip}"><div class="ch"><span class="num" style="${c}">${b}</span><span class="lbl">${a}</span></div></div>`).join('')}</div>
@@ -349,7 +349,7 @@ function loreRows(list) {
       if (!grid) { grid = []; out.push(grid); } para = null;
       const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) {
         const raw = m[0]; if (/:\s*\??$/.test(raw)) continue;   // a fact you have not learned yet says nothing: leave it out
-        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1')); }
+        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1').replace(/^([A-Za-z ]+?)\s+:/, '$1:')); }
       if (!grid.length) { out.pop(); grid = null; }
     } else { grid = null; const h = seg(0, s.length); if (para) para.h += ' ' + h; else { para = { h }; out.push(para); } }
   });
@@ -412,7 +412,7 @@ function consoleHtml() {
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
   const log = msgs.filter(m => !LOG_SKIP.test(plain(m.s).trim())).map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(logTidy(m.s))}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) || (k === 'm' && !(S.p.msp > 0 || S.p.realm)) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
+  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(a => a[0] === 'm' && !(S.p.msp > 0 || S.p.realm) && S.p.powers ? ['U', 'Powers', 'book'] : a).map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) || (k === 'm' && !(S.p.msp > 0 || S.p.realm)) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
@@ -475,6 +475,13 @@ function spriteFlash(g, r, x, y, T, k) {
 // how much bigger or smaller a creature is drawn than one square, by the size class the tileset gives it
 const SIZE_MUL = { tiny: .8, medium: 1, large: 1.2, huge: 1.5 };
 // draw a named sprite into a T-sized square; false when the set has none
+// the hero's own picture: a creature character is drawn as the creature it is now, anyone else by calling
+function heroSprite(g, x, y, T) {
+  const p = S.p; if (p.form && TS && TS.mon && TS.mon[tkey(p.form)] && sprite(g, 'mon', p.form, x, y, T)) return true;
+  return sprite(g, 'player', p.race + ' ' + p.cls, x, y, T, tkey(p.cls).replace(/ /g, '-')) || sprite(g, 'player', p.race, x, y, T, 'default');
+}
+// "Half-Troll Warrior"; for a creature character, the creature it is now
+const heroKind = p => p.cls === 'Monster' ? cap(p.form || p.sub || p.race) : `${p.race} ${p.cls}`;
 function sprite(g, kind, name, x, y, T, alt) {
   if (!TS || !TS[kind]) return false;
   const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
@@ -631,7 +638,7 @@ function drawMap() {
     else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T;
       // a thin ring at your feet, so you find yourself at a glance on a dark or busy map
       g.save(); g.globalAlpha = .7; g.strokeStyle = '#ff9a4a'; g.lineWidth = Math.max(1.2, T / 26); g.beginPath(); g.ellipse(sx + T / 2, sy + T * .94, T * .44, T * .14, 0, 0, Math.PI * 2); g.stroke(); g.restore();
-      if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls).replace(/ /g, '-')) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
+      if (!heroSprite(g, sx, sy, T)) drawMob(g, MOBS['@'], sx, sy, T); }
     else if (kind === 0 && drawSpell(g, sx, sy, T, what, c)) { fxSpell(S.px + Math.round((sx - ox) / T) - pcx, S.py + Math.round((sy - oy) / T) - pcy, what, c); }
     else { g.font = `700 ${Math.round(T * (kind ? .62 : .66))}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 3; g.strokeStyle = '#0b0a09'; g.lineJoin = 'round'; g.strokeText(what, sx + T / 2, sy + T / 2 + 1); g.fillStyle = c; g.fillText(what, sx + T / 2, sy + T / 2 + 1); }
     g.globalAlpha = 1;
@@ -824,7 +831,7 @@ function draw() {
   if (inGame) {
     if (!built) buildMain();
     const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
-    const pt = $('#port'); if (pt && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); sprite.flat = true; if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, 4, 2, 64, tkey(S.p.cls).replace(/ /g, '-')) && !sprite(g, 'player', S.p.race, 4, 2, 64, 'default')) drawMob(g, MOBS['@'], 0, 0, 72); sprite.flat = false; }
+    const pt = $('#port'); if (pt && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); sprite.flat = true; if (!heroSprite(g, 4, 2, 64)) drawMob(g, MOBS['@'], 0, 0, 72); sprite.flat = false; }
     if (nr || TS_NEW) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     TS_NEW = false;
     askView(); drawMap();

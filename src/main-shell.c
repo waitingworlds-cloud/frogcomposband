@@ -660,6 +660,21 @@ static void send_state(void)
     o_raw("\"p\":{");
     o_kstr("name", player_name);
     o_kstr("race", get_race()->name);
+    /* a monster-mode character: the creature it is at the moment (it changes as it grows) */
+    if (p_ptr->current_r_idx > 0 && p_ptr->current_r_idx < max_r_idx) o_kstr("form", r_name + r_info[p_ptr->current_r_idx].name);
+    if (get_race()->subname && get_race()->subname[0]) o_kstr("sub", get_race()->subname);
+    {
+        /* how many powers (race, calling, mutations) the character has, so the interface offers them only when there are some */
+        static int pw_ct = 0, pw_key = -1, pw_age = 0;
+        int key = p_ptr->lev * 1000 + p_ptr->prace * 7 + p_ptr->mimic_form;
+        if (key != pw_key || ++pw_age > 40)
+        {
+            extern int get_power_table(power_info *spells);
+            power_info pw[MAX_SPELLS];
+            pw_ct = get_power_table(pw); pw_key = key; pw_age = 0;
+        }
+        if (pw_ct) o_kint("powers", pw_ct);
+    }
     o_kstr("cls", get_class()->name);
     o_kstr("pers", get_personality()->name);
     o_kstr("realm", p_ptr->realm1 ? realm_names[p_ptr->realm1] : "");

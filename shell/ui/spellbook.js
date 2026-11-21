@@ -55,7 +55,7 @@ function spellsHtml() {
 }
 function spbCardHtml(r, u, V, have, unit) {
   if (!r && spbPicking()) return `<div class="shempty"><div class="shemi">${icon('book')}</div><div>Pick a book.</div><div class="sub">Click it, or press its key.</div></div>`;
-  if (!r) return `<div class="shempty"><div class="shemi">${icon('book')}</div><div>Point at a spell to see what it does.</div><div class="sub">${V.v ? `Click it, then ${V.v}.` : ''}</div></div>`;
+  if (!r) return `<div class="shempty"><div class="shemi">${icon('book')}</div><div>Point at a ${esc(V.word && V.word.length < 14 ? V.word.replace(/^dragon /, '') : 'spell')} to see what it does.</div><div class="sub">${V.v ? `Click it, then ${V.v}.` : ''}</div></div>`;
   const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl, short = r.cost != null && r.cost > have, pinned = SPB.sel === r.n;
   const prof = r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '';
   const facts = [r.cost != null ? ['costs', `${r.cost} ${unit}`] : null, r.fail != null ? ['chance to fail', r.fail + '%'] : null, r.lvl != null ? ['level', r.lvl] : null, prof ? ['your skill', prof] : null, r.stat ? ['uses', r.stat] : null].filter(Boolean);

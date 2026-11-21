@@ -12,7 +12,8 @@ const PICK_IN = {
   'hybrid': 'Chaos-Warrior, Disciple, Ninja-Lawyer, Paladin, Ranger, Red-Mage, Warrior-Mage', 'riding': 'Beastmaster, Cavalry', 'mind': 'Mindcrafter, Mirror-Master, Psion, Time-Lord, Warlock',
   'animal': 'Centipede, Hound, Hydra, Spider', 'elemental/vortex': 'Elemental, Vortex', 'jelly': 'Jelly, Quylthulg', 'mimic/possessor': 'Death-Sword, Armor, Mimic, Possessor, Ring',
 };
-const PICK_IN_CLASS = { 'other': 'Archaeologist, Bard, Lawyer, Politician, Rage-Mage, Skillmaster, Tourist, Wild-Talent', 'undead': 'Lich, Mummy, Vampire', 'orc/troll/giant': 'Giant, Orc, Troll', 'angel/demon': 'Angel, Demon' };
+const PICK_IN_CLASS = { 'other': 'Archaeologist, Bard, Lawyer, Politician, Rage-Mage, Skillmaster, Tourist, Wild-Talent' };
+const PICK_IN_MON = { 'undead': 'Lich, Mummy, Vampire', 'orc/troll/giant': 'Giant, Orc, Troll', 'angel/demon': 'Angel, Demon', 'other': 'Pumpkin, Xorn', 'mimic/possessor': 'Death-Sword, Filthy Rag, Mimic, Possessor, Ring' };
 // a line of our own for the choices that have no page in the game's help
 const PICK_SAY = {
   'beginner': 'A gentler start: fewer choices to make and a simpler world. Best for a first run.', 'normal': 'The full game, with every people, calling and option open.', 'monster': 'Play as a creature of the dungeon and grow into its mightier forms.',
@@ -43,6 +44,7 @@ const PICK_ART = {
   'craft': _pb('[handbook for pupils]'), 'daemon': _pb('[dark incantations]'), 'crusade': _pb('[rites of initiation]'), 'necromancy': _pb('[stench of death]'), 'armageddon': _pb('[book of elements]'), 'law': _pb('[attractions of law]'),
   'music': _pb("[minstrel's music]"), 'kendo': _pb('[bugei shofu]'), 'hex': _pb('[handbook of hex]'), 'rage': _pb('[anger management]'), 'burglary': _pb("[burglar's handbook]"),
 };
+const PICK_ALIAS = { "tanar'ri": 'marilith', 'servant of khorne': 'bloodletter of khorne', 'orc fighter': 'cave orc', 'filthy rag': 'filthy rag', 'pumpkin': 'pumpkin', 'armor': 'animated armor' };
 // the headings in plain words: [title, a line under it]
 const PICK_HEAD = [
   [/^Choose the Type of Game to Play$/i, 'How do you want to play?', ''],
@@ -56,7 +58,7 @@ const PICK_HEAD = [
   [/^Toggle Personalities/i, 'Your natures', 'Pick two or more, then continue.'],
   [/^Choose Your (Primary )?Magic Realm$/i, 'Your magic', 'The school of spells you will study. Point at one to read about it.'],
   [/^Choose Your Secondary Magic Realm$/i, 'Your second magic', 'A second school of spells to study beside the first.'],
-  [/^Choose Your Realm$/i, 'Your magic', 'The school of spells you will study.'],
+  [/^Choose Your Realm$/i, 'Your focus', 'What your dragon turns its power to.'],
   [/^Choose Game Speed$/i, 'Game speed', 'How fast the world moves around you.'],
   [/^Choose Warlock Pact$/i, 'Your pact', 'The power you have bargained with.'],
   [/^Choose Speciali[st]y$/i, 'Your speciality', ''],
@@ -64,8 +66,14 @@ const PICK_HEAD = [
   [/^Choose Patron$/i, 'Your patron', ''],
 ];
 // which help file holds the pages for the choices under a heading
-function pickFile(h) { return /magic/i.test(h) ? 'magic' : /creature/i.test(h) ? 'MonsterRaces' : /people/i.test(h) ? 'Races' : /calling/i.test(h) ? 'Classes' : /nature/i.test(h) ? 'Personalities' : ''; }
-function pickHead(t) { for (const [re, a, b] of PICK_HEAD) if (re.test(t)) return [a, b]; return null; }
+let PICK_SUB = '', PICK_RAW = '';   // the race whose bloodlines are on offer, and the game's own heading
+const PICK_SUBFILE = { dragon: 'Dragons', demon: 'Demons', orc: 'Orcs', draconian: 'Draconians', demigod: 'Demigods' };
+function pickFile(h) { return /bloodline|parent/i.test(h) ? PICK_SUBFILE[PICK_SUB.toLowerCase()] || 'MonsterRaces' : /focus/i.test(h) ? 'DragonRealms' : /magic/i.test(h) ? 'magic' : /creature/i.test(h) ? 'MonsterRaces' : /people/i.test(h) ? 'Races' : /calling/i.test(h) ? 'Classes' : /nature/i.test(h) ? 'Personalities' : ''; }
+function pickHead(t) {
+  PICK_RAW = t; const m = /^Choose (\S+) (Subrace|Parentage)$/i.exec(t);
+  if (m) { PICK_SUB = m[1]; return /parent/i.test(m[2]) ? ['Your parent', 'The god you are descended from. Each leaves you a different gift.'] : ['Your bloodline', `Which kind of ${m[1].toLowerCase()} will you be? Point at one to read about it.`]; }
+  for (const [re, a, b] of PICK_HEAD) if (re.test(t)) return [a, b]; return null;
+}
 const pickName = s => String(s || '').replace(/\s*\(.*\)\s*$/, '').trim().toLowerCase();
 function pickArtFor(label, kindHint) {
   const k = pickName(label); if (!k || k === 'random') return null;
@@ -73,7 +81,7 @@ function pickArtFor(label, kindHint) {
   if (kindHint === 'class' && TS && TS.player && TS.player[k.replace(/ /g, '-')]) return ['player', k.replace(/ /g, '-')];
   if (PICK_ART[k]) return PICK_ART[k];
   if (TS && TS.player && TS.player[k.replace(/ /g, '-')]) return ['player', k.replace(/ /g, '-')];
-  if (TS && TS.mon && TS.mon[k]) return ['mon', k];
+  if (TS && TS.mon) for (const n of [k, PICK_ALIAS[k], 'young ' + k, 'young ' + k + ' dragon', 'baby ' + k + ' dragon', k.replace(/ dragon$/, ' drake'), 'lesser ' + k]) if (n && TS.mon[n]) return ['mon', n];
   return null;
 }
 // the first sentence of a choice's help page, as the line under its name
@@ -81,7 +89,7 @@ function pickLine(label, heading) {
   const k = pickName(label);
   if (/world moves/.test(heading || '')) return PICK_SPEED[k] || '';
   if (PICK_SAY[k] != null) return PICK_SAY[k];
-  if (/kind first|style first/.test(heading || '')) { const g = (/calling|fight/i.test(heading) && PICK_IN_CLASS[k]) || PICK_IN[k] || PICK_IN_CLASS[k]; if (g) return g; }
+  if (/kind first|style first/.test(heading || '')) { const g = (/calling|fight/i.test(heading) && PICK_IN_CLASS[k]) || (/creature/i.test(heading) && PICK_IN_MON[k]) || PICK_IN[k] || PICK_IN_CLASS[k]; if (g) return g; }
   const h = typeof topicHtml === 'function' ? topicHtml(label) : ''; if (!h) return '';
   const b = /<div class="tbody">([\s\S]*?)<\/div>/.exec(h); if (!b) return '';
   const txt = b[1].replace(/<[^>]+>/g, '').replace(/\s*\(\s*\)/g, '').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>'); const m = /^.*?[.!?](?=\s|$)/.exec(txt); let s = (m ? m[0] : txt).trim();
@@ -95,12 +103,12 @@ function pickTiles(items, heading, sub) {
   const cols = big ? Math.min(3, n) : small ? 4 : n > 9 ? 3 : n > 4 ? 3 : 2;
   TOPIC_FILE = pickFile(heading);
   const sig = heading + '|' + items.map(i => i.key).join(''); if (BPICK.sig !== sig) { BPICK.sig = sig; BPICK.hov = -1; }
-  return `<div class="ptl ${big ? 'big' : small ? 'small' : ''}" style="grid-template-columns:repeat(${cols},1fr)">${items.map((i, ix) => {
-    const label = i.html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, '').trim(), rnd = /^random/i.test(label), art = rnd || /speed/i.test(heading) ? null : pickArtFor(label, kind), now = !i.dim && /<span style/.test(i.html);
-    const line = small ? '' : pickLine(label, sub || heading), key = BKEY[i.key] || i.key, kshow = i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key;
+  return `<div class="ptl ${big ? 'big' : small ? 'small' : ''}" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${items.map((i, ix) => {
+    const label = i.html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, '').trim(), rnd = /^random/i.test(label), art = rnd || /speed|focus/i.test(heading) ? null : pickArtFor(label, kind), now = !i.dim && /<span style/.test(i.html);
+    const line = small ? '' : pickLine(label, heading + ' ' + (sub || '')), key = BKEY[i.key] || i.key, kshow = i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key;
     return `<div class="pt ${i.dim ? 'dim' : ''} ${rnd ? 'rnd' : ''} ${now ? 'now' : ''} ${ix === BPICK.hov ? 'sel' : ''}" data-pti="${ix}" data-topic="${esc(label)}" data-key="${esc(key)}">
       ${art ? `<canvas class="ptart" data-k="${art[0]}" data-n="${esc(art[1])}"></canvas>` : `<span class="ptart em">${rnd ? '?' : esc(label.charAt(0).toUpperCase())}</span>`}
-      <div class="ptx"><b>${rnd ? 'Surprise me' : esc(label)}</b>${line ? `<span>${esc(line)}</span>` : ''}</div>${now ? '<em class="ptnow">yours now</em>' : ''}<span class="key kb ptk">${esc(kshow)}</span></div>`; }).join('')}</div>`;
+      <div class="ptx"><b${/\//.test(label) ? ' class="two"' : ''}>${rnd ? 'Surprise me' : esc(label).replace(/\//g, '&nbsp;/ ')}</b>${line ? `<span>${esc(line)}</span>` : ''}</div>${now ? '<em class="ptnow">yours now</em>' : ''}<span class="key kb ptk">${esc(kshow)}</span></div>`; }).join('')}</div>`;
 }
 // draw the pictures once the tiles are on the page (and again when the art arrives)
 function pickAfter() {
