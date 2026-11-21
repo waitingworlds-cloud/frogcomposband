@@ -83,7 +83,7 @@ function petsMenuHtml() {
 }
 /* ---------- the game's own creature list and item list as picture lists ---------- */
 function sightListFind() {
-  let hy = -1, kind = ''; for (let y = 0; y <= 3; y++) { const t = rowText(y).trim(); if (/^You (see|probe) \d+ monsters?,|^You are aware of \d+ (other )?monsters?,/.test(t)) { hy = y; kind = 'mon'; break; } if (/^There (is|are) \d+ objects?/.test(t)) { hy = y; kind = 'obj'; break; } }
+  let hy = -1, kind = ''; for (let y = 0; y <= 3; y++) { const t = rowText(y).trim(); if (/^You (see|probe) \d+ monsters?,|^You are aware of \d+ (other )?monsters?,/.test(t)) { hy = y; kind = 'mon'; break; } if (/^There (is|are) \d+ (objects?|interesting features?)/.test(t)) { hy = y; kind = 'obj'; break; } }
   if (hy < 0) return null;
   const x0 = rowText(hy).search(/\S/), rows = []; let foot = -1;
   for (let y = hy; y < G.h; y++) { const raw = rowText(y).replace(/\x01/g, ' '), t = raw.slice(x0).replace(/\s+$/, '');
@@ -97,14 +97,14 @@ function sightListFind() {
 }
 function sightListHtml() {
   const L = sightListFind(); if (!L) return '';
-  const mon = L.kind === 'mon', items = L.rows.filter(r => r.sym), cur = G.cy;
+  const mon = L.kind === 'mon', cur = G.cy;
   const art = r => { if (mon) { const k = r.n.toLowerCase(); return typeof TS !== 'undefined' && TS && TS.mon && TS.mon[k] ? `<canvas class="ptart" data-k="mon" data-n="${esc(k)}"></canvas>` : `<span class="ptart em">${esc(r.sym)}</span>`; }
     const o = (S.floor || []).find(o => o.dx === r.dx && o.dy === r.dy); return (o && artHtml(o.ki, 36)) || `<span class="ptart em">${esc(r.sym)}</span>`; };
   const where = r => r.dx != null ? (r.dx || r.dy ? dirOf(r.dx, r.dy) : 'here') : r.rng != null ? r.rng + ' away' : '';
   const btn = (k, t, tip) => `<span class="btn" data-slk="${k}" data-tip="${tip}">${t}</span>`;
-  const row = r => r.head != null ? `<div class="slh">${esc(r.head.replace(/^You see (\d+) monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `In view: ${a}, ${b} awake`).replace(/^You are aware of (\d+) (?:other )?monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `Out of sight: ${a}, ${b} awake`).replace(/^There (?:is|are) (\d+) objects?$/, (m, a) => `${a} ${+a === 1 ? 'item' : 'items'} you know of`))}</div>`
-    : `<div class="slr${r.y === cur ? ' cur' : ''}" data-sly="${r.y}">${art(r)}<span class="sln">${mon ? esc(cap(r.n)) : (typeof nameHtml === 'function' ? nameHtml(cap(r.n)) : esc(cap(r.n)))}${r.st ? `<em class="${/awake/.test(r.st) ? 'aw' : ''}">${esc(r.st)}</em>` : mon ? '<em class="aw">awake</em>' : ''}</span><span class="slw">${esc(where(r))}</span><span class="slb">${mon ? btn('T', 'Target', 'Aim your next shot or spell at it') + btn('`', 'Go to', 'Walk over to it') + btn('R', 'About', 'What you know of it') : btn('`', 'Go to', 'Walk over to it') + btn('I', 'About', 'Look at it closely')}</span></div>`;
-  return `<div class="pane npanel menup mcards slm"><div class="mtitle ctitle">${mon ? 'Creatures' : 'Items'}<small>${mon ? 'Every creature you can see or sense on this level' : 'Every item you know of on this level'}</small></div>
+  const row = r => r.head != null ? `<div class="slh">${esc(r.head.replace(/^You see (\d+) monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `In view: ${a}, ${b} awake`).replace(/^You are aware of (\d+) (?:other )?monsters?, (\d+) (?:is|are) awake$/, (m, a, b) => `Out of sight: ${a}, ${b} awake`).replace(/^There (?:is|are) (\d+) objects?$/, (m, a) => `${a} ${+a === 1 ? 'item' : 'items'} you know of`).replace(/^There (?:is|are) (\d+) interesting features?$/, (m, a) => `${a} ${+a === 1 ? 'place' : 'places'} of note`))}</div>`
+    : `<div class="slr${r.y === cur ? ' cur' : ''}" data-sly="${r.y}">${art(r)}<span class="sln">${mon ? esc(cap(r.n)) : (typeof nameHtml === 'function' ? nameHtml(cap(r.n)) : esc(cap(r.n)))}${r.st ? `<em class="${/awake/.test(r.st) ? 'aw' : ''}">${esc(r.st)}</em>` : mon ? '<em class="aw">awake</em>' : ''}</span><span class="slw">${esc(where(r))}</span><span class="slb">${mon ? btn('T', 'Target', 'Aim your next shot or spell at it') + btn('`', 'Go to', 'Walk over to it') + btn('R', 'About', 'What you know of it') : (r.dx || r.dy || r.dx == null ? btn('`', 'Go to', 'Walk over to it') : '') + btn('I', 'About', 'Look at it closely')}</span></div>`;
+  return `<div class="pane npanel menup mcards slm"><div class="mtitle ctitle">${mon ? 'Creatures' : 'Items and places'}<small>${mon ? 'Every creature you can see or sense on this level' : 'Items and places you know of on this level'}</small></div>
     <div class="sll">${L.rows.map(row).join('')}</div>
     <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span><span class="mhint">the arrows move, ${mon ? 'T targets, ' : ''}the backtick walks there</span></div></div>`;
 }
