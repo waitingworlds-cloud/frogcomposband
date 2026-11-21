@@ -31,7 +31,11 @@ function askHtml() {
   if (a.t === 'yn') {
     const harm = /destroy|donate|suicide|genocide|remove/i.test(a.q);
     const bs = a.opts.map(o => /^y$/i.test(o) ? btn(o, 'Yes', harm ? 'warn' : 'go', o.toUpperCase()) : /^n$/i.test(o) ? btn(o, 'No', '', o.toUpperCase()) : btn('A', /destroy/i.test(a.q) ? 'Always destroy these' : 'Always', '', 'A', 'Adds this kind of item to your auto-destroy list, so you are never asked again.'));
-    return { cls: 'mid', html: `<div class="askh">${esc(a.q)}</div><div class="askb">${bs.join('')}</div>` };
+    // a few of the game's questions read better said plainly
+    let q = a.q, sub = '', m2;
+    if ((m2 = /^This is the entrance of (.+?) \(Danger level: (\d+)\) Do you really go into this dungeon\?$/.exec(q))) { q = `Enter the ${m2[1].replace(/^the /i, '')}?`; sub = `Danger level ${m2[2]}`; }
+    else if ((m2 = /^Really (.+)\?$/.exec(q))) q = cap(m2[1]) + '?';
+    return { cls: 'mid', html: `<div class="askh">${esc(q)}</div>${sub ? `<div class="asks">${esc(sub)}</div>` : ''}<div class="askb">${bs.join('')}</div>` };
   }
   if (a.t === 'qty') {
     const v = a.v == null ? a.lo : Math.max(a.lo, Math.min(a.hi, a.v)), half = Math.max(a.lo, Math.ceil(a.hi / 2));

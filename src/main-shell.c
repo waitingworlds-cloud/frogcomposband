@@ -310,7 +310,7 @@ static void shell_command(char *line)
         {
             /* clicking yourself: in a shop doorway, go back in; elsewhere pick up what is here */
             Term_keypress('\\');
-            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : 'g');
+            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : cave_have_flag_grid(&cave[py][px], FF_BLDG) ? SPECIAL_KEY_BUILDING : 'g');
         }
         else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
         {

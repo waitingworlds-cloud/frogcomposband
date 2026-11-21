@@ -53,6 +53,9 @@
 .bact b{font:600 21px Inter;color:#ffcf6a}.bact b.short{color:#ff7a66}.bact .sub{font-size:14px}
 .bldg .sh2{grid-template-columns:560px 1fr}
 .bsaid{display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;overflow:hidden;padding:24px}.bmsg{font:500 21px/1.4 Spectral,serif;color:#f1ebe0;text-align:center;max-width:720px}
+#here{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:10px;z-index:6;pointer-events:none}#here:empty{display:none}
+#here .abtn{height:42px;font-size:18px;box-shadow:0 0 0 1px #3a3d42,0 8px 22px #000c}#here .abtn.go{box-shadow:0 0 0 1px #7a3d12,inset 0 1px 0 #ffd9b0,0 8px 22px #000c}
+#here .hart{display:inline-flex;width:30px;height:30px;margin:0 -2px 0 -6px}
 .hubterm{flex:1;min-width:0;display:flex;flex-direction:column}.hubterm .t-w{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.hubterm canvas{display:block}
 .hubterm .pgh{margin:0 0 10px}.hubterm .pgf{margin:10px 0 0}
 #banner.ask{top:150px;width:540px;max-width:none;padding:24px 28px 22px;border:1px solid #000;border-top:3px solid #ff8a3c;box-shadow:0 18px 60px #000d,0 0 0 1px #3a3d42,inset 0 1px 0 #ffffff14;text-align:center;pointer-events:auto}
@@ -261,5 +264,5 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 </style></head>
 <body class="main">
 <div id="stage"><div id="app"><div id="wait">Waking the dungeon…</div></div><div id="term"><div class="pane"><div id="termh" class="t-h pgh"></div><canvas id="termc" class="t-c"></canvas><div id="termf" class="t-f pgf"></div></div></div><div id="hurt"></div><div id="native"></div><div id="tip"></div><div id="ctx"></div><div id="drag"></div></div>
-<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script><script src="spellbook.js"></script><script src="place.js"></script><script src="hub.js"></script><script src="page.js"></script>
+<script src="icons.js"></script><script src="mobart.js"></script><script src="fx.js"></script><script src="light.js"></script><script src="post.js"></script><script src="sound.js"></script><script src="app.js"></script><script src="screens.js"></script><script src="help.js"></script><script src="birth.js"></script><script src="menu.js"></script><script src="opts.js"></script><script src="ctx.js"></script><script src="hotbar.js"></script><script src="levelup.js"></script><script src="ambient.js"></script><script src="explore.js"></script><script src="controls.js"></script><script src="ask.js"></script><script src="spellbook.js"></script><script src="place.js"></script><script src="here.js"></script><script src="hub.js"></script><script src="page.js"></script>
 </body></html>
