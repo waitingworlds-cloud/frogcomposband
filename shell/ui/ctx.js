@@ -75,7 +75,7 @@ function objItems(o, worn) {
     if (is('rod')) out.push({ k: 'z', n: 'Zap', run: () => cmdPick('z', o.n) });
     if (tv >= 90 && tv <= 109) { out.push({ k: 'b', n: 'Browse', run: () => cmdPick('b', o.n) }); out.push({ k: 'm', n: 'Cast from it', run: () => cmdPick('m', o.n) }); }
     if (is('ammo')) out.push({ k: 'f', n: 'Fire', run: () => cmdPick('f', o.n) });
-    if (wearable) out.push({ k: 'w', n: 'Wear or wield', run: () => cmdPick('w', o.n) });
+    if (wearable) out.push({ k: 'w', n: tv >= 19 && tv <= 23 ? 'Wield' : tv === 39 ? 'Carry as your light' : tv === 40 || tv === 45 ? 'Put on' : tv >= 30 && tv <= 38 ? 'Wear' : 'Wear or wield', run: () => cmdPick('w', o.n) });
     out.push({ k: 'v', n: 'Throw', run: () => cmdPick('v', o.n) });
     out.push({ k: 'd', n: 'Drop', run: () => cmdPick('d', o.n) });
   }

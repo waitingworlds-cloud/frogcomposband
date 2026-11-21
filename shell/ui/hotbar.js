@@ -56,6 +56,7 @@ function hbOnUi(m) {
 function hbNote(bytes) {
   const top = typeof uiOnTop === 'function' && UI && uiOnTop();
   if (top && UI.kind === 'items' && bytes.length === 1) { const it = (UI.items || []).find(i => i.k === String.fromCharCode(bytes[0])); if (it && it.o) LASTPICK = { o: it.o, t: Date.now() }; return; }
+  if (top && typeof shopLike === 'function' && shopLike() && bytes.length === 1) SHOP.key = { k: String.fromCharCode(bytes[0]), t: Date.now() };
   if (top || !playing()) return;
   if (bytes.length === 2 && bytes[0] === 92) LASTCMD = { k: String.fromCharCode(bytes[1]), raw: false, t: Date.now() };
   else if (bytes.length === 1 && bytes[0] > 32 && bytes[0] < 127) LASTCMD = { k: String.fromCharCode(bytes[0]), raw: true, t: Date.now() };

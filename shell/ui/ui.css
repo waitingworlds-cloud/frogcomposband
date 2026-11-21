@@ -356,3 +356,12 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .edw{position:relative}.edpop{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:4;padding:18px 20px 20px;background:linear-gradient(#1c1e22,#131517);border:1px solid #4a3a2a;border-top:2px solid #ff8a3c;box-shadow:0 22px 60px #000d;border-radius:3px}
 .edpop .edq{font:400 22px Fell,Spectral,serif;letter-spacing:.05em;color:#f4efe4;margin-bottom:14px}.edcols{display:flex;gap:14px;align-items:flex-start}.edcol{display:grid;gap:5px;min-width:300px}.edcol.was{opacity:.5}
 .edpop .mcard{padding:7px 12px;font-size:17px}.edpop .mcard small{margin-left:auto;font:400 12px Inter,sans-serif;color:#8f897d}.edpop .edb{display:flex;gap:10px}.edpop.yn{top:120px;min-width:420px}
+/* map tab: one frame, name on the left, map in a fixed box, places to walk to underneath */
+.hubb>.lmapp{align-self:stretch;width:100%!important;display:flex;flex-direction:column;padding:0!important}
+.lmhd{display:flex;align-items:baseline;gap:14px;padding-bottom:10px;border-bottom:1px solid #3a3d42}.lmhd b{font:400 28px Fell,Spectral,serif;letter-spacing:.05em;color:#f4efe4}.lmhd>span{font:italic 400 16px Spectral,serif;color:#b3ac9f}
+.lmhd .lmlg{font:400 13.5px Spectral,serif;font-style:normal;display:inline-flex;align-items:center;gap:6px;color:#a39d91}.lmhd .lmlg i{width:10px;height:10px;display:inline-block}
+.lmbox{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#0b0c0d;box-shadow:inset 0 0 0 1px #24272b;margin:12px 0 10px}
+.lmgo{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.lmgo .catr{margin:0 6px 0 0}.lmgo .grp{font-size:16px;padding:5px 11px;cursor:pointer}.lmgo .grp:hover{border-color:#ff8a3c;color:#fff}
+.shask .shaskh{font:400 26px Fell,Spectral,serif;letter-spacing:.04em;color:#f4efe4}.shask .shaskh.lite{font-size:20px;line-height:1.4}.shask .askb{display:flex;gap:10px;margin-top:6px}.shask .shhead{display:flex;gap:16px;align-items:center;margin-bottom:8px}.shask .shsum{display:flex;align-items:baseline;font:400 18px Spectral,serif;color:#b3ac9f}
+.btn{cursor:pointer}.btn:hover{box-shadow:inset 0 1px 0 #fff2,0 0 0 1px #000,0 0 0 2px var(--em)}.btn.go{background:linear-gradient(#5a3214,#2e1a0c);box-shadow:inset 0 1px 0 #fff2,0 0 0 1px #000,0 0 0 2px var(--em),0 0 12px #ff8a3c55;color:#fff}
+.shask .btn{padding:8px 14px;font-size:17px}.shask .shask2{font:italic 400 18px Spectral,serif;color:#ffcf6a}

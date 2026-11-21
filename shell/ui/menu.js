@@ -78,7 +78,7 @@ function menuCards(rows, b) {
   const first = rows.findIndex(r => r.s.trim()), title = rows[first] && !rows[first].toks.length ? rows[first] : null;
   const lastItem = rows.indexOf(items[items.length - 1]);
   if (other.some(r => r !== title && rows.indexOf(r) < lastItem)) return '';   // words between the choices: not a plain list
-  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim());
+  const foot = rows.slice(lastItem + 1).filter(r => r.s.trim() && !/^Command:\s*$/.test(r.s.trim()));
   let groups = [[]];
   rows.slice(title ? first + 1 : 0, lastItem + 1).forEach(r => { if (r.toks.length) groups[groups.length - 1].push(r); else if (groups[groups.length - 1].length) groups.push([]); });
   groups = groups.filter(g => g.length);
@@ -103,7 +103,8 @@ function digitKeys(foot) {
 // plainer names for the game's own menu words, with a line saying what each choice shows
 const MENU_TITLES = { 'Display current knowledge': ['Journal', 'Everything your character has learned so far'] };
 const MENU_HIDE = { 'Window Flags': 1 };   // extra terminal windows: this version has none (the key still works)
-Object.assign(MENU_TITLES, { 'FrogComposband Options': ['Options', 'How the game plays, and what it shows you'] });
+Object.assign(MENU_TITLES, { 'Interact with Macros': ['Key shortcuts', 'Bind one key to a string of commands (for seasoned players)'], 'Interact with Colors': ['Text colours', 'For the plain-text view: these do not change the pictures'],
+  'Interact with Visuals': ['Text symbols', 'For the plain-text view: these do not change the pictures'], 'FrogComposband Options': ['Options', 'How the game plays, and what it shows you'] });
 const MENU_WORDS = {
   'Input Options': ['Controls', 'keys, prompts and repeats'], 'Map Screen Options': ['Map', 'what the map shows'], 'Text Display Options': ['Text', 'how messages and lists read'],
   'Game-Play Options': ['Play', 'habits while you play'], 'Disturbance Options': ['Interruptions', 'what stops you mid-stride'], 'Auto-Destroyer Options': ['Junk', 'what to destroy without asking'],
@@ -116,7 +117,8 @@ const MENU_WORDS = {
   'Quests': ['Quests', 'what you have been asked to do'], 'Terrain Symbols': ['Terrain', 'the kinds of ground and wall'], 'About Yourself': ['About you', 'your race, class and what you can do'],
   'Weapon Damage': ['Weapon damage', 'what your blows do'], 'Extra Info': ['Class notes', 'spells and talents of your calling'], 'High Score List': ['Hall of fame', 'characters past and present'],
   'Proficiency': ['Weapon skill', 'practice with each weapon'], 'Spell Proficiency': ['Spell skill', 'practice with each spell'],
-  'Exit menu': ['Close'], 'Object Knowledge': ['Items'], 'Monster Knowledge': ['Creatures'], 'Dungeon Knowledge': ['The world'], 'Self Knowledge': ['Yourself'], 'Skills': ['Practice'] };
+  'Exit menu': ['Close'], 'Load a user pref file': ['Load a settings file'], 'Append macros and keymaps to a file': ['Save shortcuts to a file'], 'Query a macro': ['Look up a shortcut'], 'Create a macro': ['Make a shortcut'], 'Remove a macro': ['Remove a shortcut'],
+  'Query a keymap': ['Look up a key change'], 'Create a keymap': ['Change what a key does'], 'Remove a keymap': ['Undo a key change'], 'Enter a new action': ['Type the commands to bind'], 'Object Knowledge': ['Items'], 'Monster Knowledge': ['Creatures'], 'Dungeon Knowledge': ['The world'], 'Self Knowledge': ['Yourself'], 'Skills': ['Practice'] };
 const menuWord = (r, x, e) => { const w = MENU_WORDS[r.s.slice(x, e).trim()]; return w ? `<span class="mw">${esc(w[0])}</span>${w[1] ? `<small class="mwd">${esc(w[1])}</small>` : ''}` : rowHtml(r.y, x, e); };
 // two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
 // Anything else on the lines (a description beside a choice, prose between them) keeps the text layout.

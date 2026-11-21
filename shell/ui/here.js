@@ -50,6 +50,12 @@ addEventListener('keydown', () => { STAIR_AT = null; }, { capture: true });
 // "No light": one click holds up a light you carry, with no list to pick from
 let LIGHT_AUTO = 0;
 document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('[data-wlight]') && playing()) { ev.stopPropagation(); LIGHT_AUTO = Date.now(); sendText(cmd('w')); } }, true);
+// one kind of shot to fire: nothing to choose, so it is not asked (press f, then aim)
+function fireOnUi(m) {
+  if (m.kind !== 'items' || !/^Fire which/i.test(m.prompt || '') || !LASTCMD || LASTCMD.k !== 'f' || Date.now() - LASTCMD.t > 1500) return;
+  const its = (m.items || []).filter(i => i.o && i.k.trim()), tabs = (m.tabs || []).reduce((n, t) => n + (t.ct || 0), 0);
+  if (its.length === 1 && tabs === 1 && (m.pages || 1) === 1) { LASTCMD.t = 0; sendText(its[0].k); }
+}
 function lightOnUi(m) {
   if (m.kind !== 'items' || !/wear|wield/i.test(m.prompt || '') || Date.now() - LIGHT_AUTO > 1500) return; LIGHT_AUTO = 0;
   const it = (m.items || []).find(i => i.o && i.k.trim() && i.o.tv === 39); if (it) sendText(it.k);

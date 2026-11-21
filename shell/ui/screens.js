@@ -167,10 +167,45 @@ function shopHtml() {
         <div class="shtabs"><div class="${tab === 'buy' ? 'on' : ''}" data-shoptab="buy">${W.t1} <small>${buy.length}</small></div><div class="${tab === 'sell' ? 'on' : ''}" data-shoptab="sell">${W.t2} <small>${sell.length}</small></div>${u.pages > 1 ? `<span class="grow"></span><span class="row shpg" data-key=" " data-tip="Next page of the shelves (Space)">page ${u.page} of ${u.pages} &rsaquo;</span>` : ''}</div>
         <div class="shlist">${rowsHtml}</div>
       </div>
-      <div class="shcard">${asking ? `<div class="shask"><div class="dsch">${W.home ? 'the game asks' : 'the shopkeeper asks'}</div><div class="live" style="font-size:20px">${lookKeys(esc(msg))}${qtyKeys()}</div><div class="hint">Answer with the keys, or click an item in the list. Esc cancels.</div></div>` : shopCardHtml(cur)}</div>
+      <div class="shcard">${asking ? shopAskHtml(msg, W, buy, sell) : shopCardHtml(cur)}</div>
     </div>
     <div class="live shmsg">${asking ? '' : lookKeys(esc(msg))}</div>
     <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"${SHOP_TIPS[k] ? ` data-tip="${SHOP_TIPS[k]}"` : ''}><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span><span class="sub">keys: ${W.mus ? '' : `<b>${W.kget}</b> ${W.get.toLowerCase()} · `}<b>${W.kput}</b> ${W.put.toLowerCase()} · arrows, Tab and Enter work on the list</span></div></div>`;
+}
+// the game's own questions in a shop (asked when you use the keys: b, s and their kind) as a card with buttons
+function shopAskQ(msg) { const m = /Quantity \((\d+)(?:-| to )(\d+)\):\s*(\d*)/.exec(msg); return m ? { lo: +m[1], hi: +m[2], v: m[3] === '' ? +m[1] : Math.max(+m[1], Math.min(+m[2], +m[3])) } : null; }
+function shopAskHtml(msg, W, buy, sell) {
+  const btn = (k, label, cls, name) => `<span class="btn ${cls || ''}" data-key="${k}"><span class="key">${name || k}</span>${label}</span>`, cancel = btn('Esc', 'Cancel');
+  let m;
+  if ((m = /(\w+) which item/i.exec(msg))) {
+    const put = /sell|give|drop|donate|leave/i.test(m[1]);
+    SHOP.ask = { tab: put ? 'sell' : 'buy', t: Date.now(), row: null };
+    return `<div class="shask"><div class="shaskh">${esc(cap(m[1].toLowerCase()))} what?</div><div class="hint">Click it in the list, or press its letter.</div><div class="askb">${cancel}</div></div>`;
+  }
+  const q = shopAskQ(msg);
+  if (q) {
+    const A = SHOP.ask;
+    if (A && !A.row && SHOP.key && SHOP.key.t >= A.t - 50 && Date.now() - A.t < 60000) A.row = (A.tab === 'sell' ? sell : buy).find(r => r.k === SHOP.key.k) || 'none';
+    const r = A && A.row && A.row !== 'none' ? A.row : null, half = Math.max(q.lo, Math.ceil(q.hi / 2)), put = A && A.tab === 'sell';
+    const verb = put ? W.put : W.get || 'Take', tot = r && r.price && !W.free ? r.price * q.v : 0;
+    return `<div class="shask">${r ? `<div class="shhead"><div class="slot big t-${tvIcon(r.tv)}">${artHtml(r.ki, 84) || icon(tvIcon(r.tv))}</div><div class="grow"><div class="spn shname">${esc(cap(baseName(r.n)))}</div><div class="sub">${r.num} ${put ? 'in your pack' : 'in stock'}${r.price && !W.free ? ` · ${r.price.toLocaleString()} gold each` : ''}</div></div></div>` : ''}
+      <div class="shaskh">How many?</div>
+      <div class="shqty"><span class="key kb ${q.v <= q.lo ? 'off' : ''}" data-shq="-1" data-tip="One fewer (Left)">&minus;</span><b class="num">${q.v}</b><span class="key kb ${q.v >= q.hi ? 'off' : ''}" data-shq="1" data-tip="One more (Right)">+</span>
+        <span class="shchip" data-shq="=${q.lo}">${q.lo}</span>${q.hi > 3 ? `<span class="shchip" data-shq="=${half}">half</span>` : ''}<span class="shchip" data-shq="=${q.hi}">all ${q.hi}</span></div>
+      ${tot ? `<div class="shsum"><span>Total</span><span class="grow"></span><b class="num tot">${tot.toLocaleString()}</b></div>` : ''}
+      <div class="askb">${btn('\r', r ? `${esc(verb)} ${q.v}` : 'OK', 'go', 'Enter')}${cancel}</div></div>`;
+  }
+  if ((m = /Really (buy|sell|give|donate) (.*) for (\d+) gp\? \[y\/n\]\s*$/i.exec(msg))) { const r = SHOP.ask && SHOP.ask.row && SHOP.ask.row !== 'none' ? SHOP.ask.row : null, v = m[1].toLowerCase();
+    return `<div class="shask">${r ? `<div class="shhead"><div class="slot big t-${tvIcon(r.tv)}">${artHtml(r.ki, 84) || icon(tvIcon(r.tv))}</div><div class="grow"><div class="spn shname">${esc(cap(m[2].replace(/^an? /, '').replace(/\s*[\[({].*$/, '')))}</div></div></div>` : ''}<div class="shaskh">${esc(cap(v))} ${esc(r ? 'it' : m[2])}?</div><div class="shask2">${v === 'buy' ? 'It costs' : 'You get'} ${(+m[3]).toLocaleString()} gold.</div><div class="askb">${btn('y', cap(v), 'go')}${btn('n', 'No')}</div></div>`; }
+  if ((m = /^(?:.*\d\s+)?(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg.replace(/^Quantity \([^)]*\):\s*\d*\s*/, '')))) return `<div class="shask"><div class="shaskh">${esc(m[1])}</div><div class="askb">${btn('y', 'Yes', 'go')}${btn('n', 'No')}</div></div>`;
+  if (/-more-/.test(msg)) return `<div class="shask"><div class="shaskh lite">${esc(msg.replace(/\s*-more-\s*/g, ' ').trim())}</div><div class="askb">${btn(' ', 'Continue', 'go', 'Space')}</div></div>`;
+  return `<div class="shask"><div class="dsch">${W.home ? 'the game asks' : 'the shopkeeper asks'}</div><div class="live" style="font-size:20px">${lookKeys(esc(msg))}${qtyKeys()}</div><div class="hint">Answer with the keys, or click an item in the list. Esc cancels.</div></div>`;
+}
+document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('[data-shq]'); if (!q || !shopLike()) return; ev.stopPropagation(); ev.preventDefault(); shopAskStep(q.dataset.shq); }, true);
+function shopAskStep(d) {
+  const a = shopAskQ([0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ')); if (!a) return false;
+  const n = Math.max(a.lo, Math.min(a.hi, String(d)[0] === '=' ? +String(d).slice(1) : a.v + (+d)));
+  sendText('\b'.repeat(8) + '\x7f'.repeat(8) + n); return true;
 }
 function shopCardHtml(r) {
   const u = UI;
@@ -220,7 +255,8 @@ function shopMove(d) {
 }
 // keys that belong to the list and its card; every other key goes to the game as before
 function shopKey(e) {
-  if (!shopLike() || !uiOnTop() || shopAsking() || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (!shopLike() || !uiOnTop() || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (shopAsking()) { if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === '+' || e.key === '=') return shopAskStep(1); if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === '-') return shopAskStep(-1); return false; }
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { shopMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
   if (e.key === 'Tab') { SHOP.tab = SHOP.tab === 'buy' ? 'sell' : 'buy'; SHOP.sel = SHOP.hov = null; SHOP.qty = 1; SHOP.sure = ''; schedule(); return true; }
   if (!SHOP.sel) return false;
@@ -251,7 +287,7 @@ document.addEventListener('wheel', ev => { if (shopLike() && SHOP.sel && ev.targ
 function homeHtml() { return shopHtml(); }
 
 const LMC = { wall: '#5a5e64', door: '#a06a34', dooropen: '#a06a34', up: '#7fd0f0', down: '#7fd0f0', water: '#2f5f86', lava: '#b8441c', tree: '#2f5a2a', grass: '#3c5530', shop: '#ffb070', rubble: '#6c665c', pit: '#101113', trap: '#c84a36', snow: '#9aa4ad', floor: '#33373c', other: '#3d4046' };
-function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 640 / u.h, 14)); return { s, W: Math.round(u.w * s), H: Math.round(u.h * s) }; }
+function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 590 / u.h, 14)); return { s, W: Math.round(u.w * s), H: Math.round(u.h * s) }; }
 function lmapHtml() {
   const u = UI, g = lmapGeo(), pois = [];
   let known = 0;
@@ -259,13 +295,14 @@ function lmapHtml() {
   pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
   const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
   const leg = [['#ffb070', 'You'], ['#ff5a3c', 'Creature in sight'], ['#7fd0f0', 'Stairs'], ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
-  return `<div class="pane npanel" style="width:${Math.max(900, g.W + 60)}px">
-    <div class="tabs"><div class="on">Level map</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${esc(u.place)}${u.dlvl ? `, level ${u.dlvl} · ${u.dlvl * 50} ft` : ''}</span></div>
-    <div style="display:flex;justify-content:center;margin:12px 0 8px"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
-    <div class="row" style="gap:20px;flex-wrap:wrap;font-size:14px;color:#b3ac9f">${leg.map(([c, n]) => `<span class="row" style="gap:7px"><i style="width:11px;height:11px;background:${c};display:inline-block"></i>${n}</span>`).join('')}</div>
-    ${list.length && !u.wild ? `<div class="catr" style="margin-top:6px">go to</div><div class="row" style="gap:8px;flex-wrap:wrap">${list.map(p => `<div class="grp" style="font-size:17px;padding:6px 12px;cursor:pointer" data-go="${p.x - u.px},${p.y - u.py}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>` : ''}
+  return `<div class="pane npanel lmapp">
+    <div class="lmhd"><b>${esc(u.place)}</b>${u.dlvl ? `<span>level ${u.dlvl} · ${u.dlvl * 50} ft</span>` : ''}<span class="grow"></span>${leg.map(([c, n]) => `<span class="lmlg"><i style="background:${c}"></i>${n}</span>`).join('')}</div>
+    <div class="lmbox"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
+    ${list.length && !u.wild ? `<div class="lmgo"><span class="catr">go to</span>${list.map(p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>` : ''}
     <div class="nfoot"><span class="sub">${u.wild ? 'The wilderness map.' : 'Click anywhere you have explored to walk there.'}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
 }
+let LM_HI = null;
+document.addEventListener('mouseover', e => { const g = e.target.closest && e.target.closest('[data-gxy]'), v = g ? g.dataset.gxy : null; if (v !== LM_HI) { LM_HI = v; lmapDraw(); } });
 function lmapDraw() {
   const cv = $('#lmapc'); if (!cv || !UI || UI.kind !== 'lmap') return;
   const u = UI, g = lmapGeo(), d = SCALE * (devicePixelRatio || 1); cv.width = Math.round(g.W * d); cv.height = Math.round(g.H * d);
@@ -273,6 +310,7 @@ function lmapDraw() {
   u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c, cx = (i % u.w) * s, cy = ((i / u.w) | 0) * s;
     if (f) { x.fillStyle = LMC[featClass(f)] || LMC.other; x.fillRect(cx, cy, s + .4, s + .4); }
     if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
+  if (LM_HI) { const [hx, hy] = LM_HI.split(',').map(Number); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.beginPath(); x.arc(hx * s + s / 2, hy * s + s / 2, Math.max(9, s * 1.6), 0, 7); x.stroke(); x.fillStyle = '#ff8a3c'; x.fillRect(hx * s - 1, hy * s - 1, s + 2, s + 2); }
   x.fillStyle = '#ffb070'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#000'; x.lineWidth = 1; x.strokeRect(u.px * s - 2.5, u.py * s - 2.5, s + 5, s + 5);
 }
 let NATIVE_SIDE = false;
