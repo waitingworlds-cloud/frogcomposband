@@ -38,9 +38,9 @@ function spellsHtml() {
     const mark = cur === r ? (SPB.sel === r.n ? 'sel' : 'hov') : '';
     return `<div class="tr sprow ${dim ? 'dim' : ''} ${mark}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}><span class="key" data-tip="Press this key to ${V.v ? V.v.toLowerCase() : 'read'} it at once">${esc(r.k)}</span><i class="spdot"></i>
       <span class="n nowrap" style="${dim ? '' : V.study && unk ? 'color:#7fd4ff' : 'color:#f4efe4'}">${esc(r.n)}${tag ? `<small class="sptag${tag === 'can learn' ? ' go' : ''}">${tag}</small>` : ''}</span>
-      <span class="dir">${r.lvl != null ? 'lv ' + r.lvl : ''}</span>
-      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}">${icon('potion')}<b>${r.cost}</b></span>` : '<span></span>'}
-      <span class="spf" style="color:${fc}">${f != null ? f + '%' : ''}</span></div>`;
+      <span class="dir"${r.lvl != null ? ` data-tip="${early ? 'You need to be level ' + r.lvl + ' for this' : 'Open to you since level ' + r.lvl}"` : ''}>${r.lvl != null ? 'lv ' + r.lvl : ''}</span>
+      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}" data-tip="Costs ${r.cost} ${u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana'}${r.cost > have ? ', more than you have now' : ''}">${icon('potion')}<b>${r.cost}</b></span>` : '<span></span>'}
+      <span class="spf" style="color:${fc}"${f != null ? ` data-tip="${f >= 100 ? 'You cannot manage this yet' : f ? 'Fails about ' + f + ' times in 100' : 'Never fails'}"` : ''}>${f != null ? f + '%' : ''}</span></div>`;
   }).join('');
   const books = bookish && SPB.books ? `<span class="spbooks">${(picking ? (UI.items || []).filter(i => i.o && i.k.trim()).map(i => ({ k: i.k, n: i.o.n, ki: i.o.ki, tv: i.o.tv })) : SPB.books).map(b => `<span class="spbk ${!picking && b.n === SPB.book ? 'on' : ''}" data-spbook="${esc(b.k)}" data-tip="${esc(cap(b.n.replace(/^(an?|the) /i, '')))}"><span class="slot t-book">${artHtml(b.ki, 28) || icon('book')}</span>${esc(spbBookName(b.n))}${picking ? `<span class="key">${esc(b.k)}</span>` : ''}</span>`).join('')}</span>` : '';
   // choosing a book: the books themselves, large, in place of an empty list
