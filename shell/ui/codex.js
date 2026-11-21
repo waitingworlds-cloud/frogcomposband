@@ -213,3 +213,32 @@ function combatHtml(y0, y1, x0, x1, skip) {
       ${b.acc.length ? `<div class="csa"><div class="cst">Chance to hit</div><div class="csah"><span>target's armour</span></div>${b.acc.map(([ac, p]) => `<div class="csar"><span>${ac}</span><i><u style="width:${Math.max(2, p)}%"></u></i><b>${p}%</b></div>`).join('')}</div>` : ''}</div></div>`; };
   return `<div class="csw">${blocks.map(card).join('')}</div>`;
 }
+
+// The journal's "about you" page: life rating and stat limits as tiles, then your people, calling, nature and
+// magic each as a card with its picture and the game's own account of it.
+function aboutHtml(y0, y1, x0, x1, skip) {
+  const tiles = [], cards = []; let cur = null, para = null, any = false;
+  const say = v => /^\?+$/.test(v) ? '<i data-tip="The game has not told you yet">?</i>' : esc(v);
+  const flush = () => { para = null; };
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); let m;
+    if (!t) { flush(); continue; }
+    if ((m = /^Your current Life Rating is (\S+?)\.?$/.exec(t))) { tiles.unshift(`<div class="abt big" data-tip="How many hit points you gain each level, against the average for your kind: 100 is average"><b>${say(m[1])}</b><span>life rating</span></div>`); any = true; continue; }
+    if (/^Limits of maximum stats$/.test(t)) { any = true; continue; }
+    if ((m = /^(STR|INT|WIS|DEX|CON|CHR)\s*:\s*(\S+)$/.exec(t))) { tiles.push(`<div class="abt" data-tip="The highest your ${({ STR: 'strength', INT: 'intelligence', WIS: 'wisdom', DEX: 'dexterity', CON: 'constitution', CHR: 'charisma' })[m[1]]} can ever be raised"><b>${say(m[2])}</b><span>${m[1].toLowerCase()} limit</span></div>`); any = true; continue; }
+    if ((m = /^(Race|Subrace|Class|Subclass|Personality|Realm|Realms?|First Realm|Second Realm|Patron|Speciality|Demigod|Parentage|Dragon Realm|Focus)\s*:\s*(\S.*)$/.exec(t))) { cards.push(cur = { k: m[1], n: m[2], ps: [], links: [] }); flush(); any = true; continue; }
+    if (!cur) cards.push(cur = { k: '', n: '', ps: [], links: [], cont: 1 });
+    if (!para) cur.ps.push(para = []);
+    para.push(t);
+  }
+  if (!any && !cards.some(c => c.k)) return '';
+  const lab = { Race: 'Your people', Subrace: 'Your kind', Class: 'Your calling', Subclass: 'Your path', Personality: 'Your nature', Realm: 'Your magic', 'First Realm': 'Your first magic', 'Second Realm': 'Your second magic' };
+  const card = c => {
+    const art = c.k && typeof pickArtFor === 'function' ? pickArtFor(c.n, c.k === 'Class' ? 'class' : '') : null;
+    const body = c.ps.map(p => { let s = esc(p.join(' ')); s = s.replace(/\s*For more information, see \[([a-z])\]\./g, (m0, k) => { c.links.push(k); return ''; }); return s.trim() ? `<p>${s}</p>` : ''; }).join('');
+    return `<div class="abc${c.cont ? ' cont' : ''}">${c.k ? `<div class="abh">${art ? `<canvas class="ptart" data-k="${art[0]}" data-n="${esc(art[1])}"></canvas>` : `<span class="ptart em">${esc(c.n.charAt(0).toUpperCase())}</span>`}<div><div class="csl">${esc(lab[c.k] || c.k)}</div><div class="csn">${esc(c.n)}</div></div>${c.links.map(k => `<span class="btn" data-key="${k}">Read more</span>`).join('')}</div>` : ''}${body}${!c.k && c.links.length ? `<div class="abl">${c.links.map(k => `<span class="btn" data-key="${k}">Read more</span>`).join('')}</div>` : ''}</div>`; };
+  // the links are found while the body is built, so build bodies first
+  const html = cards.map(c => { card(c); const l = c.links.slice(); c.links = []; const h = card(c); c.links = l; return h; });
+  const more = PAGER && PAGER.at + PAGER.page < PAGER.of;
+  return `<div class="abw">${tiles.length ? `<div class="abts">${tiles.join('')}</div>` : ''}${html.join('')}${more ? '<div class="abm"><span class="btn go" data-ks="FF56">Read on</span></div>' : ''}</div>`;
+}
