@@ -54,6 +54,8 @@ function askHtml() {
     let q = a.q, sub = '', m2;
     if ((m2 = /^This is the entrance of (.+?) \(Danger level: (\d+)\) Do you really go into this dungeon\?$/.exec(q))) { const dn = m2[1].replace(/^the /i, ''); q = `Enter ${/^(Angband|Camelot|Hell|Heaven|Numenor|R'lyeh|Mount |Asgard|Atlantis|Random )/.test(dn) ? '' : 'the '}${dn}?`; sub = `Danger level ${m2[2]}`; }
     else if ((m2 = /^Really (.+)\?$/.exec(q))) q = cap(m2[1]) + '?';
+    else if (/^Do you really want to commit suicide\?$/.test(q)) { q = 'End this character for good?'; sub = 'There is no way back. The game asks once more before it happens.'; }
+    else if (/^Do you want to retire\?$/.test(q)) { q = 'Retire this character?'; sub = 'You have won. Retiring ends the game with honour.'; }
     return { cls: 'mid', html: `<div class="askh">${esc(q)}</div>${sub ? `<div class="asks">${esc(sub)}</div>` : ''}<div class="askb">${bs.join('')}</div>` };
   }
   if (a.t === 'qty') {
