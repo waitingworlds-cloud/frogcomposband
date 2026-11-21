@@ -2,13 +2,15 @@
 // and its description from lib/help appears. Read once, kept in memory.
 'use strict';
 const HELP_FILES = ['option', 'Races', 'Classes', 'Personalities', 'MonsterRaces', 'Demigods', 'Draconians', 'Demons', 'Dragons', 'Orcs', 'Warlocks', 'DragonRealms', 'Disciples', 'Weaponmasters', 'Runeknights', 'Skillmasters', 'magic', 'birth'];
-const TOPICS = {};
+const TOPICS = {}, TOPF = {};   // TOPF keeps each file's own pages: several files have a page called Death, Golem, Craft...
+let TOPIC_FILE = '';   // which help file the choices on screen belong to, when that is known
 let topicsAsked = false;
 function topicsLoad() {
   if (topicsAsked) return; topicsAsked = true;
   for (const f of HELP_FILES) fetch('help/' + f + '.txt').then(r => r.ok ? r.text() : '').then(t => {
     const parts = t.split(/<topic:/); parts.shift();
-    for (const p of parts) { const e = p.indexOf('>'); if (e < 0) continue; const name = p.slice(0, e).trim().toLowerCase(); if (!TOPICS[name]) TOPICS[name] = p.slice(e + 1); }
+    for (const p of parts) { const e = p.indexOf('>'); if (e < 0) continue; const name = p.slice(0, e).trim().toLowerCase(); if (!TOPICS[name]) TOPICS[name] = p.slice(e + 1); (TOPF[f] = TOPF[f] || {})[name] = p.slice(e + 1); }
+    if (typeof schedule === 'function') schedule();
   }).catch(() => {});
 }
 const helpStrip = s => s.replace(/<\/?(color|style|indent|link|topic)[^>]*>/g, '').replace(/<[^>]{1,40}>/g, '');
@@ -20,7 +22,8 @@ function topicHtml(label, title) {
     return rows ? `<div class="ttl">${esc(label.replace(/\//g, ', '))}</div>${rows}` : '';
   }
   const k = String(label || '').toLowerCase().replace(/\s*\(.*\)\s*$/, '').trim();
-  const raw = TOPICS[TOPIC_ALIAS[k]] || TOPICS[k] || TOPICS[k + 'mode'] || TOPICS[k.replace(/ /g, '')] || TOPICS[k.replace(/ /g, '-')];
+  const own = TOPF[TOPIC_FILE] || {};
+  const raw = own[k] || own[k.replace(/ /g, '')] || own[k.replace(/ /g, '-')] || TOPICS[TOPIC_ALIAS[k]] || TOPICS[k] || TOPICS[k + 'mode'] || TOPICS[k.replace(/ /g, '')] || TOPICS[k.replace(/ /g, '-')];
   if (!raw && k.length >= 19) { const full = Object.keys(TOPICS).find(t => t.startsWith(k)); if (full) return topicHtml(full, title); }
   if (!raw) return '';
   const lines = raw.replace(/\r/g, '').split('\n').slice(1); let out = '', text = 0, table = [], inTab = false, done = false;

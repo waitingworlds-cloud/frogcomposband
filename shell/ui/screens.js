@@ -562,7 +562,7 @@ document.addEventListener('mousemove', ev => {
   descHover = de ? de.dataset.desc : ''; descEv = ev;
   if (de) { const d = DESC[descHover]; if (d) { $('#tip').classList.add('wide'); return showTip(d + descHint(de), ev); } if (!DESC_ASKED[descHover]) { DESC_ASKED[descHover] = 1; sendRaw('D ' + descHover.replace(':', ' ')); } }
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
-  const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
+  const tp = ev.target.closest && ev.target.closest('[data-topic]'); const tf0 = TOPIC_FILE; if (tp && tp.dataset.tf != null) TOPIC_FILE = tp.dataset.tf; const th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : ''; TOPIC_FILE = tf0;
   $('#tip').classList.toggle('wide', !!th);
   if (th) return showTip(th, ev);
   TIP_EL = tipEl || null;
