@@ -18,6 +18,8 @@ function menuBox() {
   while (x1 > x0 && blankCol(x1)) x1--; while (x0 < x1 && blankCol(x0)) x0++;
   return { x0, y0, x1, y1 };
 }
+let MENU_NOTE = '';
+const menuNote = () => MENU_NOTE ? `<div class="mnote"><span>${esc(MENU_NOTE)}</span><span class="btn go" data-key=" ">OK</span></div>` : '';
 function menuHtml() {
   const b = menuBox(); if (!b) return '';
   const rows = []; let n = 0, prose = 0; const pg = pagerInfo(b.y0, b.y1);
@@ -33,6 +35,11 @@ function menuHtml() {
     rows.push({ y, s, toks });
   }
   if (pg) while (rows.length && !rows[rows.length - 1].s.trim()) rows.pop();
+  // something the game says over a menu and waits on ("...just yet. Press any key to continue.", "... -more-"): a note on top of it
+  MENU_NOTE = '';
+  { const i = rows.findIndex(r => /-more-\s*$|Press any key to continue\.?\s*$/i.test(r.s)), ft = rows.findIndex(r => r.toks.length);
+    if (i >= 0 && (ft < 0 || i < ft)) { MENU_NOTE = rows.slice(0, i + 1).map(r => r.s.trim()).filter(Boolean).join(' ').replace(/\s*(-more-|Press any key to continue\.?)\s*$/i, '').replace(/\begos\b/, 'enchanted kinds')
+      .replace(/^You have activated the Mogaminator for the first time.*$/, 'Your pickup rules start from the game\'s own list. You can change them here at any time.'); rows.splice(0, i + 1); } }
   // only menus: a few choices, and not a page of running text or a table
   const filled = rows.filter(r => r.s.trim()).length;
   if ((n < 3 && !(n === 2 && filled <= 4)) || prose > 4 || n < filled * .3) return '';   // two choices count in a small box (which hand?)
@@ -79,10 +86,12 @@ function menuCards(rows, b) {
   const hue = r => { const a = G.a[r.y] || [], t = r.toks[0]; for (let x = t.at + t.len; x < t.end; x++) if (rowText(r.y)[x] !== ' ') return a[x] & 31; return -1; };
   const hues = items.map(hue), tally = {}; hues.forEach(h => tally[h] = (tally[h] || 0) + 1);
   const odd = hues.filter(h => tally[h] === 1), cur = odd.length === 1 && Object.keys(tally).length === 2 ? items[hues.indexOf(odd[0])] : null;
-  const card = r => { const t = r.toks[0], k = esc(t.key); return `<div class="mcard${r === cur ? ' cur' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
-  return `<div class="pane npanel menup mcards">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
-    ${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
-    ${foot.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${digitKeys(foot)}</div>` : ''}</div>`;
+  const tw = title && MENU_TITLES[title.s.trim()], hid = r => MENU_HIDE[r.s.slice(r.toks[0].at + r.toks[0].len, r.toks[0].end).trim()];
+  const card = r => { const t = r.toks[0], k = esc(t.key); return hid(r) ? '' : `<div class="mcard${r === cur ? ' cur' : ''}${MENU_NOTE ? ' off' : ''}" data-key="${k}"><span class="key">${k}</span><span class="ml">${menuWord(r, t.at + t.len, t.end)}</span></div>`; };
+  const footRow = r => /^Move to <dir>, Select to Enter, Cancel to ESC/.test(r.s.trim()) ? '<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span><span class="mhint">click a choice, or use the arrows and Enter</span>' : rowHtml(r.y, r.s.search(/\S/), b.x1 + 1);
+  return `<div class="pane npanel menup mcards${tw ? ' mjournal mopts' : ''}">${title ? `<div class="mtitle ctitle">${tw ? `${esc(tw[0])}<small>${esc(tw[1])}</small>` : rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    ${menuNote()}${groups.map(g => `<div class="mgrid">${g.map(card).join('')}</div>`).join('')}
+    ${foot.length ? `<div class="mfoot">${foot.map(footRow).join('<br>')}${digitKeys(foot)}</div>` : ''}</div>`;
 }
 // a number asked below a menu ("Delay Factor (0-9 or ESC to accept)"): each digit is a button
 function digitKeys(foot) {
@@ -93,7 +102,14 @@ function digitKeys(foot) {
 
 // plainer names for the game's own menu words, with a line saying what each choice shows
 const MENU_TITLES = { 'Display current knowledge': ['Journal', 'Everything your character has learned so far'] };
+const MENU_HIDE = { 'Window Flags': 1 };   // extra terminal windows: this version has none (the key still works)
+Object.assign(MENU_TITLES, { 'FrogComposband Options': ['Options', 'How the game plays, and what it shows you'] });
 const MENU_WORDS = {
+  'Input Options': ['Controls', 'keys, prompts and repeats'], 'Map Screen Options': ['Map', 'what the map shows'], 'Text Display Options': ['Text', 'how messages and lists read'],
+  'Game-Play Options': ['Play', 'habits while you play'], 'Disturbance Options': ['Interruptions', 'what stops you mid-stride'], 'Auto-Destroyer Options': ['Junk', 'what to destroy without asking'],
+  'List Display Options': ['Lists', 'the creature and item lists'], 'Mogaminator Preferences': ['Pickup rules', 'what you take or leave'], 'Base Delay Factor': ['Animation speed', 'how long effects linger'],
+  'Hitpoint Warning': ['Low life warning', 'when the game warns you'], 'Mana Color Threshold': ['Low mana warning', 'when the mana bar changes colour'], 'Autosave Options': ['Autosave', 'how often the game saves itself'],
+  'Birth Options (Browse Only)': ['Starting rules', 'chosen at creation: view only'],
   'Artifacts': ['Artifacts', 'one-of-a-kind treasures you have found'], 'Objects': ['Items', 'every kind of item you know'], 'Egos': ['Enchanted kinds', 'special makes of weapon and armour'],
   'Auto Pick/Destroy': ['Pickup rules', 'what you take or destroy without asking'], 'Known Monsters': ['Bestiary', 'creatures you have met'], 'Wanted Monsters': ['Bounties', 'creatures with a price on their head'],
   'Remaining Uniques': ['Named foes', 'the ones still alive'], 'Kill Count': ['Kills', 'what you have slain'], 'Pets': ['Companions', 'who follows you'], 'Dungeons': ['Dungeons', 'how deep you have been'],
@@ -106,8 +122,7 @@ const menuWord = (r, x, e) => { const w = MENU_WORDS[r.s.slice(x, e).trim()]; re
 // Anything else on the lines (a description beside a choice, prose between them) keeps the text layout.
 function menuSections(rows, b) {
   const isEsc = t => t.key === 'Esc';
-  let note = '';   // "You haven't found any artifacts just yet. Press any key to continue." written over the menu
-  { const i = rows.findIndex(r => r.s.trim()); if (i >= 0 && /Press any key to continue\.?\s*$/i.test(rows[i].s)) { note = rows[i].s.replace(/\s*Press any key to continue\.?\s*$/i, '').replace(/\begos\b/, 'enchanted kinds').trim(); rows = rows.slice(i + 1); } }
+  const note = MENU_NOTE;
   const items = rows.filter(r => r.toks.some(t => !isEsc(t)));
   if (items.length < 4 || items.length > 40) return '';
   const ats = []; items.forEach(r => r.toks.forEach(t => { if (!isEsc(t)) ats.push(t.at); }));
@@ -131,7 +146,7 @@ function menuSections(rows, b) {
   const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard${note ? ' off' : ''}" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${menuWord(r, t.at + t.len, t.end)}</span></div>`; };
   const sec = g => g.items.length ? `<div class="msec">${g.head ? `<div class="mhead">${g.head}</div>` : ''}<div class="mlist">${g.items.map(card).join('')}</div></div>` : '';
   return `<div class="pane npanel menup mcards msect${tw ? ' mjournal' : ''}">${title ? `<div class="mtitle ctitle">${tw ? `${esc(tw[0])}<small>${esc(tw[1])}</small>` : rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
-    ${note ? `<div class="mnote"><span>${esc(note)}</span><span class="btn go" data-key=" ">OK</span></div>` : ''}
+    ${menuNote()}
     <div class="mcols">${cols.map(c => `<div>${c.map(sec).join('')}</div>`).join('')}</div>
     ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${note ? '' : esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${menuWord(r, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
 }

@@ -18,6 +18,7 @@ function askKind() {
   if ((m = /^(.*?)\s*\[(y\/n(?:\/Auto)?|Y\/N|Y,n)\]\s*$/.exec(top))) return { t: 'yn', q: m[1], opts: m[2].split(/[\/,]/) };
   if ((m = /Quantity \((\d+)(?:-| to )(\d+)\):\s*(\d*)/.exec(top))) return { t: 'qty', lo: +m[1], hi: +m[2], v: m[3] === '' ? null : +m[3] };
   if ((m = /^Rest \(0-\d+, '\*' for HP\/SP, '&' as needed\):\s*(\S*)/.exec(top))) return { t: 'rest', v: m[1] };
+  if ((m = /^Map sector \[[^\]]*\], which is\s*(.*?)\s*your sector\.\s+Direction\?$/.exec(top))) return { t: 'locate', where: m[1] };
   if (/^Direction\b.*\?$/.test(top)) return { t: /'\*'/.test(top) ? 'aim' : 'dir', cur: /'5'/.test(top) ? '5' : /'t'/.test(top) ? 't' : '', near: /'''/.test(top) };
   if ((m = /^(.*?)\s*\[((?:[a-z?+\-(]|<dir>)(?:,(?:[a-z?+\-(]|<dir>))+)\]\s*$/.exec(top))) { const keys = [...new Set(m[2].split(','))]; if (keys.includes('q') || keys.includes('r')) return { t: 'look', what: m[1], keys }; }
   if (/^Enter character to be identified/.test(top)) return { t: 'sym' };
@@ -69,6 +70,8 @@ function askHtml() {
       <div class="askb col">${q('&', 'As long as needed', 'go', 'Until life and mana are back and what ails you has passed')}${q('*', 'Until life or mana is full', '', 'Stops as soon as either one is full')}${q('50', 'Fifty turns', '', 'A short breather')}</div>
       <div class="askb">${cancel()}</div>` };
   }
+  if (a.t === 'locate') { const ar = (k, g, tip) => `<span class="btn askar" data-key="${k}" data-tip="${tip}">${g}</span>`;
+    return { cls: 'strip', html: `<div class="askrow"><div class="grow"><div class="askh lite">Looking around the level</div><div class="asks">${a.where ? `You are looking ${esc(a.where.replace(/ of$/, '').toLowerCase())} of where you stand.` : 'This is where you stand.'} Move the view with the arrows.</div></div>${ar('4', '◀', 'West')}${ar('8', '▲', 'North')}${ar('2', '▼', 'South')}${ar('6', '▶', 'East')}<span class="btn go" data-key="Esc">Done</span></div>` }; }
   if (a.t === 'dir') return { cls: 'strip', html: `<div class="askrow"><div class="grow"><div class="askh lite">Which way?</div><div class="asks">Click a square next to you, or press a direction.</div></div>${cancel()}</div>` };
   if (a.t === 'aim') return { cls: 'strip', html: `<div class="askrow">${ASK_AIM.o && artHtml(ASK_AIM.o.ki, 40) ? `<div class="slot askart t-${tvIcon(ASK_AIM.o.tv)}" data-tip="${esc(cap(ASK_AIM.o.n))}">${artHtml(ASK_AIM.o.ki, 40)}</div>` : ''}<div class="grow"><div class="askh lite">Choose a target${aimFor ? ` <span class="askfor">for ${esc(aimFor)}</span>` : ''}</div><div class="asks">Click a creature, or any square to aim that way.</div></div>
       ${a.cur ? btn(a.cur, 'Same target', 'go', a.cur, 'Aim at the creature you already have targeted') : ''}${btn('*', a.cur ? 'Another' : 'Nearest', a.cur ? '' : 'go', '*', 'Step through the creatures in view')}${cancel()}</div>` };

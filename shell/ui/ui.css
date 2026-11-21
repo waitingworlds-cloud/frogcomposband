@@ -347,6 +347,12 @@ h3 em{font:italic 400 13px Spectral;color:var(--mute);letter-spacing:0;text-shad
 .mcard .ml .mw{display:block}.mcard .ml .mwd{display:block;font:italic 400 13.5px/1.2 Spectral,serif;color:#8f897d;margin-top:2px;white-space:normal}
 .mjournal{width:980px}.mjournal .mcard{padding:8px 14px;min-height:54px}.mjournal .mhead{color:#ff8a3c}
 .ctitle small{display:block;font:italic 400 15px/1.3 Spectral,serif;letter-spacing:0;color:#9a9488;margin-top:6px;text-transform:none}
-.msect{position:relative}.mnote{position:absolute;z-index:3;left:50%;top:46%;transform:translate(-50%,-50%);min-width:520px;box-shadow:0 18px 50px #000c;display:flex;align-items:center;gap:16px;justify-content:space-between;margin:0;padding:12px 16px;border:1px solid #ff8a3c66;border-left:3px solid #ff8a3c;background:#221a14;font:400 18px Spectral,serif;color:#f1e8d8;border-radius:3px}
+.msect,.mcards{position:relative}.mnote{max-width:640px;position:absolute;z-index:3;left:50%;top:46%;transform:translate(-50%,-50%);min-width:520px;box-shadow:0 18px 50px #000c;display:flex;align-items:center;gap:16px;justify-content:space-between;margin:0;padding:12px 16px;border:1px solid #ff8a3c66;border-left:3px solid #ff8a3c;background:#221a14;font:400 18px Spectral,serif;color:#f1e8d8;border-radius:3px}
 .mcard.off{opacity:.45;pointer-events:none}
 .hubterm .t-w.top{align-items:flex-start;padding-top:22px;box-sizing:border-box}
+#banner .askar{min-width:38px;padding:8px 0;text-align:center;font-size:15px}
+.mopts{width:900px}.mopts .mgrid{margin-bottom:12px}.mfoot .mhint{margin-left:18px;opacity:.75}
+/* pickup rules editor: its menu and its question float over the text as cards */
+.edw{position:relative}.edpop{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:4;padding:18px 20px 20px;background:linear-gradient(#1c1e22,#131517);border:1px solid #4a3a2a;border-top:2px solid #ff8a3c;box-shadow:0 22px 60px #000d;border-radius:3px}
+.edpop .edq{font:400 22px Fell,Spectral,serif;letter-spacing:.05em;color:#f4efe4;margin-bottom:14px}.edcols{display:flex;gap:14px;align-items:flex-start}.edcol{display:grid;gap:5px;min-width:300px}.edcol.was{opacity:.5}
+.edpop .mcard{padding:7px 12px;font-size:17px}.edpop .mcard small{margin-left:auto;font:400 12px Inter,sans-serif;color:#8f897d}.edpop .edb{display:flex;gap:10px}.edpop.yn{top:120px;min-width:420px}

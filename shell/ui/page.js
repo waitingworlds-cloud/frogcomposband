@@ -26,17 +26,45 @@ function pageRow(y, b, cw, menu) {
   return h;
 }
 // the auto-pickup rules editor writes straight over the map: a text editor by nature, so it keeps fixed-width type
-const pageEditing = () => !!S && /^\(\^Q:Quit, \^W:Save&Quit|^\([a-z]-[a-z]\) Command:/.test(rowText(0)) && /^[#~?!(]|^\s*$/.test(rowText(1)) && !G.icky;
+let EDIT_ON = false;
+const pageEditing = () => {
+  if (!S) return EDIT_ON = false;
+  const r0 = rowText(0);
+  if (/^\(\^Q:Quit, \^W:Save&Quit/.test(r0)) return EDIT_ON = true;
+  if (/^\([a-z]-[a-z]\) Command:/.test(r0) && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].some(y => /\+-{8,}\+/.test(rowText(y)))) return EDIT_ON = true;
+  if (EDIT_ON && /\[y\/n\]\s*$/.test(r0)) return true;   // "Discard all changes and quit. Are you sure?"
+  return EDIT_ON = false;
+};
+// the editor's own menu is a box of lettered lines drawn over the text (with a second box beside it for a sub-menu)
+function editorMenu() {
+  const cols = {}, mask = [];
+  for (let y = 1; y < G.h; y++) { const s = rowText(y), re = /\|\s?([a-z])\) ([^|]*?)\s*(\^[A-Z]|>)?\s*\|/g; let m;
+    while ((m = re.exec(s))) { (cols[m.index] = cols[m.index] || []).push({ k: m[1], n: m[2].trim(), hot: m[3] && m[3][0] === '^' ? 'Ctrl ' + m[3][1] : '', sub: m[3] === '>' }); mask.push([y, m.index, m.index + m[0].length]); re.lastIndex--; }
+    const bd = /\+-{8,}\+/g; while ((m = bd.exec(s))) mask.push([y, m.index, m.index + m[0].length]); }
+  return { cols: Object.keys(cols).map(Number).sort((a, b) => a - b).map(x => cols[x]), mask };
+}
+const ED_WORDS = { 'Help': 'How the rules work', 'Quit without save': 'Close without saving', 'Save & Quit': 'Save and close', 'Revert all changes': 'Undo all changes', 'Load preferences': 'Load the saved rules', 'Save as': 'Save under a name',
+  'Edit': 'Edit', 'Search': 'Find', 'Move cursor': 'Jump to', 'Insert...': 'Insert a rule', 'Adjective (general)': 'Add a word: condition', 'Adjective (special)': 'Add a word: quality', 'Keywords (noun)': 'Add a word: kind of item', 'Action letter': 'What to do with it' };
 function editorHtml() {
   HUB.cur = 'opts';
   const fs = 17, cw = fs * .602, lh = 21.5, x1 = Math.min(G.w - 1, 118); let rows = '';
-  for (let y = 1; y < G.h; y++) rows += `<div class="pr"><span class="pc mono" style="font-size:${fs}px;opacity:1">${rowHtml(y, 0, x1 + 1)}</span></div>`;
-  const pos = /\((\d+),(\d+)\)\s*$/.exec(rowText(0)), menu = /Command:/.test(rowText(0));
-  const caret = G.cv && G.cy >= 1 ? `<i class="mcaret" style="left:${G.cx * cw}px;top:${(G.cy - 1) * lh + lh - 3}px;width:${cw}px"></i>` : '';
+  const r0 = rowText(0), yn = /\[y\/n\]\s*$/.test(r0), menu = !yn && /Command:/.test(r0), em = menu || yn ? editorMenu() : null;
+  const cut = (y, x) => em && em.mask.some(([my, a, b]) => my === y && x >= a && x < b);
+  for (let y = 1; y < G.h; y++) {
+    let h = '';
+    if (em && em.mask.some(m => m[0] === y)) { let x = 0; while (x <= x1) { const c = cut(y, x); let e = x; while (e <= x1 && cut(y, e) === c) e++; h += c ? ' '.repeat(e - x) : rowHtml(y, x, e); x = e; } }
+    else h = rowHtml(y, 0, x1 + 1);
+    rows += `<div class="pr"><span class="pc mono" style="font-size:${fs}px;opacity:${em ? .2 : 1}">${h}</span></div>`;
+  }
+  const pos = /\((\d+),(\d+)\)\s*$/.exec(r0);
+  const caret = G.cv && G.cy >= 1 && !em ? `<i class="mcaret" style="left:${G.cx * cw}px;top:${(G.cy - 1) * lh + lh - 3}px;width:${cw}px"></i>` : '';
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  return `<div class="pane npanel hub">${hubTabsHtml('opts')}<div class="hubb term"><div class="hubterm"><div class="t-h pgh"><b>Auto-pickup rules</b><span class="pgn">one rule a line: what to pick up, leave or destroy without asking${pos ? ` · line ${+pos[2] + 1}` : ''}</span></div>
-    <div class="t-w" style="align-items:flex-start;justify-content:flex-start;overflow:hidden"><div class="pgt" style="width:${Math.ceil((x1 + 1) * cw)}px;--lh:${lh}px">${rows}${caret}</div></div>
-    <div class="t-f pgf">${menu ? k('Esc', 'data-key="Esc"', 'back to the rules') + '<span class="pgw">press a letter to choose</span>' : k('Esc', 'data-key="Esc"', 'menu') + k('Ctrl W', 'data-key="\x17"', 'save and close') + k('Ctrl Q', 'data-key="\x11"', 'close without saving') + '<span class="pgw">type to edit</span>'}</div></div></div></div>`;
+  let pop = '';
+  if (yn) pop = `<div class="edpop yn"><div class="edq">${esc(r0.replace(/\s*\[y\/n\]\s*$/, '').replace(/^Discard all changes and quit\. Are you sure\?$/, 'Close without saving your changes?'))}</div><div class="edb"><span class="btn go" data-key="y"><span class="key">y</span>Yes</span><span class="btn" data-key="n"><span class="key">n</span>No</span></div></div>`;
+  else if (menu && em.cols.length) pop = `<div class="edpop"><div class="edq">Pickup rules</div><div class="edcols">${em.cols.slice(-1).map(c => `<div class="edcol">${c.map(it => `<div class="mcard" data-key="${esc(it.k)}"><span class="key">${esc(it.k)}</span><span class="ml">${esc(ED_WORDS[it.n] || it.n)}</span>${it.hot ? `<small>${esc(it.hot)}</small>` : it.sub ? '<small>›</small>' : ''}</div>`).join('')}</div>`).join('')}</div></div>`;
+  return `<div class="pane npanel hub">${hubTabsHtml('opts')}<div class="hubb term"><div class="hubterm"><div class="t-h pgh"><b>Pickup rules</b><span class="pgn">one rule a line: what to pick up, leave or destroy without asking${pos ? ` · line ${+pos[2] + 1}` : ''}</span></div>
+    <div class="t-w edw" style="align-items:flex-start;justify-content:flex-start;overflow:hidden"><div class="pgt" style="width:${Math.ceil((x1 + 1) * cw)}px;--lh:${lh}px">${rows}${caret}</div>${pop}</div>
+    <div class="t-f pgf">${yn ? '' : menu ? k('Esc', 'data-key="Esc"', 'back to the rules') + '<span class="pgw">press a letter to choose</span>' : k('Esc', 'data-key="Esc"', 'menu') + k('Ctrl W', 'data-key="\x17"', 'save and close') + k('Ctrl Q', 'data-key="\x11"', 'close without saving') + '<span class="pgw">type to edit</span>'}</div></div></div></div>`;
 }
 function hubPageHtml(side) {
   HUB.cur = hubCur();
