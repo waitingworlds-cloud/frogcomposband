@@ -20,8 +20,10 @@ function birthParse() {
     // the summary: "Label: value" on the left, a table of bonuses on the right
     const SPLIT = 26; let ends = [], starts = [];
     for (; y < rows.length; y++) {
-      const m = /^([A-Z][A-Za-z ]{0,9}?)\s*:\s?(.*)$/.exec(rows[y].slice(0, SPLIT)); if (!m) break;
-      const right = rows[y].slice(SPLIT), f = { label: m[1], value: m[2].trim(), y };
+      // with no realm line the sum of the bonuses (the "==" row) stands on a line of its own
+      const lone = ends.length && !rows[y].slice(0, SPLIT - 3).trim() && /==/.test(rows[y].slice(SPLIT - 3, SPLIT + 4));
+      const m = lone ? [0, '', ''] : /^([A-Z][A-Za-z ]{0,9}?)\s*:\s?(.*)$/.exec(rows[y].slice(0, SPLIT)); if (!m) break;
+      const right = rows[y].slice(SPLIT).replace(/^=*/, s0 => ' '.repeat(s0.length)), f = { label: m[1], value: m[2].trim(), y, lone };
       if (!out.cols.length && y > 0 && right.trim() && !/:/.test(right) && !/\d/.test(right)) { const re = /\S+/g; let t; while ((t = re.exec(right))) { out.cols.push(t[0]); ends.push(SPLIT + t.index + t[0].length); starts.push(SPLIT + t.index); } out.words = !/STR\s+INT/.test(right); }
       else if (out.words && ends.length && right.trim()) { const vals = starts.map((st, i) => rows[y].slice(st, i + 1 < starts.length ? starts[i + 1] : 200).trim()); if (/==/.test(rows[y].slice(SPLIT - 3, SPLIT + 3))) out.total = vals; f.vals = vals; f.cols = starts.map(st => readable(col(((G.a[y] || [])[st] & 31) || 1))); }
       else if (ends.length && /[-+]\d|\d%/.test(right)) { const vals = ends.map(() => ''), tr = /[-+]?\d+%?/g; let t; while ((t = tr.exec(right))) { const e = SPLIT + t.index + t[0].length; let bi = 0; ends.forEach((c, i) => { if (Math.abs(c - e) < Math.abs(ends[bi] - e)) bi = i; }); vals[bi] = t[0]; } if (/==/.test(rows[y].slice(SPLIT - 2, SPLIT + 4)) || /==/.test(right)) out.total = vals; f.vals = vals; }
@@ -75,6 +77,8 @@ function titleAfter() {
   document.querySelectorAll('.tmob').forEach(c => { const S2 = 96, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(S2 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; sprite(g, 'mon', c.dataset.n, 0, 0, S2); sprite.flat = false; });
 }
 let naming = false;
+// what each starting value costs (the game's own table)
+const STAT_COST = { 8: -3, 9: -2, 10: -1, 11: 0, 12: 1, 13: 2, 14: 3, 15: 6, 16: 10, 17: 16, 18: 99 };
 function birthHtml() {
   naming = false;
   topicsLoad();
@@ -96,7 +100,7 @@ function birthHtml() {
     left = `<div class="bsheet">${naming ? `<div class="bname bnaming">${nm}<i class="bcaret"></i></div><div class="bnhint">Type a name · <span class="key kb" data-key="\r">Enter</span> keep it · <span class="key kb" data-key="\x1b">Esc</span> cancel</div>`
       : `<div class="bname"${canName ? ` data-key="n" data-tip="Your name&#10;click or press n to change it" style="cursor:text"` : ''}>${nm || 'Unnamed'}</div>`}
       <div class="bsub">${esc([val('Sex'), val('Race'), val('Class')].filter(Boolean).join(' · '))}</div>
-      <div class="bfields">${main.concat(side).map(f => `<div class="bf"><span class="lbl">${esc(f.label)}</span><b>${esc(f.value) || '<i>none</i>'}</b></div>`).join('')}</div>
+      <div class="bfields">${main.filter(f => !f.lone).concat(side).map(f => `<div class="bf"><span class="lbl">${esc(f.label)}</span><b>${esc(f.value) || '<i>none</i>'}</b></div>`).join('')}</div>
       <div class="sect" style="margin-top:14px">${b.words ? 'Skills' : 'Bonuses'}</div>${table}</div>`;
   }
   let right = '';
@@ -104,7 +108,8 @@ function birthHtml() {
     if (k.type === 'h') right += `<div class="bhd">${k.html}</div>`;
     else if (k.type === 'p') right += `<p class="bp">${k.html}</p>`;
     else if (k.type === 'stats') right += `<div class="bst" style="grid-template-columns:90px 34px 64px 34px repeat(${Math.max(0, k.cols.length - 1)},70px)"><span></span><span></span><span class="bh">${esc(k.cols[0] || '')}</span><span></span>${k.cols.slice(1).map(c => `<span class="bh">${esc(c)}</span>`).join('')}
-      ${k.rows.map(r => `<span class="sn">${esc(r.name)}</span><span class="key kb" data-key="${esc(r.dec)}" data-tip="Lower (${esc(r.dec)})">&minus;</span><b class="sv">${esc(r.vals[0] || '')}</b><span class="key kb" data-key="${esc(r.inc)}" data-tip="Raise (${esc(r.inc)})">+</span>${r.vals.slice(1).map((v, i) => `<span class="${i === r.vals.length - 2 ? 'st' : 'sm ' + (/^-/.test(v) ? 'neg' : /^\+0$/.test(v) ? 'zero' : /^\+/.test(v) ? 'pos' : '')}">${esc(v)}</span>`).join('')}`).join('')}
+      ${k.rows.map(r => { const v = +r.vals[0], spent = k.rows.reduce((a, q) => a + (STAT_COST[+q.vals[0]] || 0), 0), lo = v <= 8, hi = v >= 17 || spent - STAT_COST[v] + STAT_COST[v + 1] > 30;
+        return `<span class="sn">${esc(r.name)}</span><span class="key kb ${lo ? 'off' : ''}" data-key="${esc(r.dec)}" data-tip="${lo ? 'Already at the lowest (8)' : `Lower (${esc(r.dec)}): gives back ${STAT_COST[v] - STAT_COST[v - 1]} point${STAT_COST[v] - STAT_COST[v - 1] === 1 ? '' : 's'}`}">&minus;</span><b class="sv">${esc(r.vals[0] || '')}</b><span class="key kb ${hi ? 'off' : ''}" data-key="${esc(r.inc)}" data-tip="${v >= 17 ? 'Already at the highest (17)' : hi ? `Raising this costs ${STAT_COST[v + 1] - STAT_COST[v]} more points than you have left` : `Raise (${esc(r.inc)}): costs ${STAT_COST[v + 1] - STAT_COST[v]} point${STAT_COST[v + 1] - STAT_COST[v] === 1 ? '' : 's'}`}">+</span>${r.vals.slice(1).map((v, i) => `<span class="${i === r.vals.length - 2 ? 'st' : 'sm ' + (/^-/.test(v) ? 'neg' : /^\+0$/.test(v) ? 'zero' : /^\+/.test(v) ? 'pos' : '')}">${esc(v)}</span>`).join('')}`; }).join('')}
       ${k.left !== null ? `<span class="sn" style="grid-column:1/5;color:#b3ac9f;font-size:16px" data-tip="Each stat costs points: higher stats cost more. You have 30 to spend.">Points spent</span><span class="sm" style="color:${+k.left > 30 ? '#ff7a66' : +k.left === 30 ? '#a9c98c' : '#ffcf6a'};font-size:19px;white-space:nowrap">${esc(k.left)}<span style="color:#7d776c;font-size:14px"> / 30</span></span>` : ''}</div>`;
     else if (k.type === 'pre') right += `<pre class="bpre">${k.rows.join('\n')}</pre>`;
     else if (!k.items.length) continue;

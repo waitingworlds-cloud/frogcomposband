@@ -12,6 +12,7 @@ function topicsLoad() {
   }).catch(() => {});
 }
 const helpStrip = s => s.replace(/<\/?(color|style|indent|link|topic)[^>]*>/g, '').replace(/<[^>]{1,40}>/g, '');
+const TOPIC_ALIAS = { options: 'birthoptions', 'change name': 'charactername', 'name': 'charactername', 'more info': 'charattributes' };
 function topicHtml(label, title) {
   if (/\//.test(label)) {   // a group of races: one line for each
     const rows = label.split('/').map(n => { const h = topicHtml(n.trim()); if (!h) return ''; const b = /<div class="tbody">([\s\S]*?)<\/div>/.exec(h); const first = b ? (b[1].match(/^.*?[.!?](\s|$)/) || [b[1]])[0] : '';
@@ -19,7 +20,7 @@ function topicHtml(label, title) {
     return rows ? `<div class="ttl">${esc(label.replace(/\//g, ', '))}</div>${rows}` : '';
   }
   const k = String(label || '').toLowerCase().replace(/\s*\(.*\)\s*$/, '').trim();
-  const raw = TOPICS[k] || TOPICS[k + 'mode'] || TOPICS[k.replace(/ /g, '')] || TOPICS[k.replace(/ /g, '-')];
+  const raw = TOPICS[TOPIC_ALIAS[k]] || TOPICS[k] || TOPICS[k + 'mode'] || TOPICS[k.replace(/ /g, '')] || TOPICS[k.replace(/ /g, '-')];
   if (!raw && k.length >= 19) { const full = Object.keys(TOPICS).find(t => t.startsWith(k)); if (full) return topicHtml(full, title); }
   if (!raw) return '';
   const lines = raw.replace(/\r/g, '').split('\n').slice(1); let out = '', text = 0, table = [], inTab = false, done = false;

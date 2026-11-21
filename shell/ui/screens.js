@@ -33,7 +33,8 @@ function itemsHtml() {
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
   const room = 800 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
-  const tabs = u.tabs.map(t => `<div class="${t.on ? 'on' : ''}">${esc(t.name)}</div>`).join('');
+  // a tab is a button: the game steps through its tabs with "/", so a click sends as many as it takes
+  const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
   return `<div class="pane npanel inv" style="--rh:${rh}px;width:800px">
     <div class="tabs">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
     <div class="nrows">${rows}</div>
@@ -359,7 +360,7 @@ document.addEventListener('mousemove', ev => {
   const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
   if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }
   if (atEl && atEl.classList.contains('mob') && S && S.mons) { const [ax, ay] = atv.split(',').map(Number); recallSet(S.mons.find(m => m.dx === ax && m.dy === ay)); }   // a creature or item in the side lists: show where it is
-  if (CTX) return showTip('', ev);
+  if (typeof CTX !== 'undefined' && CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   // an item: its full description from the game, fetched once and kept until the next turn
   const de = ev.target.closest && ev.target.closest('[data-desc]');

@@ -77,6 +77,23 @@ addEventListener('keydown', e => {
 });
 
 /* ---------- messages from the game ---------- */
+// item descriptions are kept until the turn or what you carry, wear or stand by changes: clearing them on every
+// redraw made a hovered item's card blink between its short tip and its full description
+let DESC_SIG = '', DESC_SHOP = '';
+const descSig = m => [m.px, m.py, m.gx, m.gy, m.p && [m.p.day, m.p.hour, m.p.min, m.p.au, m.p.lev, m.p.stats].join(), (m.msgs || []).slice(-1).map(x => x.turn + x.s).join(), (m.pack || []).map(o => o && o.n).join('|'), (m.equip || []).map(o => o && o.n).join('|'), (m.floor || []).map(o => o && o.n + o.dx + ',' + o.dy).join('|'), (m.mons || []).map(o => o.r + ':' + o.hp).join('|')].join('#');
+// a screen keeps the largest size it has had while it stays open, so new text inside it (a longer list, a
+// note, a prompt) never makes the whole panel jump or shrink under the pointer
+let PHOLD = null;
+function panelHold(root) {
+  const p = root && root.querySelector('.npanel'); if (!p) { PHOLD = null; return; }
+  const ttl = p.querySelector('.tabs .on, .mtitle, .dhead'), id = p.className.replace(/\bnaming\b/, '').trim() + '|' + (ttl ? ttl.textContent.trim() : '');
+  if (!PHOLD || PHOLD.id !== id) PHOLD = { id, w: 0, h: 0 };
+  p.style.minWidth = p.style.minHeight = '';
+  const cs = getComputedStyle(p), r = p.getBoundingClientRect(), padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  const w = r.width / SCALE - (cs.boxSizing === 'border-box' ? 0 : padX), h = r.height / SCALE - (cs.boxSizing === 'border-box' ? 0 : padY);
+  PHOLD.w = Math.max(PHOLD.w, w); PHOLD.h = Math.max(PHOLD.h, h);
+  p.style.minWidth = PHOLD.w + 'px'; p.style.minHeight = PHOLD.h + 'px';
+}
 function onMsg(m) {
   if (m.t === 'hello') { PAL = m.pal; }
   else if (m.t === 'dict') { DICT = m; }
@@ -87,8 +104,9 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
+  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
   else if (m.t === 'ui') {
+    if (m.kind === 'shop' || m.kind === 'home') { const sg = JSON.stringify(m.rows || m.items || m); if (sg !== DESC_SHOP) { DESC_SHOP = sg; for (const k in DESC) if (/^[sh]:/.test(k)) { delete DESC[k]; delete DESC_ASKED[k]; } } }
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
     uiSel = ''; schedule(); ctxOnUi(m);
@@ -489,13 +507,24 @@ function walkPath(tx, ty) {
   const mw = S.map.w, mh = S.map.h, cells = S.map.c, sx = mw >> 1, sy = mh >> 1, gx = sx + tx, gy = sy + ty;
   let out = null;
   const ok = (x, y) => { if (x < 0 || y < 0 || x >= mw || y >= mh) return false; const c = cells[y * mw + x]; return !!(c && c[0]) && !NOWALK[featClass(c[0])]; };
-  if (ok(gx, gy)) {
-    const prev = new Int32Array(mw * mh).fill(-1), q = [sy * mw + sx]; prev[q[0]] = q[0];
-    for (let h = 0; h < q.length && prev[gy * mw + gx] < 0; h++) {
+  if (ok(gx, gy) && (gx !== sx || gy !== sy)) {
+    // steps from the target to every square (the game's own travel map), then walk down it
+    // from you the way the game's travel does: fewest steps, trying straight moves before diagonals
+    const cost = new Int32Array(mw * mh).fill(-1), q = [gy * mw + gx]; cost[q[0]] = 0;
+    for (let h = 0; h < q.length && cost[sy * mw + sx] < 0; h++) {
       const i = q[h], x = i % mw, y = (i / mw) | 0;
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy, j = ny * mw + nx; if (ok(nx, ny) && prev[j] < 0) { prev[j] = i; q.push(j); } }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy, j = ny * mw + nx; if ((ok(nx, ny) || (nx === sx && ny === sy)) && cost[j] < 0) { cost[j] = cost[i] + 1; q.push(j); } }
     }
-    if (prev[gy * mw + gx] >= 0) { out = []; for (let i = gy * mw + gx; i !== sy * mw + sx; i = prev[i]) out.push([i % mw - sx, ((i / mw) | 0) - sy]); out.reverse(); }
+    if (cost[sy * mw + sx] > 0) {
+      out = []; let x = sx, y = sy;
+      const D = [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+      while (x !== gx || y !== gy) {
+        let bx = -1, by = -1, bc = 1e9;
+        for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= mw || ny >= mh) continue; const c = cost[ny * mw + nx]; if (c < 0) continue; if (c < bc) { bx = nx; by = ny; bc = c; } }
+        if (bx < 0 || out.length > mw * mh) { out = null; break; }
+        x = bx; y = by; out.push([x - sx, y - sy]);
+      }
+    }
   }
   pathMemo = { k, m: S.map, p: out }; return out;
 }
@@ -572,7 +601,6 @@ function drawMap() {
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
   if (lon) lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy);
-  ambMotes(g, px, py, T, W, H);
   for (let [sx, sy, what, c, al, kind, nm] of later) {
     if (lon && kind !== 0 && kind !== 2 && kind !== 3) { const lx = Math.round((sx - ox) / T), ly = Math.round((sy - oy) / T); if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) al *= .45 + .55 * Math.min(1, lightAt(lx, ly, mw) * 1.5); }
     g.globalAlpha = al;
@@ -775,9 +803,9 @@ function draw() {
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
     setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : '';
   }
-  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
+  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
-  const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
+  const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
   if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
