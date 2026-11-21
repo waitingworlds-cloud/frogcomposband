@@ -305,7 +305,7 @@ function nativeHtml() {
   NATIVE_SIDE = false;
   if (!(G.ov || G.icky)) return '';
   const dh = deathHtml(); if (dh) return dh;
-  if (!UI || !UI.kind || !uiOnTop()) return optsHtml() || menuHtml();
+  if (!UI || !UI.kind || !uiOnTop()) return bldgHtml() || optsHtml() || menuHtml();
   if (UI.kind === 'items') return spbPicking() ? spellsHtml() : itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
