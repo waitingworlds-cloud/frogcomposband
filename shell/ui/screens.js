@@ -346,6 +346,8 @@ function charHtml() {
 }
 function nativeAfter() {
   lmapDraw();
+  if (document.querySelector('#native canvas.ptart')) pickAfter();
+  const cr = document.querySelector('#native .cdrows'); if (cr) { cr.scrollTop = CDX_TOP; const c = cr.querySelector('.cde.sel'); if (c) { const a = c.offsetTop - cr.offsetTop, h = cr.clientHeight; if (a < cr.scrollTop) cr.scrollTop = a; else if (a + c.offsetHeight > cr.scrollTop + h) cr.scrollTop = a + c.offsetHeight - h; } CDX_TOP = cr.scrollTop; }
   document.querySelectorAll('#native .rmob').forEach(c => { if (c._ok) return; const d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', c.dataset.n, 0, 0, 72); sprite.flat = false; });
 }
 

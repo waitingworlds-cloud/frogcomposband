@@ -774,9 +774,9 @@ function browseInfo(y0, y1) {
   if (/ENTER to accept/.test(line)) keys.push(['\r', 'accept']);
   let title = -1, name = '';
   for (let y = y0; y < foot; y++) { const t = (G.s[y] || '').replace(/\x01/g, ' ').trim(); if (!t) continue; if (t.length < 48 && !/[|=]{2}|:/.test(t)) { title = y; name = t; } break; }
-  const recall = keys.find(k => /recall/.test(k[1])), know = /^Knowledge/i.test(name);
+  const recall = keys.find(k => /recall/.test(k[1])), know = /^(Knowledge|Visuals)/i.test(name);
   name = ({ 'knowledge - objects': 'Items you know', 'knowledge - monsters': 'Bestiary', 'knowledge - features': 'Terrain', 'visuals - features': 'Terrain', 'knowledge - egos': 'Enchanted kinds', 'knowledge - artifacts': 'Artifacts' })[name.toLowerCase()] || name;
-  return { foot, keys: keys.filter(k => !know || !/visuals|copy|pict/i.test(k[1])).map(k => /recall/.test(k[1]) ? [k[0], 'read about it'] : k), title, name, recall: recall ? recall[0] : '' };
+  return { foot, keys: keys.filter(k => !know || !/visuals|copy|pict|lighting/i.test(k[1])).map(k => /recall/.test(k[1]) ? [k[0], 'read about it'] : k), title, name, recall: recall ? recall[0] : '' };
 }
 function browseFoot(b) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;

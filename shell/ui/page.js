@@ -90,6 +90,9 @@ function hubPageHtml(side) {
   const kb = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
   const head = over ? '<b>From your journal</b>' : ask ? `<b>${esc(ask)}</b>` : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
   const foot = over ? kb('Space', 'data-key=" "', 'back to the list') : PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : press || ask ? kb('Esc', 'data-key="Esc"', 'close') + (/\?/.test(press) ? kb('?', 'data-key="?"', 'help') : '') + (/any key/i.test(press) ? kb('Space', 'data-key=" "', 'continue') : '') : '';
+  // the journal's knowledge lists are drawn as a picture list, not as the game's text table
+  const cdx = BROWSE && !over ? codexHtml(BROWSE, y0, y1) : '';
+  if (cdx) return frame(`<div class="t-h pgh"><b>${esc(BROWSE.name)}</b></div><div class="t-w top cdw">${cdx}</div><div class="t-f pgf">${foot}</div>`);
   const nw = Math.max(40, x1 - x0 + 1), nh = y1 - y0 + 1, sideW = side ? 624 : 0;
   const availW = 1452 - sideW, availH = HUB_H - 58 - 40 - (head ? 42 : 0) - (foot ? 48 : 0);
   let lh = Math.min(27, availH / Math.max(nh, 20)), fs = Math.min(19, lh / 1.34), cw = fs * .56;
