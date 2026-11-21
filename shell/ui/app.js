@@ -770,12 +770,13 @@ function browseInfo(y0, y1) {
   if (/ENTER to accept/.test(line)) keys.push(['\r', 'accept']);
   let title = -1, name = '';
   for (let y = y0; y < foot; y++) { const t = (G.s[y] || '').replace(/\x01/g, ' ').trim(); if (!t) continue; if (t.length < 48 && !/[|=]{2}|:/.test(t)) { title = y; name = t; } break; }
-  const recall = keys.find(k => /recall/.test(k[1]));
-  return { foot, keys, title, name, recall: recall ? recall[0] : '' };
+  const recall = keys.find(k => /recall/.test(k[1])), know = /^Knowledge/i.test(name);
+  name = ({ 'knowledge - objects': 'Items you know', 'knowledge - monsters': 'Bestiary', 'knowledge - features': 'Terrain', 'visuals - features': 'Terrain', 'knowledge - egos': 'Enchanted kinds', 'knowledge - artifacts': 'Artifacts' })[name.toLowerCase()] || name;
+  return { foot, keys: keys.filter(k => !know || !/visuals|copy|pict/i.test(k[1])).map(k => /recall/.test(k[1]) ? [k[0], 'read about it'] : k), title, name, recall: recall ? recall[0] : '' };
 }
 function browseFoot(b) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  return k('Esc', 'data-key="Esc"', 'close') + '<span class="pgb"><span class="key">⇅</span>move</span>' + b.keys.map(([key, what]) => k(key === '\r' ? 'Enter' : esc(key), `data-key="${esc(key)}"`, esc(what))).join('') + '<span class="pgw">wheel moves</span>';
+  return k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : 'close') + '<span class="pgb"><span class="key">⇅</span>move</span>' + b.keys.map(([key, what]) => k(key === '\r' ? 'Enter' : esc(key), `data-key="${esc(key)}"`, esc(what))).join('') + '<span class="pgw">wheel moves</span>';
 }
 function pagerInfo(y0, y1) {
   let head = -1, foot = -1, cap = '', at = 0, of = 0, keys = '';
@@ -784,14 +785,16 @@ function pagerInfo(y0, y1) {
   for (let y = y1; y > head; y--) { const m = /\[(Press [^\]]*)\]/.exec((G.s[y] || '').replace(/\x01/g, ' ')); if (m) { foot = y; keys = m[1]; break; } }
   return { head, foot, cap, at, of, keys, page: foot > head ? foot - head - 1 : y1 - head };
 }
+const PAGE_NAMES = { 'kill count': 'Kills', 'current pets': 'Companions', 'alive uniques': 'Named foes still alive', 'wanted monsters': 'Bounties', 'self knowledge': 'About you', 'melee': 'Weapon damage',
+  'race/class extra information': 'Class notes', 'current proficiency': 'Weapon skill', 'spell proficiency': 'Spell skill', 'shooting': 'Shooting damage' };
 function pagerHead(p) {
-  let cap = p.cap.replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1);
+  let cap = p.cap.replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1); cap = PAGE_NAMES[cap.toLowerCase()] || cap;
   const of = Math.max(p.of, 1), a = Math.min(p.at, of), b = Math.min(of, p.at + p.page), w = Math.max(4, Math.min(100, p.page / of * 100)), l = of > p.page ? (a / Math.max(1, of - p.page)) * (100 - w) : 0;
-  return `<b>${esc(cap)}</b><span class="pgn">${of > p.page ? `lines ${a + 1}–${b} of ${of}` : `${of} lines`}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>`;
+  return `<b>${esc(cap)}</b>${of > p.page ? `<span class="pgn">lines ${a + 1}–${b} of ${of}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>` : ''}`;
 }
 function pagerFoot(p) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  let h = k('Esc', 'data-key="Esc"', 'close');
+  let h = k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : 'close');
   if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
   if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
   if (/\?/.test(p.keys)) h += k('?', 'data-key="?"', 'help');

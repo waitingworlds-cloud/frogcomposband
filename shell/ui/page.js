@@ -44,6 +44,9 @@ function hubPageHtml(side) {
   if (!b) return frame('');
   let { x0, y0, x1, y1 } = b; const skip = {};
   PAGER = pagerInfo(y0, y1); BROWSE = PAGER ? null : browseInfo(y0, y1);
+  // a write-up of one item or creature laid over a knowledge list (72 columns wide, ending in its own "press any key"): only the write-up shows
+  let over = false;
+  if (!PAGER && !BROWSE && /^<dir>.*ESC\s*$/.test(rowText(y1).trim())) for (let y = y0; y < y1; y++) if (/^\[Press Any Key to Continue\]\s*$/.test(rowText(y).slice(0, 72).trim())) { over = true; y1 = y - 1; x0 = 0; x1 = Math.min(x1, 71); break; }
   const blank = y => !rowText(y).slice(x0, x1 + 1).trim();
   if (BROWSE) { skip[BROWSE.foot] = 1; if (BROWSE.foot === y1) y1--; if (BROWSE.title >= 0) { skip[BROWSE.title] = 1; if (BROWSE.title === y0) y0++; } }
   if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--; }
@@ -57,8 +60,8 @@ function hubPageHtml(side) {
     else if ((m = /^\[(Press [^\]]*)\]$/.exec(t))) { press = m[1]; skip[y] = 1; } }
   while (y1 > y0 && (blank(y1) || skip[y1])) y1--; while (y0 < y1 && (blank(y0) || skip[y0])) y0++;
   const kb = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  const head = ask ? `<b>${esc(ask)}</b>` : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
-  const foot = PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : press || ask ? kb('Esc', 'data-key="Esc"', 'close') + (/\?/.test(press) ? kb('?', 'data-key="?"', 'help') : '') + (/any key/i.test(press) ? kb('Space', 'data-key=" "', 'continue') : '') : '';
+  const head = over ? '<b>From your journal</b>' : ask ? `<b>${esc(ask)}</b>` : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
+  const foot = over ? kb('Space', 'data-key=" "', 'back to the list') : PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : press || ask ? kb('Esc', 'data-key="Esc"', 'close') + (/\?/.test(press) ? kb('?', 'data-key="?"', 'help') : '') + (/any key/i.test(press) ? kb('Space', 'data-key=" "', 'continue') : '') : '';
   const nw = Math.max(40, x1 - x0 + 1), nh = y1 - y0 + 1, sideW = side ? 624 : 0;
   const availW = 1452 - sideW, availH = HUB_H - 58 - 40 - (head ? 42 : 0) - (foot ? 48 : 0);
   let lh = Math.min(27, availH / Math.max(nh, 20)), fs = Math.min(19, lh / 1.34), cw = fs * .56;
@@ -69,7 +72,7 @@ function hubPageHtml(side) {
   for (let y = y0; y <= y1; y++) { if (skip[y]) continue; rows += `<div class="pr" data-gy="${y}">${pageRow(y, { x0, x1 }, cw, toks >= 3)}</div>`; }
   const caret = G.cv && G.cx >= x0 && G.cx <= x1 + 1 && G.cy >= y0 && G.cy <= y1 && !skip[G.cy] ? `<i class="mcaret" style="left:${(G.cx - x0) * cw}px;top:${(G.cy - y0) * lh + lh - 3}px;width:${cw}px"></i>` : '';
   PGEO = { x0, cw };
-  return frame(`<div class="t-h pgh">${head}</div><div class="t-w"><div class="pgt${BROWSE ? ' pick' : ''}" style="width:${Math.ceil(nw * cw)}px;font-size:${fs.toFixed(2)}px;--lh:${lh}px">${rows}${caret}</div></div><div class="t-f pgf">${foot}</div>`);
+  return frame(`<div class="t-h pgh">${head}</div><div class="t-w${PAGER || over ? ' top' : ''}"><div class="pgt${BROWSE ? ' pick' : ''}" style="width:${Math.ceil(nw * cw)}px;font-size:${fs.toFixed(2)}px;--lh:${lh}px">${rows}${caret}</div></div><div class="t-f pgf">${foot}</div>`);
 }
 // A small page the game lays over the map (what an item is, what a creature is like): a card in the same type.
 function floatHtml() {

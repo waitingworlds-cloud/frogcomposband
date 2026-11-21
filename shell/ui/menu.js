@@ -91,10 +91,23 @@ function digitKeys(foot) {
   return `<div class="mdigs">${h}<span class="mcard mdig" data-key="Esc"><span class="key">Esc</span><span class="ml">done</span></span></div>`;
 }
 
+// plainer names for the game's own menu words, with a line saying what each choice shows
+const MENU_TITLES = { 'Display current knowledge': ['Journal', 'Everything your character has learned so far'] };
+const MENU_WORDS = {
+  'Artifacts': ['Artifacts', 'one-of-a-kind treasures you have found'], 'Objects': ['Items', 'every kind of item you know'], 'Egos': ['Enchanted kinds', 'special makes of weapon and armour'],
+  'Auto Pick/Destroy': ['Pickup rules', 'what you take or destroy without asking'], 'Known Monsters': ['Bestiary', 'creatures you have met'], 'Wanted Monsters': ['Bounties', 'creatures with a price on their head'],
+  'Remaining Uniques': ['Named foes', 'the ones still alive'], 'Kill Count': ['Kills', 'what you have slain'], 'Pets': ['Companions', 'who follows you'], 'Dungeons': ['Dungeons', 'how deep you have been'],
+  'Quests': ['Quests', 'what you have been asked to do'], 'Terrain Symbols': ['Terrain', 'the kinds of ground and wall'], 'About Yourself': ['About you', 'your race, class and what you can do'],
+  'Weapon Damage': ['Weapon damage', 'what your blows do'], 'Extra Info': ['Class notes', 'spells and talents of your calling'], 'High Score List': ['Hall of fame', 'characters past and present'],
+  'Proficiency': ['Weapon skill', 'practice with each weapon'], 'Spell Proficiency': ['Spell skill', 'practice with each spell'],
+  'Exit menu': ['Close'], 'Object Knowledge': ['Items'], 'Monster Knowledge': ['Creatures'], 'Dungeon Knowledge': ['The world'], 'Self Knowledge': ['Yourself'], 'Skills': ['Practice'] };
+const menuWord = (r, x, e) => { const w = MENU_WORDS[r.s.slice(x, e).trim()]; return w ? `<span class="mw">${esc(w[0])}</span>${w[1] ? `<small class="mwd">${esc(w[1])}</small>` : ''}` : rowHtml(r.y, x, e); };
 // two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
 // Anything else on the lines (a description beside a choice, prose between them) keeps the text layout.
 function menuSections(rows, b) {
   const isEsc = t => t.key === 'Esc';
+  let note = '';   // "You haven't found any artifacts just yet. Press any key to continue." written over the menu
+  { const i = rows.findIndex(r => r.s.trim()); if (i >= 0 && /Press any key to continue\.?\s*$/i.test(rows[i].s)) { note = rows[i].s.replace(/\s*Press any key to continue\.?\s*$/i, '').replace(/\begos\b/, 'enchanted kinds').trim(); rows = rows.slice(i + 1); } }
   const items = rows.filter(r => r.toks.some(t => !isEsc(t)));
   if (items.length < 4 || items.length > 40) return '';
   const ats = []; items.forEach(r => r.toks.forEach(t => { if (!isEsc(t)) ats.push(t.at); }));
@@ -108,15 +121,17 @@ function menuSections(rows, b) {
   for (const r of rows.slice(title ? first + 1 : 0, lastItem + 1)) {
     const ls = loose(r);
     if (ls.some(l => l.e - l.x > 40)) return '';                       // prose: not a plain menu
-    for (const l of ls) { const c = l.x < mid ? 0 : 1; if (r.toks.some(t => (t.at < mid ? 0 : 1) === c && !isEsc(t))) return ''; cols[c].push({ head: rowHtml(r.y, l.x, l.e), items: [] }); heads++; }
+    for (const l of ls) { const c = l.x < mid ? 0 : 1; if (r.toks.some(t => (t.at < mid ? 0 : 1) === c && !isEsc(t))) return ''; cols[c].push({ head: (MENU_WORDS[r.s.slice(l.x, l.e).trim()] || [])[0] ? esc(MENU_WORDS[r.s.slice(l.x, l.e).trim()][0]) : rowHtml(r.y, l.x, l.e), items: [] }); heads++; }
     for (const t of r.toks) { if (isEsc(t)) continue; const c = t.at < mid ? 0 : 1; if (!cols[c].length) cols[c].push({ head: '', items: [] }); cols[c][cols[c].length - 1].items.push({ r, t }); }
   }
   if (heads < 2) return '';
   const esc1 = rows.flatMap(r => r.toks.filter(isEsc).map(t => ({ r, t })));
   const foot = rows.slice(lastItem + 1).filter(r => r.s.trim() && !r.toks.length && !/:\s*_?\s*$/.test(r.s));
-  const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${rowHtml(r.y, t.at + t.len, t.end)}</span></div>`; };
+  const tw = title && MENU_TITLES[title.s.trim()];
+  const card = ({ r, t }) => { const k = esc(t.key); return `<div class="mcard${note ? ' off' : ''}" data-key="${k}"><span class="key">${k === '_' ? '&#95;' : k}</span><span class="ml">${menuWord(r, t.at + t.len, t.end)}</span></div>`; };
   const sec = g => g.items.length ? `<div class="msec">${g.head ? `<div class="mhead">${g.head}</div>` : ''}<div class="mlist">${g.items.map(card).join('')}</div></div>` : '';
-  return `<div class="pane npanel menup mcards msect">${title ? `<div class="mtitle ctitle">${rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+  return `<div class="pane npanel menup mcards msect${tw ? ' mjournal' : ''}">${title ? `<div class="mtitle ctitle">${tw ? `${esc(tw[0])}<small>${esc(tw[1])}</small>` : rowHtml(title.y, title.s.search(/\S/), b.x1 + 1)}</div>` : ''}
+    ${note ? `<div class="mnote"><span>${esc(note)}</span><span class="btn go" data-key=" ">OK</span></div>` : ''}
     <div class="mcols">${cols.map(c => `<div>${c.map(sec).join('')}</div>`).join('')}</div>
-    ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${rowHtml(r.y, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
+    ${foot.length || esc1.length ? `<div class="mfoot">${foot.map(r => rowHtml(r.y, r.s.search(/\S/), b.x1 + 1)).join('<br>')}${note ? '' : esc1.map(({ r, t }) => `<span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${menuWord(r, t.at + t.len, t.end)}</span>`).join('')}</div>` : ''}</div>`;
 }
