@@ -20,7 +20,69 @@ function menuBox() {
 }
 let MENU_NOTE = '';
 const menuNote = () => MENU_NOTE ? `<div class="mnote"><span>${esc(MENU_NOTE)}</span><span class="btn go" data-key=" ">OK</span></div>` : '';
+/* ---------- the game's Enter-key command menu (an ASCII box of two columns) as cards ---------- */
+const CMDM = { top: '' };
+const CMDM_WORDS = { 'Magic/Special': 'Magic and powers', 'Action': 'Actions', 'Items(use)': 'Use an item', 'Items(other)': 'Handle items', 'Equip': 'Gear', 'Door': 'Doors', 'Information': 'Look things up', 'Options': 'Settings', 'Save/Exit/Help': 'Save, quit, help',
+  'Use': 'Cast a spell', 'See tips': 'Browse your spells', 'Study': 'Learn a spell', 'Special abilities': 'Use a power', 'Activate an equipment': 'Activate worn gear', 'Dump screen dump': 'Save a picture of the screen', 'Load screen dump': 'Show the saved picture',
+  'Commit suicide': 'End this character', 'Edit Mogaminator': 'Pickup rules', 'Interact with macros': 'Key shortcuts', 'Interact w/ visuals': 'Text symbols', 'Interact with colors': 'Text colours', 'Enter a user pref': 'Type a settings line',
+  'Knowledge menu': 'Journal', 'Set options': 'Options', 'Show prev messages': 'Message history', 'Identify symbol': 'What is this symbol?', 'Toggle searching': 'Search as you walk', 'Get items': 'Pick up', 'Switch ring fingers': 'Swap ring fingers',
+  'List monsters': 'Creatures in view', 'List objects': 'Items in view', 'Full map': 'Map of the level', 'Map': 'Look around the level', 'Take note': 'Write a note', 'Version info': 'Game version', 'Fire missile weapon': 'Fire', 'Travel to item': 'Walk to an item', 'Redraw': 'Redraw the screen' };
+function cmdMenuFind() {
+  let bot = -1; for (let y = G.h - 1; y >= 6; y--) if (/\+-{50,54}\+/.test(rowText(y))) { bot = y; break; }
+  if (bot < 0) return null; const bx = rowText(bot).search(/\+-{50,54}\+/), top = bot - 6;
+  if (rowText(top).slice(bx, bx + 54) !== rowText(bot).slice(bx, bx + 54)) return null;
+  const items = []; let cur = -1, sub = false;
+  for (let y = 0; y < top; y++) if (/\+-{20}/.test(rowText(y))) sub = true;
+  for (let i = 0; i < 10; i++) { const y = top + 1 + (i >> 1), x = bx + 4 + (i % 2) * 24, row = rowText(y);
+    const t = row.slice(x, i % 2 ? bx + 53 : x + 24).trim(); if (!t) break; if (row.slice(x - 2, x) === '> ') cur = i; items.push(t); }
+  return items.length ? { items, cur, sub } : null;
+}
+// the keys that walk the game's cursor from one entry to another: its own stepping rules, searched breadth-first
+function cmdMenuKeys(from, to, n) {
+  const odd = n % 2, step = { '2': v => odd ? (v % 2 ? (v + 2) % (n - 1) : (v + 2) % (n + 1)) : (v + 2) % n, '8': v => odd ? (v % 2 ? (v + n - 3) % (n - 1) : (v + n - 1) % (n + 1)) : (v + n - 2) % n, '6': v => (v % 2 || v === n - 1) ? v - 1 : v < n - 1 ? v + 1 : v };
+  const seen = { [from]: '' }, q = [from];
+  while (q.length) { const v = q.shift(); if (v === to) return seen[v]; for (const k of '286') { const w = step[k](v); if (w >= 0 && w < n && !(w in seen)) { seen[w] = seen[v] + k; q.push(w); } } }
+  return null;
+}
+function cmdMenuHtml() {
+  const m = cmdMenuFind(); if (!m) return '';
+  if (!m.sub && m.cur >= 0) CMDM.top = m.items[m.cur];
+  const say = t => { const mm = CMDM_WORDS[t] ? null : /^(.*?)\((.+)\)$/.exec(t), base = mm ? mm[1].trim() : t; return { n: CMDM_WORDS[t] || CMDM_WORDS[base] || base, k: mm ? mm[2] : '' }; };
+  const card = (t, i) => { const w = say(t); return `<div class="mcard${i === m.cur ? ' cur' : ''}" data-cmi="${i}"${w.k ? ` data-tip="Its own key: ${esc(w.k.replace(/\//g, ' or ').replace(/\^(\w)/g, 'Ctrl $1'))}"` : ''}><span class="ml"><span class="mw">${esc(w.n)}</span></span>${m.sub ? '' : '<i class="mgo">&rsaquo;</i>'}</div>`; };
+  return `<div class="pane npanel menup mcards cmdm"><div class="mtitle ctitle">${m.sub ? esc(say(CMDM.top || 'Commands').n) : 'What would you like to do?'}<small>${m.sub ? 'Click one to do it' : 'Every command in the game, by kind'}</small></div>
+    <div class="mgrid">${m.items.map(card).join('')}</div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>${m.sub ? 'Back' : 'Close'}</span><span class="mhint">click a choice, or use the arrows and Enter</span></div></div>`;
+}
+document.addEventListener('click', ev => {
+  const c = ev.target.closest && ev.target.closest('[data-cmi]'); if (!c) return;
+  ev.stopPropagation(); ev.preventDefault();
+  const m = cmdMenuFind(); if (!m) return; const keys = cmdMenuKeys(Math.max(0, m.cur), +c.dataset.cmi, m.items.length);
+  if (keys != null) { if (!m.sub) CMDM.top = m.items[+c.dataset.cmi]; sendText(keys + '\r'); }
+}, true);
+
+/* ---------- companion orders (the pet command list) as stance buttons, switches and actions ---------- */
+const PET_WORDS = { 'dismiss pets': ['Send companions away', 'pick who leaves'], 'stay close': ['Stay close'], 'follow me': ['Follow me'], 'seek and destroy': ['Seek and destroy'], 'give me space': ['Give me space'], 'stay away': ['Stay away'],
+  'pets open doors': ['Open doors'], 'pets pick up items': ['Pick up items'], 'allow teleport': ['Teleport'], 'allow cast attack spell': ['Cast attack spells'], 'allow cast summon spell': ['Summon help'], 'allow involve player in area spell': ['Use area spells that may catch you'],
+  'ride a pet': ['Ride a companion'], 'get off a pet': ['Dismount'], 'name pets': ['Name a companion'], 'no breeding': ['Keep them from breeding'], 'highlight pets on map': ['Highlight them on the map'], 'highlight pets in lists': ['Highlight them in lists'] };
+function petsMenuHtml() {
+  if (!/Select a command:\s*$/.test(rowText(0)) || !/\(Command /.test(rowText(0))) return '';
+  const rows = []; for (let y = 1; y < G.h; y++) { const m = /^([ *])([a-z])\)\s+(\S.*?)\s*$/.exec(rowText(y).slice(0, 60).replace(/\x01/g, ' ')); if (m) rows.push({ cur: m[1] === '*', k: m[2], t: m[3] }); else if (rows.length) break; }
+  if (rows.length < 4 || !rows.some(r => /pets|pet\b/.test(r.t))) return '';
+  const stance = [], sw = [], act = [];
+  for (const r of rows) { let m;
+    if ((m = /^(.*?)\s*\(now\s*:?\s*(On|Off)\)$/i.exec(r.t))) sw.push({ ...r, n: (PET_WORDS[m[1]] || [cap(m[1])])[0], on: /on/i.test(m[2]) });
+    else if (/^(stay close|follow me|seek and destroy|give me space|stay away)$/.test(r.t)) stance.push({ ...r, n: PET_WORDS[r.t][0] });
+    else if ((m = /^specify a target of pet\s*\(now\s*:\s*(.*?)\)$/.exec(r.t))) act.push({ ...r, n: 'Choose their target', d: /^nothing$/i.test(m[1]) ? 'none set' : 'now: ' + m[1] });
+    else { const w = PET_WORDS[r.t] || [cap(r.t)]; act.push({ ...r, n: w[0], d: w[1] || '' }); } }
+  const key = k => `<span class="key">${k}</span>`;
+  return `<div class="pane npanel menup mcards petm"><div class="mtitle ctitle">Companions<small>Orders for the creatures that follow you</small></div>
+    ${stance.length ? `<div class="mhead">How they keep to you</div><div class="pseg">${stance.map(r => `<span class="skt${r.cur ? ' on' : ''}" data-key="${r.k}">${key(r.k)}${esc(r.n)}</span>`).join('')}</div>` : ''}
+    <div class="pcols"><div>${sw.length ? `<div class="mhead">What they may do</div>${sw.map(r => `<div class="psw${r.on ? ' on' : ''}" data-key="${r.k}" data-tip="Click to turn ${r.on ? 'off' : 'on'}">${key(r.k)}<span>${esc(r.n)}</span><i><b></b></i><em>${r.on ? 'On' : 'Off'}</em></div>`).join('')}` : ''}</div>
+    <div>${act.length ? `<div class="mhead">Orders</div>${act.map(r => `<div class="mcard" data-key="${r.k}">${key(r.k)}<span class="ml"><span class="mw">${esc(r.n)}</span>${r.d ? `<small class="mwd">${esc(r.d)}</small>` : ''}</span></div>`).join('')}` : ''}</div></div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Close</span></div></div>`;
+}
 function menuHtml() {
+  { const sp = cmdMenuHtml() || petsMenuHtml(); if (sp) return sp; }
   const b = menuBox(); if (!b) return '';
   const rows = []; let n = 0, prose = 0; const pg = pagerInfo(b.y0, b.y1);
   for (let y = b.y0; y <= b.y1; y++) {
@@ -74,7 +136,7 @@ function menuHtml() {
 function menuCards(rows, b) {
   const items = rows.filter(r => r.toks.length), other = rows.filter(r => !r.toks.length && r.s.trim());
   if (items.length < 4 || items.length > 30 || other.length > 4) return '';
-  if (!items.every(r => r.toks.length === 1 && !r.s.slice(b.x0, r.toks[0].at).trim() && !r.s.slice(r.toks[0].end).trim() && r.toks[0].end - r.toks[0].at < 48)) return '';
+  if (!items.every(r => r.toks.length === 1 && !r.s.slice(b.x0, r.toks[0].at).trim() && !r.s.slice(r.toks[0].end).trim() && r.toks[0].end - r.toks[0].at < 56)) return '';
   const first = rows.findIndex(r => r.s.trim()), title = rows[first] && !rows[first].toks.length ? rows[first] : null;
   const lastItem = rows.indexOf(items[items.length - 1]);
   if (other.some(r => r !== title && rows.indexOf(r) < lastItem)) return '';   // words between the choices: not a plain list
@@ -117,7 +179,7 @@ const MENU_WORDS = {
   'Quests': ['Quests', 'what you have been asked to do'], 'Terrain Symbols': ['Terrain', 'the kinds of ground and wall'], 'About Yourself': ['About you', 'your race, class and what you can do'],
   'Weapon Damage': ['Weapon damage', 'what your blows do'], 'Shooter Damage': ['Shooter damage', 'what your shots do'], 'Extra Info': ['Class notes', 'spells and talents of your calling'], 'High Score List': ['Hall of fame', 'characters past and present'],
   'Proficiency': ['Weapon skill', 'practice with each weapon'], 'Spell Proficiency': ['Spell skill', 'practice with each spell'],
-  'Exit menu': ['Close'], 'Load a user pref file': ['Load a settings file'], 'Append macros and keymaps to a file': ['Save shortcuts to a file'], 'Query a macro': ['Look up a shortcut'], 'Create a macro': ['Make a shortcut'], 'Remove a macro': ['Remove a shortcut'],
+  'Exit menu': ['Close'], 'Load a user pref file': ['Load a settings file'], 'Dump monster attr/chars': ['Save creature symbols to a file'], 'Dump object attr/chars': ['Save item symbols to a file'], 'Dump feature attr/chars': ['Save terrain symbols to a file'], 'Change monster attr/chars (numeric operation)': ['Change creature symbols', 'by number'], 'Change object attr/chars (numeric operation)': ['Change item symbols', 'by number'], 'Change feature attr/chars (numeric operation)': ['Change terrain symbols', 'by number'], 'Change monster attr/chars (visual mode)': ['Change creature symbols', 'by picking'], 'Change object attr/chars (visual mode)': ['Change item symbols', 'by picking'], 'Change feature attr/chars (visual mode)': ['Change terrain symbols', 'by picking'], 'Reset visuals': ['Put every symbol back'], 'Dump colors': ['Save colours to a file'], 'Modify colors': ['Change colours'], 'Load simple color set': ['Use the simple colour set'], 'Load Windows color set': ['Use the Windows colour set'], 'Append macros and keymaps to a file': ['Save shortcuts to a file'], 'Query a macro': ['Look up a shortcut'], 'Create a macro': ['Make a shortcut'], 'Remove a macro': ['Remove a shortcut'],
   'Query a keymap': ['Look up a key change'], 'Create a keymap': ['Change what a key does'], 'Remove a keymap': ['Undo a key change'], 'Enter a new action': ['Type the commands to bind'], 'Object Knowledge': ['Items'], 'Monster Knowledge': ['Creatures'], 'Dungeon Knowledge': ['The world'], 'Self Knowledge': ['Yourself'], 'Skills': ['Practice'] };
 const menuWord = (r, x, e) => { const w = MENU_WORDS[r.s.slice(x, e).trim()]; return w ? `<span class="mw">${esc(w[0])}</span>${w[1] ? `<small class="mwd">${esc(w[1])}</small>` : ''}` : rowHtml(r.y, x, e); };
 // two columns of choices under headings (the knowledge menu and its kind): headed groups of cards.
