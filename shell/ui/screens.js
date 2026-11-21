@@ -41,7 +41,7 @@ function itemsHtml() {
     const has = !!(o && it.k.trim()), mark = has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
     rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
       <span class="n nowrap">${o ? nameHtml(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
-      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
+      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:${it.failr >= 250 ? '#ff9a86' : it.failr >= 100 ? '#e9b04f' : '#8f897d'};white-space:nowrap" data-tip="How often it fails when you use it">fails ${(it.failr / 10).toFixed(it.failr < 100 ? 1 : 0)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
