@@ -658,6 +658,10 @@ function drawMap() {
   const x0 = Math.max(0, Math.floor(-ox / T)), x1 = Math.min(mw - 1, Math.ceil((W - ox) / T)), y0 = Math.max(0, Math.floor(-oy / T)), y1 = Math.min(mh - 1, Math.ceil((H - oy) / T));
   const dayOut = S.p && !S.p.dlvl && !S.p.wild && S.p.hour >= 6 && S.p.hour < 18 ? Math.min(1, .65 + .12 * Math.min(S.p.hour - 6, 17 - S.p.hour)) : 0;   // above ground by day: the open ground takes a wash of daylight
   const later = [], fxl = [], lon = LIGHT.on, gridOk = !S.stale && !G.icky && !G.ov && BASE, ml = S.rmsg;
+  // something thrown or shot is drawn as itself while it flies, not as the game's letter for it
+  const flyK = typeof LASTPICK !== 'undefined' && LASTPICK && LASTPICK.o && Date.now() - LASTPICK.t < 5000 && DICT && DICT.k ? DICT.k[LASTPICK.o.ki] : null;
+  const fly = flyK && TS && TS.obj && TS.obj[tkey(objArt(LASTPICK.o.ki))] ? { ch: String.fromCharCode(flyK[3]), art: objArt(LASTPICK.o.ki) } : null;
+  const fxPush = (sx, sy, ch, at) => later.push(fly && ch === fly.ch ? [sx, sy, 0, 0, 1, 1, fly.art] : [sx, sy, ch, col(at), 1, 0]);
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = cells[y * mw + x], gy = S.gy + y - pcy, gx = S.gx + x - pcx;
     // what the game's own grid shows here: at rest (base) and right now (spell effects in flight)
@@ -668,10 +672,10 @@ function drawMap() {
     const fx = ch !== ' ' && (ch !== bch || at !== bat);
     const sx = ox + x * T, sy = oy + y * T;
     if (fx) fxl.push([x, y, at]);
-    if (!c) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
+    if (!c) { if (fx) fxPush(sx, sy, ch, at); continue; }
     const f = c[0], fl = c[1], lit = lon || !!(fl & 1), cls = f ? featClass(f) : 'floor';
     const fd = DICT.f[f] || ['', 46, 1], fcol = col(fd[2]), v = rnd(x + S.px, y + S.py);
-    if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
+    if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) fxPush(sx, sy, ch, at); continue; }
     if (!f) { /* something seen on ground we have not mapped */ }
     else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } else if (dayOut && (cls === 'floor' || cls === 'grass' || cls === 'tree' || cls === 'other')) { g.fillStyle = cls === 'grass' || cls === 'tree' ? `rgba(104,140,78,${.3 * dayOut})` : `rgba(164,146,110,${.22 * dayOut})`; g.fillRect(sx, sy, T, T); } }
     else
@@ -707,7 +711,7 @@ function drawMap() {
     if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, objArt(c[3])]); }
     if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
     else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
-    if (fx) later.push([sx, sy, ch, col(at), 1, 0]);
+    if (fx) fxPush(sx, sy, ch, at);
   }
   // player light
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
