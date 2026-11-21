@@ -5,7 +5,7 @@
 let PGEO = null;
 const pgNum = t => /^[+\-(]?[\d][\d,.:\/%+\-x)]*$/.test(t);
 const pgGrid = t => t.length >= 7 && !/ /.test(t) && (/^[a-z]{6,}@?$/.test(t) && t.charCodeAt(1) === t.charCodeAt(0) + 1 || t.replace(/[A-Za-z0-9]/g, '').length > t.length * .6);
-const PG_TOK = /^(\(([A-Za-z0-9@_?])\)|([A-Za-z0-9])\)|\[([A-Za-z0-9])\])( |$)/;
+const PG_TOK = /^\*?(\(([A-Za-z0-9@_?])\)|([A-Za-z0-9])\)|\[([A-Za-z0-9])\])( |$)/;
 function pageRow(y, b, cw, menu) {
   const s = rowText(y).slice(0, b.x1 + 1), body = s.slice(b.x0);
   if (!body.trim()) return '';
@@ -18,12 +18,25 @@ function pageRow(y, b, cw, menu) {
     let k;
     if ((k = /^([=\-]{3,})\s+(\S.*?)\s+([=\-]{3,})$/.exec(t))) h += `<span class="pc psec" style="left:${(x - b.x0) * cw}px;width:${(e - x) * cw}px"><i></i><b>${esc(k[2])}</b><i></i></span>`;
     else if (/^\|+$/.test(t)) h += `<span class="pc pbar" style="left:${(x - b.x0 + .5) * cw}px"></span>`;
-    else if (menu && (k = PG_TOK.exec(t))) { const key = k[2] || k[3] || k[4], n = k[1].length; h += `<span class="pc pk" data-key="${esc(key)}" style="left:${(x - b.x0) * cw}px"><span class="key">${esc(key)}</span><span style="margin-left:${(n + 1) * cw - 22}px">${rowHtml(y, x + n + 1, e)}</span></span>`; }
+    else if (menu && (k = PG_TOK.exec(t))) { const key = k[2] || k[3] || k[4], n = k[0].trimEnd().length; h += `<span class="pc pk${t[0] === '*' ? ' cur' : ''}" data-key="${esc(key)}" style="left:${(x - b.x0) * cw}px"><span class="key">${esc(key)}</span><span style="margin-left:${(n + 1) * cw - 22}px">${rowHtml(y, x + n + 1, e)}</span></span>`; }
     else if (pgGrid(t)) h += `<span class="pc mono" style="left:${(x - b.x0) * cw}px;font-size:${(cw / .602).toFixed(2)}px">${rowHtml(y, x, e)}</span>`;
     else if (pgNum(t)) h += `<span class="pc r" style="left:${(e - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`;
     else h += `<span class="pc" style="left:${(x - b.x0) * cw}px">${rowHtml(y, x, e)}</span>`;
   }
   return h;
+}
+// the auto-pickup rules editor writes straight over the map: a text editor by nature, so it keeps fixed-width type
+const pageEditing = () => !!S && /^\(\^Q:Quit, \^W:Save&Quit|^\([a-z]-[a-z]\) Command:/.test(rowText(0)) && /^[#~?!(]|^\s*$/.test(rowText(1)) && !G.icky;
+function editorHtml() {
+  HUB.cur = 'opts';
+  const fs = 17, cw = fs * .602, lh = 21.5, x1 = Math.min(G.w - 1, 118); let rows = '';
+  for (let y = 1; y < G.h; y++) rows += `<div class="pr"><span class="pc mono" style="font-size:${fs}px;opacity:1">${rowHtml(y, 0, x1 + 1)}</span></div>`;
+  const pos = /\((\d+),(\d+)\)\s*$/.exec(rowText(0)), menu = /Command:/.test(rowText(0));
+  const caret = G.cv && G.cy >= 1 ? `<i class="mcaret" style="left:${G.cx * cw}px;top:${(G.cy - 1) * lh + lh - 3}px;width:${cw}px"></i>` : '';
+  const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
+  return `<div class="pane npanel hub">${hubTabsHtml('opts')}<div class="hubb term"><div class="hubterm"><div class="t-h pgh"><b>Auto-pickup rules</b><span class="pgn">one rule a line: what to pick up, leave or destroy without asking${pos ? ` · line ${+pos[2] + 1}` : ''}</span></div>
+    <div class="t-w" style="align-items:flex-start;justify-content:flex-start;overflow:hidden"><div class="pgt" style="width:${Math.ceil((x1 + 1) * cw)}px;--lh:${lh}px">${rows}${caret}</div></div>
+    <div class="t-f pgf">${menu ? k('Esc', 'data-key="Esc"', 'back to the rules') + '<span class="pgw">press a letter to choose</span>' : k('Esc', 'data-key="Esc"', 'menu') + k('Ctrl W', 'data-key="\x17"', 'save and close') + k('Ctrl Q', 'data-key="\x11"', 'close without saving') + '<span class="pgw">type to edit</span>'}</div></div></div></div>`;
 }
 function hubPageHtml(side) {
   HUB.cur = hubCur();
@@ -37,8 +50,15 @@ function hubPageHtml(side) {
   while (y1 > y0 && blank(y1)) y1--; while (y0 < y1 && blank(y0)) y0++;
   // the text's own left edge, so a page indented by the game is not pushed off centre
   let lx = x1; for (let y = y0; y <= y1; y++) { if (skip[y]) continue; const i = rowText(y).slice(0, x1 + 1).search(/\S/); if (i >= x0 && i < lx) lx = i; } x0 = Math.min(lx, x1);
-  const head = PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
-  const foot = PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : '';
+  // the game's own "(a-r, ESC=exit) Pick one:" line heads the page as a plain question; "[Press ESC to exit]" becomes buttons
+  let ask = '', press = '';
+  if (!PAGER && !BROWSE) for (let y = y0; y <= y1; y++) { if (skip[y]) continue; const t = rowText(y).slice(x0).trim(); let m;
+    if (!ask && (m = /^\([^)]*ESC[^)]*\)\s*(\S.*?):?$/.exec(t))) { ask = m[1]; skip[y] = 1; }
+    else if ((m = /^\[(Press [^\]]*)\]$/.exec(t))) { press = m[1]; skip[y] = 1; } }
+  while (y1 > y0 && (blank(y1) || skip[y1])) y1--; while (y0 < y1 && (blank(y0) || skip[y0])) y0++;
+  const kb = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
+  const head = ask ? `<b>${esc(ask)}</b>` : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to read about it</span>` : '';
+  const foot = PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : press || ask ? kb('Esc', 'data-key="Esc"', 'close') + (/\?/.test(press) ? kb('?', 'data-key="?"', 'help') : '') + (/any key/i.test(press) ? kb('Space', 'data-key=" "', 'continue') : '') : '';
   const nw = Math.max(40, x1 - x0 + 1), nh = y1 - y0 + 1, sideW = side ? 624 : 0;
   const availW = 1452 - sideW, availH = HUB_H - 58 - 40 - (head ? 42 : 0) - (foot ? 48 : 0);
   let lh = Math.min(27, availH / Math.max(nh, 20)), fs = Math.min(19, lh / 1.34), cw = fs * .56;

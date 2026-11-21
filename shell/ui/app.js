@@ -803,14 +803,14 @@ function draw() {
     const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
     if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
     askView(); drawMap();
-    const bn = $('#banner'); ask = askHtml(); const live = ask || G.icky || G.ov ? '' : liveHtml();
+    const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
     if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
     else { setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : ''; }
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
-  const page = inGame && !raw && G.icky && !ask, nh = page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
+  const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
   const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
   if (page) show = false;
