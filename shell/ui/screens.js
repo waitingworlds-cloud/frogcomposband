@@ -306,9 +306,8 @@ function lmapHtml() {
   const u = UI, g = lmapGeo(), pois = [];
   let known = 0;
   const named = {}; for (const [x, y, n] of u.pl || []) named[x + ',' + y] = n;   // the towns and dungeons by name
-  const theDun = n => (/^(Angband|Camelot|Hell|Heaven|Numenor|R'lyeh|Mount |Asgard|Atlantis|Random )/.test(n) ? '' : 'the ') + n.replace(/^the /i, '');
   u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); const nm = (DICT.f[f] || [''])[0], x = i % u.w, y = (i / u.w) | 0, pn = named[x + ',' + y], town = u.wild && /^town$/i.test(nm);
-    if (cls === 'up' || cls === 'down' || cls === 'shop' || town) pois.push({ n: pn ? (town ? pn : u.wild ? cap(theDun(pn)) : 'Way into ' + theDun(pn)) : u.wild && cls === 'down' ? 'Dungeon' : nm, kind: u.wild ? (town ? 'town' : 'dungeon') : '', cls: u.wild ? 'place' : cls, x, y }); });
+    if (cls === 'up' || cls === 'down' || cls === 'shop' || town) pois.push({ n: pn ? (town ? pn : u.wild ? cap(dunThe(pn)) : 'Way into ' + dunThe(pn)) : u.wild && cls === 'down' ? 'Dungeon' : nm, kind: u.wild ? (town ? 'town' : 'dungeon') : '', cls: u.wild ? 'place' : cls, x, y }); });
   pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
   const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
   if (u.wild) { list.length = 0; pois.slice(0, 12).forEach(p => list.push(p)); }

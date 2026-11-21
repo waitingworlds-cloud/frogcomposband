@@ -714,6 +714,13 @@ static void send_state(void)
     o_kint("speed", p_ptr->pspeed - 110); o_kint("lite", p_ptr->cur_lite);
     o_kint("wgt", py_total_weight()); o_kint("wlim", weight_limit());
     o_kstr("place", map_name()); if (p_ptr->wild_mode) o_kint("wild", 1);
+    /* which dungeon mouth or town you stand on, by name */
+    if (!dun_level && in_bounds2(py, px) && cave[py][px].special)
+    {
+        cave_type *c = &cave[py][px];
+        if (have_flag(f_info[c->feat].flags, FF_ENTRANCE)) { if (c->special < max_d_idx) o_kstr("entr", d_name + d_info[c->special].name); }
+        else if (p_ptr->wild_mode && c->feat == feat_town) o_kstr("town", town_name(c->special));
+    }
     o_kint("dlvl", dun_level);
     {
         int d, h, m;

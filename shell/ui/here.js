@@ -6,13 +6,13 @@ function hereCell() { if (!S || !S.map) return null; const mw = S.map.w, c = S.m
 const hereBusy = () => /-more-/.test(msgTop()) || !!askKind();   // a question or a held message comes first
 function hereActs() {
   if (!playing() || aimMode() || lookMode() || hereBusy() || (typeof EXP !== 'undefined' && EXP.on)) return [];
-  if (S.p.wild) { const c = hereCell(), n = c && c.name ? c.name.replace(/^(the|a|an) /i, '') : ''; return [{ key: cmd('>'), cap: '>', label: /^town$/i.test(n) ? 'Walk into the town' : c && c.cls === 'down' ? 'Step down by the dungeon mouth' : 'Step down to the ground here' }]; }
+  if (S.p.wild) { const c = hereCell(), n = c && c.name ? c.name.replace(/^(the|a|an) /i, '') : ''; return [{ key: cmd('>'), cap: '>', label: /^town$/i.test(n) ? 'Walk into ' + (S.p.town || 'the town') : c && c.cls === 'down' ? (S.p.entr ? 'Step down by the way into ' + dunThe(S.p.entr) : 'Step down by the dungeon mouth') : 'Step down to the ground here' }]; }
   const c = hereCell(), acts = [], here = (S.floor || []).filter(o => !o.dx && !o.dy);
   if (here.length) acts.push({ key: cmd('g'), cap: 'g', label: here.length === 1 ? 'Pick up ' + here[0].n : `Pick up ${here.length} things`, art: here[0] });
   // the stairs you have just come by are not offered until you have stepped off them
   const lvl = S.p.place + '|' + S.p.dlvl; if (lvl !== HERE_CAME.lvl) HERE_CAME = { lvl, at: S.px + ',' + S.py }; else if (HERE_CAME.at && HERE_CAME.at !== S.px + ',' + S.py) HERE_CAME.at = '';
   const came = !!HERE_CAME.at && !!S.p.dlvl;
-  if (c && c.cls === 'down' && !came) acts.push({ key: cmd('>'), cap: '>', label: /entrance/i.test(c.name) ? 'Enter the ' + c.name.replace(/^entrance to (the )?/i, '') : 'Go down the stairs' });
+  if (c && c.cls === 'down' && !came) acts.push({ key: cmd('>'), cap: '>', label: /entrance/i.test(c.name) ? (S.p.entr ? 'Enter ' + dunThe(S.p.entr) : 'Enter the ' + c.name.replace(/^entrance to (the )?/i, '')) : 'Go down the stairs' });
   if (c && c.cls === 'up' && !came) acts.push({ key: cmd('<'), cap: '<', label: 'Go up the stairs' });
   // once the level is explored, the way on is one button away
   if (typeof EXP !== 'undefined' && EXP.doneLvl && EXP.doneLvl === EXP_MEM.lvl && S.p.dlvl && !(S.mons || []).some(m => !m.pet && !m.friendly)) {
@@ -63,3 +63,5 @@ function lightOnUi(m) {
   if (m.kind !== 'items' || !/wear|wield/i.test(m.prompt || '') || Date.now() - LIGHT_AUTO > 1500) return; LIGHT_AUTO = 0;
   const it = (m.items || []).find(i => i.o && i.k.trim() && i.o.tv === 39); if (it) sendText(it.k);
 }
+// a dungeon's name as you would say it: "the Warrens", "Angband"
+function dunThe(n) { return (/^(Angband|Camelot|Hell|Heaven|Numenor|R'lyeh|Mount |Asgard|Atlantis|Random )/.test(n) ? '' : 'the ') + n.replace(/^the /i, ''); }
