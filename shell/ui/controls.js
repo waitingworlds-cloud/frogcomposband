@@ -42,7 +42,7 @@ function gmenuToggle(force) {
     <div class="nfoot"><span class="grow"></span><span class="row" data-gmclose="1"><span class="key">Esc</span>back to the game</span></div></div>`;
   el.addEventListener('mousedown', e => {
     e.stopPropagation(); const r = e.target.closest('[data-gm]');
-    if (r) { const v = GMENU[+r.dataset.gm][2]; el.remove(); if (v === 'F1') controlsToggle(true); else sendText(cmd(v)); return; }
+    if (r) { const v = GMENU[+r.dataset.gm][2]; el.remove(); if (v === 'F1') controlsToggle(true); else sendText(v === 'X' ? 'X' : cmd(v)); return; }
     if (e.target === el || e.target.closest('[data-gmclose]')) el.remove();
   });
   document.body.appendChild(el);
@@ -55,7 +55,7 @@ function gmenuKey(e) {
   if (el) {
     if (e.key === 'Escape') { el.remove(); return true; }
     const hit = GMENU.find(([k]) => k === e.key || (k.startsWith('Ctrl+') && e.ctrlKey && e.key.toLowerCase() === k.slice(5).toLowerCase()));
-    el.remove(); if (hit) { if (hit[2] === 'F1') controlsToggle(true); else sendText(cmd(hit[2])); return true; }
+    el.remove(); if (hit) { if (hit[2] === 'F1') controlsToggle(true); else sendText(hit[2] === 'X' ? 'X' : cmd(hit[2])); return true; }
     return false;
   }
   if (e.key === 'Escape' && !e.ctrlKey && !e.altKey && !e.repeat && gap > 400 && gmenuFree()) { gmenuToggle(true); return true; }   // a quick run of Escapes is clearing things, not asking for the menu
