@@ -966,6 +966,7 @@ function draw() {
     askView(); drawMap();
     setHtml($('#here'), hereHtml()); tipStale();
     const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
+    if (typeof LV !== 'undefined' && LV.el) LV.el.hidden = !!ask || (S && S.p && S.p.hp < 0);   // a question comes first: the level card waits behind it
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
     if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
     else {

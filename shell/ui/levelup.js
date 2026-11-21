@@ -13,6 +13,7 @@ function lvlOnUi(m) {
 }
 const LV_STATS = ['Strength', 'Intelligence', 'Wisdom', 'Dexterity', 'Constitution', 'Charisma'];
 function lvlOnState(prev, cur) {
+  if (LV.data && cur && cur.p && cur.p.hp < 0) lvlClose();   // no cheering over a fallen character
   if (LV.data) { LV.turns++; if (LV.turns > 40 && !(LV.el && LV.el.matches(':hover'))) lvlClose(); else lvlDraw(); }
   if (!prev || !prev.p || !cur || !cur.p || cur.p.name !== prev.p.name || !(cur.p.lev > prev.p.lev)) return;
   const p = cur.p, q = prev.p, gains = [];
