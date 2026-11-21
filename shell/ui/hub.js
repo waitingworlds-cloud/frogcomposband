@@ -17,7 +17,10 @@ function hubCur() {
   const pg = G.icky ? pagerInfo(0, G.h - 1) : null, cap = pg ? pg.cap : '';
   if (/Help file/i.test(cap)) return 'help'; if (/Character Sheet/i.test(cap)) return 'char'; if (/Message/i.test(cap)) return 'log';
   const lk = typeof LASTCMD !== 'undefined' && LASTCMD && LASTCMD.t > HUB.t ? HUB_KEY[LASTCMD.k] : HUB.last;
-  return lk || '';
+  if (lk) return lk;
+  // a page reached another way (the command menu, a key not on the strip): its own caption says which tab it belongs to
+  let t0 = ''; if (G.icky) for (let y = 0; y < 4 && !t0; y++) t0 = rowText(y).trim();
+  return /^(Display current knowledge|Knowledge - )/.test(t0) ? 'journal' : /^FrogComposband Options/.test(t0) ? 'opts' : '';
 }
 function hubTabsHtml(cur) {
   if (S && S.p && S.p.hp < 0) return `<div class="hubt"><div class="hubtab on"><span>${cur === 'log' ? 'Last messages' : cur === 'char' ? 'Character' : 'The fallen'}</span></div><span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;   // the dead have nowhere else to go

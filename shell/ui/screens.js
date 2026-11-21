@@ -166,7 +166,7 @@ function shopHtml() {
     <div class="grow" style="min-width:0"><div class="n nowrap">${nameHtml(r.n)}</div><div class="dir">${lb(r.w)} lb${r.num > 1 && W.home ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
     <span class="price num"${W.home ? ' style="color:#c9b28a" data-tip="About what it is worth, in gold"' : ''}>${W.home ? (r.score ? '<i class="wth">worth</i> ' + r.score.toLocaleString() : '') : selling && u.nosell ? '' : selling && !r.price ? '<i>no interest</i>' : r.price.toLocaleString()}</span></div>`; }).join('')
     || `<div class="sub" style="padding:20px">${tab === 'sell' ? (W.home ? 'Your pack is empty.' : 'You carry nothing this shop takes.') : W.mus ? 'Nothing has been donated yet.' : W.home ? 'Your home is empty. Leave things here from the other tab.' : 'The shelves are empty.'}</div>`;
-  const cmds = W.mus ? [['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']] : W.home ? [['r', 'destroy'], ['?', 'help'], ['\x1b', 'leave']] : [['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
+  const cmds = W.mus ? [['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']] : W.home ? [['r', 'throw away'], ['?', 'help'], ['\x1b', 'leave']] : [['B', 'buy everything'], ['S', 'new stock'], ['R', 'hold an item'], ['?', 'help'], ['\x1b', 'leave']];
   const tot = W.home ? buy.reduce((a, r) => a + r.w * r.num, 0) : 0;
   return `<div class="pane npanel shopp shop2">
     <div class="row" style="gap:18px;align-items:flex-end;border-bottom:1px solid #000;box-shadow:0 1px 0 #4a4e54;padding-bottom:10px">
