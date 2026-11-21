@@ -214,6 +214,32 @@ function combatHtml(y0, y1, x0, x1, skip) {
   return `<div class="csw">${blocks.map(card).join('')}</div>`;
 }
 
+// The weapon skill page: the game's three columns of names and codes become headed groups with a
+// five-step meter (or a bar in the two percent views), and its M toggle becomes four labelled views.
+const SK_STEP = { Un: [0, 'Untrained'], Be: [1, 'Beginner'], Sk: [2, 'Skilled'], Ex: [3, 'Expert'], Ma: [4, 'Master'] };
+const SK_MODES = [[/^Current Proficiency$/, 'Skill now', 'How practised you are with each weapon. Skill grows by using it on worthy foes.'], [/Proficiency Caps$/, 'Your limits', 'The most your calling can ever learn with each weapon.'], [/% of Caps$/, 'Share of your limit', 'How far along you are toward the most your calling can learn.'], [/% of Full Mastery$/, 'Share of mastery', 'How far along you are toward full mastery, whether or not your calling can reach it.']];
+function skillHtml(y0, y1, x0, x1, skip) {
+  const cap = PAGER ? PAGER.cap : '', mode = SK_MODES.findIndex(m => m[0].test(cap)); if (mode < 0) return '';
+  const cols = [[], [], []], cur = [null, null, null]; let any = 0;
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).replace(/\x01/g, ' '), a = G.a[y] || [];
+    for (let c = 0; c < 3; c++) {
+      const cell = t.slice(c * 27, c * 27 + 27); if (!cell.trim()) { cur[c] = null; continue; }
+      const m = /^(.+?)\s+(!?)(?:\[(Un|Be|Sk|Ex|Ma)\]|(\d+)%)\s*$/.exec(cell);
+      if (!m) { cols[c].push(cur[c] = { h: cell.trim(), rows: [] }); continue; }
+      if (!cur[c]) cols[c].push(cur[c] = { h: '', rows: [] });
+      cur[c].rows.push({ n: m[1].trim(), top: !!m[2], code: m[3], pct: m[4] == null ? null : +m[4], worn: a[x0 + c * 27] === 14 }); any++;
+    }
+  }
+  if (any < 4) return '';
+  const meter = r => {
+    if (r.pct != null) return `<span class="skb"><i style="width:${Math.min(100, r.pct)}%"></i></span><span class="skv">${r.pct}%</span>`;
+    const st = SK_STEP[r.code] || [0, r.code];
+    return `<span class="skp s${st[0]}">${[1, 2, 3, 4].map(i => `<i${i <= st[0] ? ' class="on"' : ''}></i>`).join('')}</span><span class="skv">${st[1]}${r.top ? '<em data-tip="As good as your calling can get with this">limit</em>' : ''}</span>`; };
+  const row = r => `<div class="skr${(r.pct != null ? r.pct === 0 : (SK_STEP[r.code] || [0])[0] === 0) ? ' dim' : ''}${r.worn ? ' worn' : ''}"${r.worn ? ' data-tip="You are using this now"' : ''}><span class="skn">${esc(r.n)}</span>${meter(r)}</div>`;
+  const tabs = SK_MODES.map((m, i) => `<span class="skt${i === mode ? ' on' : ''}"${i === mode ? '' : ` data-key="${'M'.repeat((i - mode + 4) % 4)}"`} data-tip="${esc(m[2])}">${m[1]}</span>`).join('');
+  return `<div class="skw"><div class="skm">${tabs}<span class="skd">${esc(SK_MODES[mode][2])}</span></div><div class="skc">${cols.map(col => `<div class="skcol">${col.map(g => `<div class="skg">${g.h ? `<div class="skh">${esc(g.h)}</div>` : ''}${g.rows.map(row).join('')}</div>`).join('')}</div>`).join('')}</div></div>`;
+}
 // The journal's "about you" page: life rating and stat limits as tiles, then your people, calling, nature and
 // magic each as a card with its picture and the game's own account of it.
 function aboutHtml(y0, y1, x0, x1, skip) {

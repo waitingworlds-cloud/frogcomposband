@@ -117,6 +117,8 @@ function hubPageHtml(side) {
   const hlp = PAGER && !side && /^Help file '/.test(PAGER.cap) ? helpMenuHtml(y0, y1, x0, x1, skip) : '';
   const cmb = PAGER && !side && /(?:^|, )(Melee|Shooting)\s*$/.test(PAGER.cap) ? combatHtml(y0, y1, x0, x1, skip) : '';
   if (cmb) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${cmb}</div><div class="t-f pgf">${foot}</div>`);
+  const skl = PAGER && !side && /Proficiency( Caps| as % of (Caps|Full Mastery))?\s*$/.test(PAGER.cap) && !/Spell/.test(PAGER.cap) ? skillHtml(y0, y1, x0, x1, skip) : '';
+  if (skl) return frame(`<div class="t-h pgh">${head.replace(/<b>[^<]*<\/b>/, '<b>Weapon skill</b>').replace(/<span class="pgn pgkey">.*?<\/span>/, '')}</div><div class="t-w top cdw">${skl}</div><div class="t-f pgf">${foot}</div>`);
   const abt = PAGER && !side && /(?:^|, )Self Knowledge\s*$/.test(PAGER.cap) ? aboutHtml(y0, y1, x0, x1, skip) : '';
   if (abt) return frame(`<div class="t-h pgh">${head}</div><div class="t-w top cdw">${abt}</div><div class="t-f pgf">${foot}</div>`);
   const rul = PAGER && !side && /Mogaminator Preferences/.test(PAGER.cap) ? rulesHtml(y0, y1, x0, x1, skip) : '';

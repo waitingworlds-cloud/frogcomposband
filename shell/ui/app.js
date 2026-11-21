@@ -899,7 +899,7 @@ function pagerFoot(p) {
   if (deep) h += k('!', 'data-key="!"', 'all topics') + k('q', 'data-key="q"', 'close');
   if (hlp && p.of > p.page) h += k('&lt;', 'data-key="&lt;"', 'previous part') + k('&gt;', 'data-key="&gt;"', 'next part');
   if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
-  if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
+  if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'next view');
   if (/\?/.test(p.keys) && !hlp) h += k('?', 'data-key="?"', 'help');
   return h + (p.of > p.page ? '<span class="pgw">wheel scrolls</span>' : '');
 }
