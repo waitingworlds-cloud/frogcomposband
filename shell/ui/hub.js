@@ -21,7 +21,7 @@ function hubCur() {
 }
 function hubTabsHtml(cur) {
   if (S && S.p && S.p.hp < 0) return `<div class="hubt"><div class="hubtab on"><span>${cur === 'log' ? 'Last messages' : cur === 'char' ? 'Character' : 'The fallen'}</span></div><span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;   // the dead have nowhere else to go
-  const tabs = HUB_TABS.filter(t => t[0] !== 'spells' || (S && S.p && S.p.msp > 0) || cur === 'spells');
+  const tabs = HUB_TABS.filter(t => t[0] !== 'spells' || (S && S.p && (S.p.msp > 0 || S.p.realm)) || cur === 'spells');
   return `<div class="hubt">${tabs.map(([id, label, key, name]) => `<div class="hubtab${id === cur ? ' on' : ''}" data-hub="${id}"><span>${label}</span><span class="key">${esc(name || key)}</span></div>`).join('')}<span class="grow"></span><span class="hubx" data-key="Esc" data-tip="Close (Esc)">&times;</span></div>`;
 }
 // wrap a native panel in the frame (shops, your home and death keep their own; so does a "which one?" list)

@@ -18,6 +18,8 @@ const PICK_SAY = {
   'beginner': 'A gentler start: fewer choices to make and a simpler world. Best for a first run.', 'normal': 'The full game, with every people, calling and option open.', 'monster': 'Play as a creature of the dungeon and grow into its mightier forms.',
   'random': 'Let fate decide.', 'male': '', 'female': '',
 };
+// game speed has its own words (its Normal is not the game type's Normal)
+const PICK_SPEED = { 'normal': 'The full-length game, at the classic pace.', 'coffee-break': 'A shorter game: you grow faster and the way down is quicker.', 'instant coffee': 'Shorter still, for a single sitting.' };
 // the picture for a choice: [sheet, name]. Callings use the hero pictures; peoples borrow the creature that looks like them
 const _pm = n => ['mon', n], _pp = n => ['player', n], _pb = n => ['obj', n];
 const PICK_ART = {
@@ -33,6 +35,7 @@ const PICK_ART = {
   'android': _pm('iron golem'), 'beastman': _pm('chaos beastman'), 'boit': _pm('giant green frog'), 'draconian': _pm('young bronze dragon'), 'ent': _pm('ent'), 'golem': _pm('stone golem'), 'klackon': _pm('soldier ant'), 'kutar': _pm('kutar'), 'mindflayer': _pm('mind flayer'), 'mind-flayer': _pm('mind flayer'), 'tonberry': _pm('tonberry'), 'yeek': _pm('blue yeek'),
   'melee': _pp('warrior'), 'archery': _pp('archer'), 'martial arts': _pp('monk'), 'magic': _pp('mage'), 'devices': _pp('devicemaster'), 'prayer': _pp('priest'), 'stealth': _pp('rogue'), 'hybrid': _pp('paladin'), 'riding': _pp('cavalry'), 'mind': _pp('mindcrafter'),
   'disciple': _pp('troika'),
+  'dragons': _pm('young blue dragon'), 'angels': _pm('angel'), 'demons': _pm('imp'), 'hounds': _pm('fire hound'), 'spiders': _pm('giant spider'), 'giants': _pm('hill giant'),
   'animal': _pm('fire hound'), 'beholder': _pm('beholder'), 'dragon': _pm('young blue dragon'), 'elemental/vortex': _pm('fire elemental'), 'jelly': _pm('yellow jelly'), 'leprechaun': _pm('cheerful leprechaun'), 'mimic/possessor': _pm('chest mimic'),
   'centipede': _pm('giant white centipede'), 'hound': _pm('fire hound'), 'hydra': _pm('5-headed hydra'), 'spider': _pm('giant spider'), 'angel': _pm('angel'), 'demon': _pm('imp'), 'elemental': _pm('fire elemental'), 'vortex': _pm('fire vortex'), 'quylthulg': _pm('quylthulg'),
   'death-sword': _pm('death sword'), 'mimic': _pm('chest mimic'), 'ring': _pm('ring mimic'), 'possessor': _pm('poltergeist'), 'giant': _pm('hill giant'), 'orc': _pm('cave orc'), 'troll': _pm('stone troll'), 'lich': _pm('lich'), 'mummy': _pm('greater mummy'),
@@ -76,6 +79,7 @@ function pickArtFor(label, kindHint) {
 // the first sentence of a choice's help page, as the line under its name
 function pickLine(label, heading) {
   const k = pickName(label);
+  if (/world moves/.test(heading || '')) return PICK_SPEED[k] || '';
   if (PICK_SAY[k] != null) return PICK_SAY[k];
   if (/kind first|style first/.test(heading || '')) { const g = (/calling|fight/i.test(heading) && PICK_IN_CLASS[k]) || PICK_IN[k] || PICK_IN_CLASS[k]; if (g) return g; }
   const h = typeof topicHtml === 'function' ? topicHtml(label) : ''; if (!h) return '';
@@ -92,11 +96,11 @@ function pickTiles(items, heading, sub) {
   TOPIC_FILE = pickFile(heading);
   const sig = heading + '|' + items.map(i => i.key).join(''); if (BPICK.sig !== sig) { BPICK.sig = sig; BPICK.hov = -1; }
   return `<div class="ptl ${big ? 'big' : small ? 'small' : ''}" style="grid-template-columns:repeat(${cols},1fr)">${items.map((i, ix) => {
-    const label = i.html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, '').trim(), rnd = /^random/i.test(label), art = rnd ? null : pickArtFor(label, kind);
+    const label = i.html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, '').trim(), rnd = /^random/i.test(label), art = rnd || /speed/i.test(heading) ? null : pickArtFor(label, kind), now = !i.dim && /<span style/.test(i.html);
     const line = small ? '' : pickLine(label, sub || heading), key = BKEY[i.key] || i.key, kshow = i.key.length > 1 ? i.key[0] + i.key.slice(1).toLowerCase() : i.key;
-    return `<div class="pt ${i.dim ? 'dim' : ''} ${rnd ? 'rnd' : ''} ${ix === BPICK.hov ? 'sel' : ''}" data-pti="${ix}" data-topic="${esc(label)}" data-key="${esc(key)}">
+    return `<div class="pt ${i.dim ? 'dim' : ''} ${rnd ? 'rnd' : ''} ${now ? 'now' : ''} ${ix === BPICK.hov ? 'sel' : ''}" data-pti="${ix}" data-topic="${esc(label)}" data-key="${esc(key)}">
       ${art ? `<canvas class="ptart" data-k="${art[0]}" data-n="${esc(art[1])}"></canvas>` : `<span class="ptart em">${rnd ? '?' : esc(label.charAt(0).toUpperCase())}</span>`}
-      <div class="ptx"><b>${rnd ? 'Surprise me' : i.html}</b>${line ? `<span>${esc(line)}</span>` : ''}</div><span class="key kb ptk">${esc(kshow)}</span></div>`; }).join('')}</div>`;
+      <div class="ptx"><b>${rnd ? 'Surprise me' : esc(label)}</b>${line ? `<span>${esc(line)}</span>` : ''}</div>${now ? '<em class="ptnow">yours now</em>' : ''}<span class="key kb ptk">${esc(kshow)}</span></div>`; }).join('')}</div>`;
 }
 // draw the pictures once the tiles are on the page (and again when the art arrives)
 function pickAfter() {

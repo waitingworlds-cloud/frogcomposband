@@ -106,8 +106,10 @@ function birthHtml() {
     const fgo = f => { const i = chg[f.label.toLowerCase().slice(0, 4)]; if (i) i.used = true; return i; };
     if (chg.name) chg.name.used = true;
     if (Object.keys(chg).length > 2 && !naming) {
-      const WHO = [['Race', 'Your people', ''], ['Class', 'Your calling', 'class'], ['Pers', 'Your nature', ''], ['Magic', 'Your magic', '']];
-      intro = '<div class="bhd">Who will you be?</div><p class="bp">This is your character so far. Change anything you like, and continue when it reads right.</p><div class="bwho">' + WHO.map(([lab, say, kind]) => {
+      const SAY = { Race: 'Your people', Subrace: 'Your bloodline', Class: 'Your calling', Subclass: 'Your speciality', Pact: 'Your pact', Pers: 'Your nature', Magic: 'Your magic', Realm: 'Your magic', Patron: 'Your patron' };
+      const WHO = b.fields.filter(q => !q.side && !q.lone && q.value && !/^(Name|Sex|Game Speed)$/.test(q.label)).map(q => [q.label, SAY[q.label] || 'Your ' + q.label.toLowerCase(), q.label === 'Class' ? 'class' : '']);
+      const ORD = ['Race', 'Subrace', 'Class']; WHO.sort((x, y) => { const r = l => l === 'Pers' ? 90 : /^(Magic|Realm)$/.test(l) ? 95 : ORD.indexOf(l) >= 0 ? ORD.indexOf(l) : 50; return r(x[0]) - r(y[0]); });
+      intro = '<div class="bhd">Who will you be?</div><p class="bp">This is your character so far. Change anything you like, and continue when it reads right.</p><div class="bwho' + (WHO.length > 4 ? ' tight' : '') + '">' + WHO.map(([lab, say, kind]) => {
         const f = b.fields.find(q => q.label === lab && !q.side), g = f && chg[lab.toLowerCase().slice(0, 4)]; if (!f || !f.value) return '';
         const first = f.value.split(' · ')[0], art = pickArtFor(first, kind); TOPIC_FILE = pickFile(say); const line = pickLine(first, ''); TOPIC_FILE = '';
         return `<div class="bwc${g ? ' go' : ''}"${g ? ` data-key="${esc(g.key)}"` : ''} data-topic="${esc(first)}" data-tf="${pickFile(say)}">${art ? `<canvas class="ptart" data-k="${art[0]}" data-n="${esc(art[1])}"></canvas>` : `<span class="ptart em">${esc(first.charAt(0))}</span>`}

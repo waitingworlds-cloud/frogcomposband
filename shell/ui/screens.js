@@ -506,7 +506,9 @@ function descRows(list) {
   const rows = list.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
     const s = r.s.replace(/\s+$/, ''); for (let x = 0; x < s.length; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h; });
   while (rows.length && !rows[rows.length - 1]) rows.pop();
-  return `<div class="dsc">${rows.join('\n')}</div>`;
+  // the game's "Score" is what it reckons the item is worth, in gold
+  const out = rows.join('\n').replace(/Score: (<\/span>\s*<span[^>]*>)?([\d,]+)/, 'Worth: $1about $2 gold').replace(/ \(L(\d+)\)/, ' · level $1');
+  return `<div class="dsc">${out}</div>`;
 }
 /* ---------- compare: what changes if you put this on ----------
  * From the two describe pages: armour, damage per hit, to-hit, weight and launcher power as numbers, then every

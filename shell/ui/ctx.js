@@ -38,10 +38,10 @@ function cellItems(cell) {
   }
   if (m) {
     const nm = cap(m.n.replace(/^(an?|the) /i, ''));
-    out.push({ k: 'a', n: (adj ? 'Attack ' : 'Walk to and attack ') + nm, run: () => sendRaw(`M 1 ${dx} ${dy}`), hot: !m.pet && !m.friendly });
+    out.push({ k: 'a', n: (adj ? 'Attack ' : 'Charge ') + nm, run: () => sendRaw(`M 1 ${dx} ${dy}`), hot: !m.pet && !m.friendly });
     out.push({ k: 'f', n: 'Fire at it', run: () => cmdAim('f', dx, dy), dim: !m.los });
     out.push({ k: 'v', n: 'Throw at it', run: () => cmdAim('v', dx, dy), dim: !m.los });
-    out.push({ k: 'm', n: 'Cast a spell at it', run: () => cmdAim('m', dx, dy), dim: !m.los });
+    if (S.p.msp > 0 || S.p.realm) out.push({ k: 'm', n: 'Cast a spell at it', run: () => cmdAim('m', dx, dy), dim: !m.los });
     out.push({ k: 't', n: 'Target it', run: () => sendRaw(`T ${dx} ${dy}`) });
     out.push({ k: 'r', n: 'Recall what you know', run: () => sendRaw(`M 2 ${dx} ${dy}`) });
     return out;

@@ -427,3 +427,7 @@ canvas.ptart.none{visibility:hidden}
 body.mouse .tr>.key,body.mouse .srow>.key,body.mouse .doll .slot>.key,body.mouse .pt .ptk{visibility:hidden}
 .pgt .pr.phd .pc,.pgt .pr.phd .pc span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;font-size:1.1em;color:#ffb070!important}
 .pgt .pc.phw,.pgt .pc.phw span{font-family:Fell,serif;font-weight:400;letter-spacing:.07em;color:#ffb070!important}
+.pt.now{box-shadow:0 0 0 1px #000,0 0 0 2px #7a5a36}.pt.now .ptx b{color:#ffcf9e}
+.ptnow{position:absolute;right:8px;top:6px;font:600 10px Inter;letter-spacing:.1em;text-transform:uppercase;color:#ff8a3c;font-style:normal}
+.ptl.big .ptnow{top:10px;right:12px}
+.bwho.tight{gap:6px}.bwho.tight .bwc{padding:6px 12px 6px 8px}.bwho.tight .bwc .ptart{width:54px;height:54px}.bwho.tight .bwc .ptx b{font-size:21px}.bwho.tight .bwc .ptx>span{-webkit-line-clamp:1}
