@@ -30,7 +30,7 @@ function askKind() {
 }
 let ASK_AIM = null;
 // lines the game asks you to type that read better with a word of explanation
-const ASK_WORDS = { 'Last word': ['Your last words', 'They are kept with your memorial. Type to change them.'], 'Inscription': ['Inscribe it', 'A short note shown after the item\'s name.'], 'Inscribe': ['Inscribe it', 'A short note shown after the item\'s name.'] };
+const ASK_WORDS = { 'Last word': ['Your last words', 'They are kept with your memorial. Type to change them.'], 'Inscription': ['Inscribe it', 'A short note shown after the item\'s name.'], 'Inscribe': ['Inscribe it', 'A short note shown after the item\'s name.'], 'Note': ['Write a note', 'It goes into your character\'s record.'], 'Pref': ['Type a settings line', 'One line in the game\'s settings-file form. For seasoned players.'], 'Control': ['Which Ctrl key?', 'Press the letter you would hold Ctrl with.'], 'Playback': ['Play a recording', 'The name of a recorded run of keys.'], 'Record': ['Record your keys', 'A name for the recording.'] };
 const ASK_LOOK = [['t', 'Target this', 'go'], ['r', 'What is it?'], ['j', 'Walk here'], ['(', 'Walk here'], ['x', 'Items here'], ['+', 'Next'], ['-', 'Previous'], ['m', 'Creatures only'], ['o', 'Look anywhere'], ['p', 'Back to you'], ['?', 'Help']];
 function askHtml() {
   const a = askKind(); if (!a || (a.t !== 'aim' && !(a.t === 'look' && ASK_AIM))) ASK_AIM = null;   // stepping through targets is still part of the same aim
