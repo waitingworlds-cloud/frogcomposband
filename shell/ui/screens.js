@@ -18,30 +18,98 @@ function uiOnTop() {
   return true;
 }
 
+// The pack and what you wear. Looking through them (i, e): click a thing to pin it to the card at the right, which
+// says what it is and offers what can be done with it as buttons. When the game asks "which one?" for some
+// command, a click simply answers, and the card previews whatever the pointer is on.
+const ITEMS = { sel: '', hov: '', acts: [] };
+const itemsViewer = () => !!UI && UI.kind === 'items' && /examine which|inspect which/i.test(UI.prompt || '');
+function itemsTab() { return (UI.tabs || []).find(t => t.on) || (UI.tabs || [])[0] || {}; }
+function itemsCur() { const id = ITEMS.sel || ITEMS.hov; return id ? UI.items.find(i => i.o && i.k === id) : null; }
 function itemsHtml() {
-  const u = UI, tab = u.tabs.find(t => t.on) || u.tabs[0], equip = tab && tab.loc === 1;
+  const u = UI, tab = itemsTab(), equip = tab && tab.loc === 1, viewer = itemsViewer();
+  if (ITEMS.tab !== tab.name) { ITEMS.tab = tab.name; ITEMS.sel = ITEMS.hov = ''; }
+  if (ITEMS.sel && (!viewer || !u.items.some(i => i.o && i.k === ITEMS.sel))) ITEMS.sel = '';
+  if (ITEMS.hov && !u.items.some(i => i.o && i.k === ITEMS.hov)) ITEMS.hov = '';
+  const cur = itemsCur();
   let rows = '', lastCat = '', n = 0, cats = 0;
   for (const it of u.items) {
     const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
     const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    const dk = o && it.k.trim() && (tab.loc === 1 || tab.loc === 2) ? ` data-desc="${tab.loc === 1 ? 'e' : 'p'}:${esc(it.k)}"` : '';
-    rows += `<div class="tr ${oq(o)}"${dk} ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
+    const has = !!(o && it.k.trim()), mark = has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
+    rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
       <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
       <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
-  const room = 800 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
+  const room = 730 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
   // a tab is a button: the game steps through its tabs with "/", so a click sends as many as it takes
   const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
-  return `<div class="pane npanel inv" style="--rh:${rh}px;width:800px">
+  const ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
+  return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
     <div class="tabs">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
-    <div class="nrows">${rows}</div>
-    <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(u.prompt.replace(/\n+/g, "\n"))}</span><span class="grow"></span>
+    <div class="sh2"><div class="nrows">${rows}</div><div class="shcard">${itemsCardHtml(cur, equip, viewer)}</div></div>
+    <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(ask)}</span><span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
   </div>`;
 }
+// when the game lists only some of your things (the potions, say) its letters are not the pack's letters:
+// find the thing itself among what you carry or wear, so the card describes the right one
+function itemsDescKey(it, tab) {
+  const list = tab.loc === 1 ? (S && S.equip) || [] : tab.loc === 2 ? (S && S.pack) || [] : null; if (!list) return '';
+  const same = list.filter(e => (e.o || e).n === it.o.n), hit = same.find(e => e.k === it.k) || same[0];
+  return hit ? (tab.loc === 1 ? 'e:' : 'p:') + hit.k : '';
+}
+function itemsCardHtml(it, worn, viewer) {
+  ITEMS.acts = [];
+  const verb = viewer ? '' : (/^\s*([A-Z][a-z]+)\b/.exec((UI.prompt || '').split('\n').pop() || '') || [])[1] || 'Choose';
+  if (!it) return `<div class="shempty"><div class="shemi">${icon(worn ? 'armor' : 'potion')}</div><div>${viewer ? 'Point at anything to see what it is.' : esc(verb) + ' which one?'}</div><div class="sub">${viewer ? 'Click it to see what you can do with it.' : 'Click it in the list, or press its key.'}</div></div>`;
+  const o = it.o, tab = itemsTab(), ic = tvIcon(o.tv), dk = itemsDescKey(it, tab), pinned = viewer && ITEMS.sel === it.k;
+  if (dk && !DESC[dk] && !DESC_ASKED[dk]) { DESC_ASKED[dk] = 1; sendRaw('D ' + dk.replace(':', ' ')); }
+  ITEMS.want = dk;
+  const one = o.n.replace(/^(\d+|an?|the) /i, '');
+  let foot;
+  if (!viewer) foot = `<div class="shgo ghost">Click it to ${esc(verb.toLowerCase())}</div>`;
+  else if (!pinned) foot = `<div class="shgo ghost">Click it for what you can do</div>`;
+  else {
+    const hs = !worn && typeof hbFromObj === 'function' && hbFromObj(o);
+    const acts = objItems(o, worn).filter(a => a.k !== 'I').map(a => ({ k: a.k, n: a.n, run: () => { sendBytes([27]); setTimeout(a.run, 60); } }));
+    if (hs) acts.push({ k: '', n: 'Put on the hotbar', run: () => hbSet(-1, hs) });
+    ITEMS.acts = acts;
+    foot = `<div class="iacts">${acts.map((a, i) => `<div class="iact ${i === 0 ? 'main' : ''}" data-iact="${i}">${i === 0 ? '<span class="key">Enter</span>' : ''}${esc(a.n)}</div>`).join('')}</div>`;
+  }
+  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(o.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${esc(cap(one))}</div><div class="dir">${it.slot ? esc(it.slot) + ' · ' : ''}${o.num > 1 ? o.num + ' · ' : ''}${lb(o.w)} lb</div></div></div>
+    <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>
+    <div class="shbuy">${foot}</div>`;
+}
+function itemsMove(d) {
+  const list = UI.items.filter(i => i.o && i.k.trim()); if (!list.length) return;
+  const i = list.findIndex(x => x.k === ITEMS.sel), j = i < 0 ? (d > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, i + d));
+  ITEMS.sel = list[j].k; schedule();
+}
+// keys that belong to the list and its card while you look through your things; every other key goes to the game
+function itemsKey(e) {
+  if (!itemsViewer() || !uiOnTop() || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { itemsMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
+  if (!ITEMS.sel) return false;
+  if (e.key === 'Enter') { const a = ITEMS.acts[0]; if (a) a.run(); return true; }
+  if (e.key === 'Escape') { ITEMS.sel = ''; schedule(); return true; }
+  return false;
+}
+document.addEventListener('click', ev => {
+  if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
+  const act = ev.target.closest('[data-iact]');
+  if (act) { ev.stopPropagation(); ev.preventDefault(); const a = ITEMS.acts[+act.dataset.iact]; if (a) a.run(); return; }
+  const row = ev.target.closest('.inv2 [data-ik]'); if (!row || !itemsViewer()) return;
+  ev.stopPropagation(); ev.preventDefault();   // looking through your things: a click pins the item, it does not type its letter
+  if (ITEMS.sel !== row.dataset.ik) { ITEMS.sel = row.dataset.ik; schedule(); }
+}, true);
+document.addEventListener('mousemove', ev => {
+  if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
+  const row = ev.target.closest('.inv2 [data-ik]'), id = row ? row.dataset.ik : '';
+  if (id && id !== ITEMS.hov) { ITEMS.hov = id; if (!ITEMS.sel) schedule(); }
+});
 
 let uiSel = '', spHover = '';
 function gridHas(re) { for (let y = 0; y < G.h; y++) if (re.test((G.s[y] || '').replace(/\x01/g, ' '))) return true; return false; }
@@ -437,7 +505,7 @@ function cmpHtml(rows, cmp) {
 }
 function descIn(m) {
   if (typeof loreIn === 'function') loreIn(m);
-  if (shopLike() && SHOP.want === m.key) setTimeout(schedule, 0);
+  if ((shopLike() && SHOP.want === m.key) || (UI && UI.kind === 'items' && ITEMS.want === m.key)) setTimeout(schedule, 0);
   // something you could wear arrives with what you wear in that place now, shown beside it
   DESC[m.key] = m.cmp && m.cmp.length ? cmpHtml(m.rows, m.cmp) + `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
   if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }

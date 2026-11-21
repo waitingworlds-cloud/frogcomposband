@@ -65,7 +65,7 @@ function objItems(o, worn) {
   const tv = o.tv, out = [], is = k => TV[k].includes(tv), wearable = (tv >= 19 && tv <= 23) || (tv >= 30 && tv <= 45) || tv === 39;
   if (worn) {
     out.push({ k: 't', n: 'Take it off', run: () => cmdPick('t', o.n) });
-    if (tv >= 19 && tv <= 23 && tv !== 19) out.push({ k: 'f', n: 'Fire', run: () => sendText(cmd('f')) });
+    if (tv === 19) out.push({ k: 'f', n: 'Fire', run: () => sendText(cmd('f')) });
   } else {
     if (is('potion')) out.push({ k: 'q', n: 'Quaff', run: () => cmdPick('q', o.n) });
     if (is('scroll')) out.push({ k: 'r', n: 'Read', run: () => cmdPick('r', o.n) });
