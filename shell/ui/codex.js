@@ -240,6 +240,25 @@ function skillHtml(y0, y1, x0, x1, skip) {
   const tabs = SK_MODES.map((m, i) => `<span class="skt${i === mode ? ' on' : ''}"${i === mode ? '' : ` data-key="${'M'.repeat((i - mode + 4) % 4)}"`} data-tip="${esc(m[2])}">${m[1]}</span>`).join('');
   return `<div class="skw"><div class="skm">${tabs}<span class="skd">${esc(SK_MODES[mode][2])}</span></div><div class="skc">${cols.map(col => `<div class="skcol">${col.map(g => `<div class="skg">${g.h ? `<div class="skh">${esc(g.h)}</div>` : ''}${g.rows.map(row).join('')}</div>`).join('')}</div>`).join('')}</div></div>`;
 }
+// The spell skill page: one card per book, a row per spell with the same five-step meter.
+function spellSkillHtml(y0, y1, x0, x1, skip) {
+  const books = []; let realm = '', cur = null, any = 0;
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).replace(/\x01/g, ' '), a = G.a[y] || []; let m;
+    if (!t.trim() || /^=+ .* =+$/.test(t.trim())) continue;
+    if ((m = /^\s*Realm:\s*(\S.*?)\s*$/.exec(t))) { realm = m[1]; continue; }
+    if ((m = /^\s*\[(.+?)\]\s+(?:Profic\s+)?Lvl\b/.exec(t))) { books.push(cur = { n: m[1], realm, rows: [], notes: [] }); continue; }
+    if ((m = /^\s*([a-zA-Z0-9])\)\s+(.+?)\s+(?:\[(Un|Be|Sk|Ex|Ma)\]\s+)?(\d+)\s+(\d+)\s+(\d+)%\s+(.*?)\s+(\d+)\s+(\d+)\s+(\d+)%\s*$/.exec(t)) && cur) {
+      cur.rows.push({ n: m[2], code: m[3] || '', lvl: +m[4], sp: +m[5], fail: +m[6], desc: m[7].trim(), cast: +m[8], bad: +m[9], dim: a[x0 + t.indexOf(m[2])] !== 1 }); any++; continue; }
+    if (cur) cur.notes.push(t.trim()); else return '';
+  }
+  if (!any) return '';
+  const prof = books.some(b => b.rows.some(r => r.code));
+  const row = r => { const st = SK_STEP[r.code] || [0, '']; const unk = /^unknown$/i.test(r.desc);
+    return `<div class="ssr${r.dim ? ' dim' : ''}${prof ? '' : ' np'}"><span class="skn">${esc(r.n)}</span>${prof ? `<span class="skp s${st[0]}">${[1, 2, 3, 4].map(i => `<i${i <= st[0] ? ' class="on"' : ''}></i>`).join('')}</span><span class="skv">${st[1]}</span>` : ''}<span class="ssv">${r.lvl}</span><span class="ssv ssm">${r.sp}</span><span class="ssv${r.fail >= 50 ? ' bad' : r.fail <= 15 ? ' ok' : ''}">${r.fail}%</span><span class="ssd"${unk ? ' data-tip="You learn what it does once you can cast it"' : ''}>${unk ? '·' : esc(r.desc)}</span><span class="ssc">${r.cast ? `${r.cast}×${r.bad ? ` <em>${r.bad} failed</em>` : ''}` : '<i>never</i>'}</span></div>`; };
+  const head = `<div class="ssr hd${prof ? '' : ' np'}"><span></span>${prof ? '<span></span><span class="skv">skill</span>' : ''}<span class="ssv" data-tip="The character level at which you can cast it">level</span><span class="ssv ssm">mana</span><span class="ssv" data-tip="Chance the spell fizzles">fail</span><span class="ssd">effect</span><span class="ssc" data-tip="How often you have cast it">cast</span></div>`;
+  return `<div class="ssw">${books.map((b, i) => `${b.realm && (!i || books[i - 1].realm !== b.realm) ? `<div class="ssrm"><span>${esc(b.realm)}</span> magic</div>` : ''}<div class="ssb"><div class="ssh">${esc(b.n)}</div>${head}${b.rows.map(row).join('')}${b.notes.map(n => `<div class="ssn">${esc(n)}</div>`).join('')}</div>`).join('')}</div>`;
+}
 // The journal's "about you" page: life rating and stat limits as tiles, then your people, calling, nature and
 // magic each as a card with its picture and the game's own account of it.
 function aboutHtml(y0, y1, x0, x1, skip) {
