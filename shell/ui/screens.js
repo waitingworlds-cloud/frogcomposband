@@ -358,7 +358,7 @@ function charMoreHtml(pg) {
     <div class="catr">in the field</div>
     <div class="ptiles chv">${tile(p.hp + '<small> / ' + p.mhp + '</small>', 'life', '#ff9a86')}${p.msp ? tile(p.sp + '<small> / ' + p.msp + '</small>', 'mana', '#9fd8f2') : ''}${tile(p.ac, 'armour')}${tile((p.speed > 0 ? '+' : '') + p.speed, 'speed')}${tile(Number(p.au).toLocaleString(), 'gold', '#ffcf6a')}${tile(lb(p.wgt) + '<small> / ' + lb(p.wlim) + ' lb</small>', 'burden')}</div>
     <div class="catr">worn and wielded</div>
-    <div class="chw">${worn.length ? worn.map(e => `<div class="chwi" data-desc="e:${esc(e.k)}">${artHtml(e.o.ki, 36) || '<i class="oart" style="width:36px;height:36px"></i>'}<div><b>${esc(cap(String(e.o.n).replace(/^(an?|the) /i, '')))}</b><span>${esc(e.slot)}</span></div></div>`).join('') : '<div class="sub">Nothing yet.</div>'}</div>
+    <div class="chw">${worn.length ? worn.map(e => `<div class="chwi" data-desc="e:${esc(e.k)}">${artHtml(e.o.ki, 36) || '<i class="oart" style="width:36px;height:36px"></i>'}<div><b>${typeof nameHtml === 'function' ? nameHtml(cap(String(e.o.n).replace(/^(an?|the) /i, ''))) : esc(cap(String(e.o.n).replace(/^(an?|the) /i, '')))}</b><span>${esc(e.slot)}</span></div></div>`).join('') : '<div class="sub">Nothing yet.</div>'}</div>
     <div class="grow"></div>
     <div class="chrec"><span class="btn go" data-charview="record">Read the full record</span><span class="sub">Every number the game keeps on you, ${pg.of} lines of it. Page Down opens it too.</span><span class="grow"></span><span class="btn${p.hp < 0 ? ' go' : ''}" data-key="Esc">${p.hp < 0 ? 'Continue' : 'Close'}</span></div></div>`;
 }
