@@ -658,7 +658,7 @@ document.addEventListener('mousedown', ev => {
   }
   const go = ev.target.closest && ev.target.closest('[data-go]');
   // on the world map the game has no travel of its own: close the map, then walk there a step at a time
-  const wildTo = (x, y) => { sendText('\x1b'); setTimeout(() => { if (S && S.p && S.p.wild && playing()) wildGo(x, y); }, 260); };
+  const wildTo = (x, y) => { const route = wildRoute(UI, x, y); if (route && route.hard) postToast('Mountains stand in the way: you will get as near as the road goes'); sendText('\x1b'); setTimeout(() => { if (S && S.p && S.p.wild && playing()) wildGo(x, y, route); }, 260); };
   if (go) { const [dx, dy] = go.dataset.go.split(','); if (UI && UI.wild) wildTo(UI.px + +dx, UI.py + +dy); else sendRaw(`M 3 ${dx} ${dy}`); return; }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);

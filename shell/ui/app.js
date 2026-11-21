@@ -37,15 +37,36 @@ let TRAVEL = null, WALK = null, WALK_N = 0;
 // On the world map a click walks you there a step at a time. It stops when you arrive, when the way is shut (mountains,
 // deep water), when anything is said or asked, and the moment you are pulled down to the ground (an ambush).
 let WILD = null;
-function wildGo(x, y) {
-  clearInterval(WILD && WILD.timer); WILD = { x, y, pos: '', at: Date.now(), hp: S.p.hp, n: 0 };
+// The way across the world map to a place: round the mountain chains (which nobody walks through), and by land rather than
+// through deep water or lava where there is a choice. u is the world map as the game sent it.
+function wildRoute(u, tx, ty) {
+  if (!u || !u.c || !u.w) return null;
+  const W = u.w, H = u.h, N = W * H, cost = new Float64Array(N), prev = new Int32Array(N).fill(-1), dist = new Float64Array(N).fill(Infinity);
+  for (let i = 0; i < N; i++) { const c = u.c[i], f = Array.isArray(c) ? c[0] : c; if (!f) { cost[i] = 0; continue; } const k = featClass(f), n = ((DICT.f[f] || [''])[0] || '').toLowerCase();
+    cost[i] = k === 'wall' ? 500 : k === 'lava' ? 40 : k === 'water' ? (/deep/.test(n) ? 12 : 2) : k === 'tree' ? 1.5 : 1; }
+  const s0 = u.py * W + u.px, t = ty * W + tx; if (s0 === t || !cost[t]) return null;
+  dist[s0] = 0; const open = [s0];   // few thousand squares: a plain list does
+  while (open.length) {
+    let bi = 0; for (let i = 1; i < open.length; i++) if (dist[open[i]] < dist[open[bi]]) bi = i;
+    const cur = open[bi]; open[bi] = open[open.length - 1]; open.pop(); if (cur === t) break;
+    const cx = cur % W, cy = (cur / W) | 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const ni = ny * W + nx; if (!cost[ni]) continue; const nd = dist[cur] + cost[ni] + (dx && dy ? .01 : 0); if (nd < dist[ni]) { if (dist[ni] === Infinity) open.push(ni); dist[ni] = nd; prev[ni] = cur; } }
+  }
+  if (prev[t] < 0) return null;
+  const path = {}; for (let c = t; c !== s0 && c >= 0; c = prev[c]) path[prev[c]] = c;   // from each square on the way, the next one
+  return { W, path, hard: dist[t] >= 500 };
+}
+function wildGo(x, y, route) {
+  clearInterval(WILD && WILD.timer); WILD = { x, y, pos: '', at: Date.now(), hp: S.p.hp, n: 0, route };
   WILD.timer = setInterval(() => {
     const w = WILD; if (!w) return; const stop = () => { clearInterval(w.timer); if (WILD === w) WILD = null; };
     if (!S || !S.p || !S.p.wild || !playing() || G.icky || G.ov || S.p.hp < w.hp || (typeof askKind === 'function' && askKind()) || (S.px === w.x && S.py === w.y) || w.n > 400) return stop();
     const pos = S.px + ',' + S.py;
     if (pos === w.pos) { if (Date.now() - w.at > 700) stop(); return; }   // no step came of the last ask: the way is shut
     if (w.pos && msgTop().trim() && !WALK_OK.test(msgTop())) return stop();
-    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; sendRaw(`M 1 ${Math.sign(w.x - S.px)} ${Math.sign(w.y - S.py)}`); wildGo.busy = false;
+    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; { const nx = w.route && w.route.path[S.py * w.route.W + S.px], rx = nx != null ? nx % w.route.W : null, ry = nx != null ? (nx / w.route.W) | 0 : null;
+      sendRaw(nx != null ? `M 1 ${rx - S.px} ${ry - S.py}` : `M 1 ${Math.sign(w.x - S.px)} ${Math.sign(w.y - S.py)}`); } wildGo.busy = false;
   }, 70);
 }
 // A long walk the game cut short for something harmless (a blessing wearing off, a feeling about an item) carries on by
