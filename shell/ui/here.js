@@ -6,7 +6,7 @@ function hereCell() { if (!S || !S.map) return null; const mw = S.map.w, c = S.m
 const hereBusy = () => /-more-/.test(msgTop()) || !!askKind();   // a question or a held message comes first
 function hereActs() {
   if (!playing() || aimMode() || lookMode() || hereBusy() || (typeof EXP !== 'undefined' && EXP.on)) return [];
-  if (S.p.wild) { const c = hereCell(), n = c && c.name ? c.name.replace(/^(the|a|an) /i, '') : ''; return [{ key: cmd('>'), cap: '>', label: c && c.cls === 'shop' ? 'Go into ' + cap(n) : 'Step down to the ground here' }]; }
+  if (S.p.wild) { const c = hereCell(), n = c && c.name ? c.name.replace(/^(the|a|an) /i, '') : ''; return [{ key: cmd('>'), cap: '>', label: /^town$/i.test(n) ? 'Walk into the town' : c && c.cls === 'down' ? 'Step down by the dungeon mouth' : 'Step down to the ground here' }]; }
   const c = hereCell(), acts = [], here = (S.floor || []).filter(o => !o.dx && !o.dy);
   if (here.length) acts.push({ key: cmd('g'), cap: 'g', label: here.length === 1 ? 'Pick up ' + here[0].n : `Pick up ${here.length} things`, art: here[0] });
   // the stairs you have just come by are not offered until you have stepped off them
