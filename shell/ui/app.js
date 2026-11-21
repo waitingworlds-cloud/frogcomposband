@@ -936,6 +936,7 @@ function draw() {
   }
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
+  if (typeof HUB !== 'undefined' && !G.icky) HUB.cap = '';
   const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
   if (!page) CHARVIEW = 'summary';
   if (typeof HUB !== 'undefined' && HUB.hold) { if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
