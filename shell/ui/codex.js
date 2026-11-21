@@ -146,3 +146,34 @@ function helpMenuHtml(y0, y1, x0, x1, skip) {
     ${secs.filter(g => g.items.length).map(g => `<div class="msec">${g.head ? `<div class="mhead">${esc(g.head)}</div>` : ''}<div class="hlpg">${g.items.map(card).join('')}</div></div>`).join('')}
     </div>`;
 }
+
+// The journal's pickup rules: the game lists each rule as its own shorthand ("[Pick Up] potions:speed#!kq").
+// Here every rule is a line in plain words: what happens, to which things, and the note it writes on them.
+const RULE_ACT = { 'Pick Up': ['Take', 'pick'], 'Leave': ['Leave', 'leave'], 'Destroy': ['Destroy', 'destroy'], 'Query': ['Ask first', 'ask'] };
+function ruleWords(t) {
+  let m, ident = false, note = '';
+  t = t.replace(/^[~!;(]+/, ''); if (t[0] === '?') { ident = true; t = t.slice(1); }
+  if ((m = /^(.*?)#(.*)$/.exec(t))) { t = m[1]; note = m[2]; }
+  t = t.replace(/\barmors\b/g, 'armour').replace(/^collecting (\w+)/, '$1 like ones you already carry').replace(/^unaware (\w+)/, '$1 of a kind you have not learned yet').replace(/^unsensed (\w+)/, '$1 you have no feel for yet');
+  let h;
+  if ((m = /^([^:]*):\^?(.*)$/.exec(t)) && m[1].trim()) h = `<b>${esc(m[1].trim())}</b> ${/:\^/.test(t) ? 'whose name starts with' : 'named'} &ldquo;${esc(m[2].trim())}&rdquo;`;
+  else if ((m = /^\^(.+)$/.exec(t))) h = `anything whose name starts with &ldquo;${esc(m[1].trim())}&rdquo;`;
+  else if (/\b(items|potions|scrolls|weapons|armour|shooters|spellbooks|corpses|skeletons|rings|amulets|wands|staves|rods|lights?|missiles|chests|figurines|capture balls|devices)\b/.test(t)) h = `<b>${esc(t.trim())}</b>`;
+  else h = `anything named &ldquo;${esc(t.trim())}&rdquo;`;
+  return h + (ident ? '<span class="ich" data-tip="It is identified for you first, if you carry the means">identify it</span>' : '') + (note ? `<span class="ich ins" data-tip="Written on the item when you take it. Notes like these make the game ask before you destroy, sell or drink it">note ${esc(note)}</span>` : '');
+}
+function rulesHtml(y0, y1, x0, x1, skip) {
+  const rows = []; let n = 0, count = '', off = '';
+  for (let y = y0; y <= y1; y++) {
+    if (skip[y]) continue; const t = rowText(y).slice(x0, x1 + 1).trim(); if (!t) continue; let m;
+    if ((m = /^([\[(])(Pick Up|Leave|Destroy|Query)[\])]\s+(\S.*)$/.exec(t))) { const a = RULE_ACT[m[2]]; rows.push(`<div class="rl"><span class="rla a-${a[1]}">${a[0]}</span><span class="rlt">${ruleWords(m[3])}</span></div>`); n++; continue; }
+    if ((m = /^There (?:is|are) (\d+) registered lines?/.exec(t))) { count = m[1]; continue; }
+    if (/^For help on the Mogaminator/.test(t)) continue;
+    if (/^You have (disabled|not yet activated) the Mogaminator/.test(t)) { off = /disabled/.test(t) ? 'Pickup rules are switched off.' : 'Pickup rules are not in use yet. Open them once from Options to start from the game\'s own list.'; continue; }
+    if (!n) continue;
+    return '';   // something else on the page: leave it as the game set it
+  }
+  if (!n && !off) return '';
+  return `<div class="rlw"><div class="rli">${off ? esc(off) : `${count ? count + ' rules. ' : ''}The game reads them from the top, and the first one that fits an item decides what happens to it.`}
+    <span class="rlb"><span class="btn" data-key="a">How rules work</span><span class="btn go" data-jump="_">Change the rules</span></span></div><div class="rlc">${rows.join('')}</div></div>`;
+}

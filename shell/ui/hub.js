@@ -50,3 +50,10 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-hub]'); if (!t) return;
   ev.stopPropagation(); ev.preventDefault(); if (t.dataset.hub !== HUB.cur) hubGo(t.dataset.hub);
 }, true);
+
+// a button that leaves whatever page is open and presses one of the game's keys (the rules page's "Change the rules")
+document.addEventListener('click', ev => {
+  const t = ev.target.closest && ev.target.closest('[data-jump]'); if (!t) return;
+  ev.stopPropagation(); ev.preventDefault();
+  HUB.gap = 0; HUB.hold = Date.now() + 1500; sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t.dataset.jump), 110); schedule(); setTimeout(schedule, 1520);
+}, true);
