@@ -549,9 +549,26 @@ function tipRefresh() {
 }
 let TIP_EL = null;   // the button a hint belongs to: when a redraw takes the button away, the hint goes with it
 function tipStale() { if (TIP_EL && !TIP_EL.isConnected) { TIP_EL = null; const t = $('#tip'); if (t) t.style.display = 'none'; } }
+// A tip waits until the pointer rests on something (TIP_WAIT), so sweeping the mouse across the screen opens nothing.
+// Once one is open it follows the pointer while it stays on the same thing; moving on to something else closes it, and
+// the next one opens after a shorter rest while you are still reading along a row (TIP_WARM).
+const TIP = { t: 0, pend: null, x: -9, y: -9, html: '', hid: 0 }, TIP_WAIT = 450, TIP_WARM = 200;
 function showTip(html, ev) {
-  const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
-  t.innerHTML = html; t.style.display = 'block';
+  const t = $('#tip');
+  if (!html) { clearTimeout(TIP.t); TIP.t = 0; TIP.pend = null; if (t.style.display !== 'none') { t.style.display = 'none'; TIP.hid = Date.now(); } TIP.html = ''; return; }
+  const x = ev && ev.clientX != null ? ev.clientX : TIP.x, y = ev && ev.clientY != null ? ev.clientY : TIP.y, vis = t.style.display === 'block';
+  const still = Math.abs(x - TIP.x) < 5 && Math.abs(y - TIP.y) < 5;
+  if (vis && (html === TIP.html || still)) { if (html !== TIP.html) { t.innerHTML = html; TIP.html = html; } tipPlace(t, x, y); return; }
+  if (vis) { t.style.display = 'none'; TIP.hid = Date.now(); TIP.html = ''; }
+  TIP.pend = { html, x, y, wide: t.classList.contains('wide') };
+  if (!still || !TIP.t) { TIP.x = x; TIP.y = y; clearTimeout(TIP.t); TIP.t = setTimeout(tipOpen, Date.now() - TIP.hid < 700 ? TIP_WARM : TIP_WAIT); }
+}
+function tipOpen() {
+  TIP.t = 0; const p = TIP.pend, t = $('#tip'); if (!p) return; TIP.pend = null;
+  t.classList.toggle('wide', p.wide); t.innerHTML = p.html; t.style.display = 'block'; TIP.html = p.html; tipPlace(t, p.x, p.y);
+}
+function tipPlace(t, cx, cy) {
+  const ev = { clientX: cx, clientY: cy };
   const sw = innerWidth / SCALE, sh = VH, w = t.offsetWidth, h = t.offsetHeight;
   let x = ev.clientX / SCALE + 18, y = ev.clientY / SCALE + 20;
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
