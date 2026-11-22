@@ -4,7 +4,7 @@
 'use strict';
 const HUB_TABS = [['pack', 'Pack', 'i'], ['gear', 'Gear', 'e'], ['spells', 'Spells', 'm'], ['powers', 'Powers', 'U'], ['char', 'Character', 'C'], ['map', 'Map', 'M'],
   ['journal', 'Journal', '~'], ['log', 'Messages', '\x10', 'Ctrl P'], ['opts', 'Options', '='], ['help', 'Help', '?']];
-const HUB = { last: '', t: 0, hold: 0, cur: '' };
+const HUB = { last: '', t: 0, hold: 0, cur: '', want: '' };
 const HUB_KEY = { i: 'pack', e: 'gear', m: 'spells', b: 'spells', G: 'spells', U: 'powers', C: 'char', M: 'map', '~': 'journal', '=': 'opts', '?': 'help' };
 function hubCur() {
   if (typeof UI !== 'undefined' && UI && UI.kind && uiOnTop()) {
@@ -45,10 +45,13 @@ function hubTermHtml(side) {
 function hubHoldHtml() { return Date.now() < HUB.hold ? `<div class="pane npanel hub">${hubTabsHtml(HUB.last)}<div class="hubb"></div></div>` : ''; }
 function hubGo(id) {
   const t = HUB_TABS.find(t => t[0] === id); if (!t || !S || !S.map) return;
-  HUB.last = id; HUB.t = Date.now(); HUB.gap = 0; HUB.hold = Date.now() + 1500;   // long enough for a slow machine: the frame is replaced the moment the page arrives
+  HUB.last = id; HUB.want = id; HUB.t = Date.now(); HUB.gap = 0; HUB.hold = Date.now() + 1500;   // long enough for a slow machine: the page is swapped the moment the new one arrives
   if (id === 'spells') SPB.auto = Date.now();
-  sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t[2]), 110); schedule();
-  setTimeout(schedule, 1520);
+  // one Esc closes a list of the interface's own; a page of the game's text may be some pages deep
+  const one = typeof UI !== 'undefined' && UI && uiOnTop() && /^(items|spells|lmap)$/.test(UI.kind) && !(UI.kind === 'items' && !itemsViewer() && !spbPicking());
+  for (let i = one ? 1 : 3; i--;) sendBytes([27]);
+  setTimeout(() => { if (HUB.want === id) HUB.hold = Date.now() + 1500; sendText('\\' + t[2]); }, 110); schedule();
+  setTimeout(schedule, 1640);
 }
 document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-hub]'); if (!t) return;
@@ -59,7 +62,7 @@ document.addEventListener('click', ev => {
 document.addEventListener('click', ev => {
   const t = ev.target.closest && ev.target.closest('[data-jump]'); if (!t) return;
   ev.stopPropagation(); ev.preventDefault();
-  HUB.gap = 0; HUB.hold = Date.now() + 1500; sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t.dataset.jump), 110); schedule(); setTimeout(schedule, 1520);
+  HUB.gap = 0; HUB.want = ''; HUB.hold = Date.now() + 1500; sendBytes([27]); sendBytes([27]); sendBytes([27]); setTimeout(() => sendText('\\' + t.dataset.jump), 110); schedule(); setTimeout(schedule, 1520);
 }, true);
 
 // the window's × closes the whole window, however deep the page: the game's Esc only steps back one page

@@ -193,7 +193,42 @@ function onMsg(m) {
   }
 }
 let pend = false, ftimer = 0, BASE = null;
-const setHtml = (el, h) => { if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; };
+// A redraw used to replace a panel's whole markup: every scrolled list jumped back to its top, a wheel scroll under way
+// was cut off whenever the pointer crossed a row, and pictures were built anew each time. Now the new markup is laid
+// over the old one: only what differs is changed, so lists keep their scroll and the rest stays as it was. A different
+// page (another tab, another shop list) is put in fresh, from its top; a write-up starts at its top when its text changes.
+const MORPH_T = document.createElement('template');
+function scrollPage(root) { let t = ''; for (const e of root.querySelectorAll('.hubtab.on, .tabs > .on, .ptab.on, .shtabs > .on, .mtitle, .ctitle, .pgt')) t += '|' + e.textContent.replace(/\d+/g, '').trim().slice(0, 40); return t.slice(0, 400); }
+function scrollText(e) { const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); let t = '', n; while (t.length < 80 && (n = w.nextNode())) t += n.nodeValue.trim(); return t.slice(0, 80); }
+function attrsSame(a, b) { if (a.attributes.length !== b.attributes.length) return false; for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) return false; return true; }
+function attrsSync(a, b) {
+  for (let i = a.attributes.length; i--;) { const n = a.attributes[i].name; if (!b.hasAttribute(n)) a.removeAttribute(n); }
+  for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value);
+}
+function morphKids(from, to) {
+  let a = from.firstChild, b = to.firstChild;
+  while (b) {
+    const nb = b.nextSibling;
+    if (!a) { from.appendChild(b); b = nb; continue; }
+    const na = a.nextSibling;
+    if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName) from.replaceChild(b, a);
+    else if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; }
+    else if (a.nodeName === 'CANVAS') { if (!attrsSame(a, b)) from.replaceChild(b, a); }   // a picture already drawn stays drawn
+    else { attrsSync(a, b); morphKids(a, b); }
+    a = na; b = nb;
+  }
+  while (a) { const na = a.nextSibling; from.removeChild(a); a = na; }
+}
+const setHtml = (el, h) => {
+  if (!el || el._h === h) return false;
+  el._h = h;
+  MORPH_T.innerHTML = h || ''; const nf = MORPH_T.content, pg = scrollPage(nf);
+  if (!el.firstChild || !h || el._pg !== pg) { el._pg = pg; el.replaceChildren(nf); return true; }
+  const desc = []; for (const e of el.querySelectorAll('[class*="desc"], [class*="dsc"]')) if (e.scrollTop > 0) desc.push([e, scrollText(e)]);
+  morphKids(el, nf);
+  for (const [e, t] of desc) if (e.isConnected && scrollText(e) !== t) e.scrollTop = 0;
+  return true;
+};
 function schedule() { if (!pend) { pend = true; requestAnimationFrame(() => { pend = false; draw(); }); } }
 
 /* ---------- helpers over the text grid ---------- */
@@ -984,13 +1019,19 @@ function draw() {
   PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
   // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
   if (typeof HUB !== 'undefined' && !G.icky) HUB.cap = '';
+  if (typeof HUB !== 'undefined') HUB.cur = '';
   const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
   if (!page) CHARVIEW = 'summary';
-  if (typeof HUB !== 'undefined' && HUB.hold) { if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
+  // a tab was clicked: the page you were on stays up (with the new tab lit) until the page asked for has arrived, so
+  // the window never shows an empty frame or the pages the game passes through on the way
+  const hubArrived = typeof HUB !== 'undefined' && !!HUB.want && HUB.cur === HUB.want && !!nh && !/<div class="hubb(?: term)?"><\/div>|<div class="hubterm"><\/div>/.test(nh);
+  const hubWait = inGame && typeof HUB !== 'undefined' && !!HUB.want && HUB.hold > Date.now() && !hubArrived && !ask && !edit && /^<div class="pane npanel hub">/.test(nat._nh || '');
+  if (typeof HUB !== 'undefined' && HUB.hold) { if (HUB.want) { if (hubArrived || HUB.hold <= Date.now()) { HUB.hold = 0; HUB.want = ''; } } else if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
   // something worn or taken off from the gear tab: the tab stays as it is until the game has done it, then shows the result (no blink in between)
-  const held = inGame && typeof GEARHOLD !== 'undefined' && !ask && nat._nh != null && (ctxAnswering() || (GEARHOLD && Date.now() < GEARHOLD && nat._nh && !/ data-gs=/.test(nh)));
+  const held = hubWait || inGame && typeof GEARHOLD !== 'undefined' && !ask && nat._nh != null && (ctxAnswering() || (GEARHOLD && Date.now() < GEARHOLD && nat._nh && !/ data-gs=/.test(nh)));
   if (!held) nat._nh = nh;
+  if (hubWait) for (const e of nat.querySelectorAll('.hubtab')) e.classList.toggle('on', e.dataset.hub === HUB.want);
   const natChanged = !held && setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!(held ? nat._nh : nh));
   if (held) show = false;
   else if (page) show = false;
