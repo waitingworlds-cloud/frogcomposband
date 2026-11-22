@@ -170,7 +170,7 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
+  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); if (typeof gearOnState === 'function') gearOnState(); }
   else if (m.t === 'ui') {
     if (m.kind === 'shop' || m.kind === 'home') { const sg = JSON.stringify(m.rows || m.items || m); if (sg !== DESC_SHOP) { DESC_SHOP = sg; for (const k in DESC) if (/^[sh]:/.test(k)) { delete DESC[k]; delete DESC_ASKED[k]; } } }
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
@@ -317,18 +317,21 @@ const hpc = h => h > 75 ? 'ok' : h > 45 ? 'mid' : '';
 const DOLLPOS = { 10: [[113, 6]], 8: [[44, 80]], 5: [[182, 80]], 7: [[113, 144]], 2: [[0, 208], [226, 208]], 12: [[0, 208], [226, 208]], 1: [[52, 294]], 6: [[174, 294]],
   3: [[0, 358], [226, 358]], 9: [[113, 404]], 4: [[0, 404]], 14: [[226, 404]], 11: [[113, 294], [113, 230]], 13: [[113, 294]] };
 const FIG = `<svg class="fig" viewBox="0 0 200 392"><g fill="#2c2f34" opacity=".55"><circle cx="100" cy="46" r="26"/><path d="M88 70h24v14q34 4 44 22l12 150h-22l-8-104v68l6 164h-34l-10-140-10 140H56l6-164v-68l-8 104H32L44 106q10-18 44-22z"/></g></svg>`;
-function dollHtml() {
+function dollHtml(gear) {
   const used = {}, extra = [];
   let h = '';
-  for (const e of S.equip) {
+  S.equip.forEach((e, i) => {
     const list = DOLLPOS[e.type] || [], n = used[e.type] = (used[e.type] || 0) + 1, p = list[n - 1];
     const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring';
-    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
+    // an empty slot that something you carry would fill says so, and a click offers it
+    const fits = typeof slotFits === 'function' ? slotFits(i) : [], can = fits.length;
+    const tip = e.o ? e.o.n + (gear ? '' : '\nclick: what you can do with it' + (can ? ', or swap it' : '')) : e.slot + ': nothing' + (can ? '\nclick: ' + (can === 1 ? slotVerb(e.type).toLowerCase() + ' ' + fitName(fits[0]) : can + ' things you carry go here') : '');
+    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'} ${!e.o && can ? 'canfit' : ''} ${gear && ITEMS.gs === i ? 'gsel' : ''}" style="${st}" data-eqi="${i}" data-tip="${esc(tip)}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}${!e.o && can ? '<i class="fitdot"></i>' : ''}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
-  }
+  });
   // a creature character is drawn as the creature it is, not as a human outline
   const beast = S.p.cls === 'Monster' && S.p.form && TS && TS.mon && TS.mon[tkey(S.p.form)];
-  return `<div class="doll dB" style="height:452px;flex:none">${beast ? '<canvas id="dfig" class="dfig"></canvas>' : FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
+  return `<div class="doll dB" style="height:452px;flex:none">${beast ? (gear ? '<canvas class="dfig dfig2"></canvas>' : '<canvas id="dfig" class="dfig"></canvas>') : FIG}${h}</div>` + (extra.length ? `<div class="row dollx" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
 }
 let lastEff = '';
 let CAN_STUDY = false;   // the game says there is a spell to learn
@@ -985,13 +988,17 @@ function draw() {
   if (!page) CHARVIEW = 'summary';
   if (typeof HUB !== 'undefined' && HUB.hold) { if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
-  const natChanged = setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!nh);
-  if (page) show = false;
+  // something worn or taken off from the gear tab: the tab stays as it is until the game has done it, then shows the result (no blink in between)
+  const held = inGame && typeof GEARHOLD !== 'undefined' && !ask && nat._nh != null && (ctxAnswering() || (GEARHOLD && Date.now() < GEARHOLD && nat._nh && !/ data-gs=/.test(nh)));
+  if (!held) nat._nh = nh;
+  const natChanged = !held && setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!(held ? nat._nh : nh));
+  if (held) show = false;
+  else if (page) show = false;
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
   else if (ask && G.ov) show = false;
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
-  t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
+  if (!held) { t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov)); }
 
   // a panel opening eases in rather than snapping; one already open just updates
   for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); const n = el._pop = (el._pop || 0) + 1; setTimeout(() => { if (el._pop === n) el.classList.remove('pop'); }, 220); }

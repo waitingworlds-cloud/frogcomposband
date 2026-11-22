@@ -84,6 +84,43 @@ function objItems(o, worn) {
   return out;
 }
 
+/* ---------- a slot of yours, and what you carry that goes in it ---------- */
+let SLOTPICK = null;     // wearing into a slot you clicked: the game's "which slot?" is answered with that slot
+let GEARHOLD = 0;         // until then the gear tab is left on screen while the game does the wearing
+let GEARBACK = null;     // worn from the gear tab: open the tab again once it is on
+const WILD_NO = 'You cannot change your gear out on the world map. Step into a place first.';
+const slotFits = i => ((S && S.pack) || []).filter(o => o.fit && (o.fit >> i) & 1);   // i counts your slots from 0, as S.equip does
+const slotVerb = t => t === 2 || t === 12 || t === 4 ? 'Wield' : t === 3 || t === 5 ? 'Put on' : t === 6 ? 'Hold up' : t === 13 ? 'Ready' : 'Wear';
+const SLOT_WANTS = { 1: 'Gloves or gauntlets go here.', 2: 'A weapon or a shield goes here.', 3: 'A ring goes here.', 4: 'A bow, sling or crossbow goes here.', 5: 'An amulet goes here.', 6: 'A torch or lantern goes here.', 7: 'Body armour goes here.', 8: 'A cloak goes here.', 9: 'Boots go here.', 10: 'A helm or cap goes here.', 11: 'Almost anything can go here.', 12: 'A weapon goes here.', 13: 'A capture ball goes here.', 14: 'A quiver goes here.' };
+const fitName = o => o.n.replace(/\s*\{[^}]*\}\s*$/, '').replace(/\s*\([^)]*\)/g, '').replace(/^(\d+) /, 'one of your $1 ');
+function gearBack(i) { const e = S.equip[i]; GEARBACK = e ? { i, t: Date.now(), had: e.o ? e.o.n : '' } : null; if (e) { GEARHOLD = Date.now() + 1800; setTimeout(schedule, 1850); } }
+function wearInto(o, i, back) {
+  const e = S.equip[i]; if (!e || !o) return;
+  if (S.p.wild) { postToast(WILD_NO); return; }
+  SLOTPICK = { k: e.k, t: Date.now(), had: e.o ? e.o.n : '' }; if (back) gearBack(i); else GEARBACK = null;
+  cmdPick('w', o.n);
+}
+// left-click a slot on your figure: what you carry that goes there (and, if something is worn, what can be done with it)
+function slotMenu(i, ev) {
+  const e = S.equip[i]; if (!e) return;
+  if (S.p.wild && (!e.o || slotFits(i).length)) { postToast(WILD_NO); if (!e.o) return; }
+  const items = e.o ? objItems(e.o, true) : [];
+  if (!S.p.wild) for (const o of slotFits(i)) items.push({ k: '', n: (e.o ? 'Swap for ' : slotVerb(e.type) + ' ') + fitName(o), run: () => wearInto(o, i), hot: !e.o });
+  if (!items.length) { postToast('You carry nothing for this slot (' + e.slot.toLowerCase() + ')'); return; }
+  if (typeof showTip === 'function') showTip('', {});
+  ctxOpen(e.o ? cap(e.o.n.replace(/^(an?|the) /i, '').replace(/\s*[({\[].*$/, '')) : e.slot, items, ev);
+}
+function gearOnState() {
+  if (SLOTPICK) { const e = S.equip.find(e => e.k === SLOTPICK.k); if (!e || (e.o ? e.o.n : '') !== SLOTPICK.had) SLOTPICK = null; }   // it is on: no slot question is coming
+  const g = GEARBACK; if (!g) return; if (Date.now() - g.t > 3000) { GEARBACK = null; return; }
+  const e = S.equip[g.i]; if (!e || (e.o ? e.o.n : '') === g.had || !playing() || expAsk()) return;   // not on yet, or the game has something to say first
+  GEARBACK = null; ITEMS.back = g.i; sendText(cmd('e'));
+}
+document.addEventListener('click', ev => {
+  const sl = ev.target.closest && ev.target.closest('#L .doll [data-eqi], #L .dollx [data-eqi]'); if (!sl || !S || !S.equip || CTX || !playing()) return;
+  ev.stopPropagation(); ev.preventDefault(); slotMenu(+sl.dataset.eqi, ev);
+}, true);
+
 /* ---------- the menu ---------- */
 function ctxOpen(title, items, ev) {
   if (!items.length) return;
@@ -113,17 +150,25 @@ function ctxKey(e) {
 }
 
 /* ---------- following up on the game's prompts ---------- */
+// a question of the game's that was answered for you (which item, which slot) is never put on screen:
+// what was there stays until the game has moved on
+let ANS = { t: 0, ui: null, slot: 0 };
+function ctxAnswering() {
+  const t = Date.now() - ANS.t; if (t > 1200) return false;
+  return (ANS.ui && UI === ANS.ui) || (ANS.slot && gridHas(/Choose an equipment slot/)) || (!!SLOTPICK && t < 300);
+}
 function ctxOnUi(m) {
   hbOnUi(m); lvlOnUi(m);
   if (!PICK) return;
   if (Date.now() - PICK.t > 4000) { PICK = null; return; }
   if (m.kind !== 'items') return;
   const hit = m.items.find(it => it.o && (PICK.ki != null ? it.o.ki === PICK.ki : it.o.n === PICK.name) && it.k.trim());
-  if (hit) { const c = PICK.c; PICK = null; sendText(hit.k); if (typeof LASTPICK !== 'undefined') LASTPICK = { o: hit.o, c, t: Date.now() }; return; }
-  if (m.tabs && m.tabs.length > 1 && PICK.tabbed < m.tabs.length - 1) { PICK.tabbed++; sendText('/'); return; }
+  if (hit) { const c = PICK.c; PICK = null; ANS = { t: Date.now(), ui: m }; sendText(hit.k); if (typeof LASTPICK !== 'undefined') LASTPICK = { o: hit.o, c, t: Date.now() }; return; }
+  if (m.tabs && m.tabs.length > 1 && PICK.tabbed < m.tabs.length - 1) { PICK.tabbed++; ANS = { t: Date.now(), ui: m }; sendText('/'); return; }
   PICK = null;   // not offered here: leave the choice to you
 }
 function ctxOnFrame() {
+  if (SLOTPICK) { if (Date.now() - SLOTPICK.t > 2000) SLOTPICK = null; else if (gridHas(/Choose an equipment slot/)) { const k = SLOTPICK.k; SLOTPICK = null; ANS = { t: Date.now(), ui: null, slot: 1 }; setTimeout(schedule, 1250); sendText(k); } }
   if (!AIM) return;
   if (Date.now() - AIM > 30000) { AIM = 0; return; }
   const top = (G.s[0] || '').replace(/\x01/g, ' ');
@@ -140,7 +185,7 @@ function ctxTarget(ev) {
   if (at && playing()) { const [dx, dy] = at.dataset.at.split(',').map(Number); const c = S.map ? S.map.c[((S.map.h >> 1) + dy) * S.map.w + (S.map.w >> 1) + dx] : 0;
     const m = S.mons.find(m => m.dx === dx && m.dy === dy); return [m ? cap(m.n.replace(/^(an?|the) /i, '')) : at.dataset.n || 'There', cellItems({ dx, dy, c })]; }
   const worn = t.closest && t.closest('[data-worn]');
-  if (worn && playing()) { const e = S.equip.find(e => e.k === worn.dataset.worn); if (e && e.o) return [e.o.n, objItems(e.o, true)]; }
+  if (worn && playing()) { const e = S.equip.find(e => e.k === worn.dataset.worn), tab = !!worn.closest('.inv2'); if (e && e.o) return [e.o.n, tab ? objItems(e.o, true).map(a => ({ ...a, run: () => { sendText('\x1b'); setTimeout(a.run, 60); } })) : objItems(e.o, true)]; }
   const row = t.closest && t.closest('.inv .tr[data-key]');
   if (row && UI && UI.kind === 'items') { const it = UI.items.find(i => i.k === row.dataset.key); if (it && it.o) {
       const tab = UI.tabs.find(x => x.on) || UI.tabs[0], isWorn = tab && tab.loc === 1;

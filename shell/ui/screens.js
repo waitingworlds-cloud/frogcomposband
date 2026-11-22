@@ -21,27 +21,36 @@ function uiOnTop() {
 // The pack and what you wear. Looking through them (i, e): click a thing to pin it to the card at the right, which
 // says what it is and offers what can be done with it as buttons. When the game asks "which one?" for some
 // command, a click simply answers, and the card previews whatever the pointer is on.
-const ITEMS = { sel: '', hov: '', acts: [] };
+const ITEMS = { sel: '', hov: '', acts: [], gs: -1, gh: -1, fits: [] };
 const itemsViewer = () => !!UI && UI.kind === 'items' && /examine which|inspect which/i.test(UI.prompt || '');
 function itemsTab() { return (UI.tabs || []).find(t => t.on) || (UI.tabs || [])[0] || {}; }
 function itemsCur() { const id = ITEMS.sel || ITEMS.hov; return id ? UI.items.find(i => i.o && i.k === id) : null; }
 function itemsHtml() {
   const u = UI, tab = itemsTab(), equip = tab && tab.loc === 1, viewer = itemsViewer();
-  if (ITEMS.tab !== tab.name) { ITEMS.tab = tab.name; ITEMS.sel = ITEMS.hov = ''; }
+  if (ITEMS.tab !== tab.name) { ITEMS.tab = tab.name; ITEMS.sel = ITEMS.hov = ''; ITEMS.gs = ITEMS.gh = -1; }
+  // what you wear, looked through: every slot can be picked, the empty ones too, by its row or on the figure
+  const gear = itemsGear();
+  if (gear) {
+    if (ITEMS.back != null) { ITEMS.gs = ITEMS.back; ITEMS.back = null; GEARHOLD = 0; }
+    if (!u.items[ITEMS.gs]) ITEMS.gs = -1; if (!u.items[ITEMS.gh]) ITEMS.gh = -1;
+    const k = i => i >= 0 && u.items[i].o ? u.items[i].k : '';
+    ITEMS.sel = k(ITEMS.gs); ITEMS.hov = k(ITEMS.gh);
+  } else ITEMS.back = null;
   if (ITEMS.sel && (!viewer || !u.items.some(i => i.o && i.k === ITEMS.sel))) ITEMS.sel = '';
   if (ITEMS.hov && !u.items.some(i => i.o && i.k === ITEMS.hov)) ITEMS.hov = '';
-  const cur = itemsCur();
+  const gi = gear ? gearIdx() : -1, cur = gear ? (gi >= 0 && u.items[gi].o ? u.items[gi] : null) : itemsCur();
   let rows = '', lastCat = '', n = 0, cats = 0;
   // throwing: what is made for it heads the list
   const thr = !equip && /^Throw which/i.test(u.prompt || ''), good = o => thr && o && (o.tv === 77 || /\b(Throwing|Darts?|Javelins?|Shuriken|Boomerangs?|Iron Spikes?)\b/i.test(o.n));
   for (const it of thr ? u.items.filter(i => good(i.o)).concat(u.items.filter(i => !good(i.o))) : u.items) {
     const o = it.o, cat = equip ? '' : good(o) ? 'made to be thrown' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
-    const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    const has = !!(o && it.k.trim()), mark = has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
-    rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
+    const gx = n, ge = gear && S.equip[gx], can = ge && !o ? slotFits(gx).length : 0;
+    const ic = o ? tvIcon(o.tv) : (ge && SLOT_ICON[ge.type]) || 'ring'; n++;
+    const has = !!(o && it.k.trim()), mark = gear ? (gi === gx ? (ITEMS.gs === gx ? 'sel' : 'hov') : '') : has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
+    rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}${gear ? ` data-gs="${gx}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
       <span class="n nowrap">${o ? nameHtml(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
-      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:${it.failr >= 250 ? '#ff9a86' : it.failr >= 100 ? '#e9b04f' : '#8f897d'};white-space:nowrap" data-tip="How often it fails when you use it">fails ${(it.failr / 10).toFixed(it.failr < 100 ? 1 : 0)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
+      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:${it.failr >= 250 ? '#ff9a86' : it.failr >= 100 ? '#e9b04f' : '#8f897d'};white-space:nowrap" data-tip="How often it fails when you use it">fails ${(it.failr / 10).toFixed(it.failr < 100 ? 1 : 0)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : can ? `<span class="fitn">${can} to pick</span>` : ''}</span></div>`;
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
@@ -54,7 +63,7 @@ function itemsHtml() {
   if (q1) ask = '';
   return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
     <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>${u.tabs.length > 1 ? `<span class="ptabs"><i>from your</i>${u.tabs.map((t, i) => `<span class="ptab${t.on ? ' on' : ''}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}"`}>${esc(t.name.toLowerCase().replace(/^inventory$/, 'pack').replace(/^equipment$/, 'gear'))}</span>`).join('')}</span>` : ''}` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
-    <div class="sh2"><div class="nrows">${rows}</div><div class="shcard">${itemsCardHtml(cur, equip, viewer)}</div></div>
+    <div class="sh2${gear ? ' gear3' : ''}">${gear ? `<div class="gdoll">${dollHtml(true)}<div class="sub gdh">Click a slot to see what goes there.</div></div>` : ''}<div class="nrows">${rows}</div><div class="shcard">${gear && gi >= 0 && !cur ? gearEmptyCard(gi) : itemsCardHtml(cur, equip, viewer)}</div></div>
     <div class="nfoot">${q1 ? '<span class="sub">Click one, or press its key.</span>' : `<span class="live" style="white-space:pre-line">${rich(ask)}</span>`}<span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
   </div>`;
@@ -67,7 +76,7 @@ function itemsDescKey(it, tab) {
   return hit ? (tab.loc === 1 ? 'e:' : 'p:') + hit.k : '';
 }
 function itemsCardHtml(it, worn, viewer) {
-  ITEMS.acts = [];
+  ITEMS.acts = []; ITEMS.fits = [];
   const verb = viewer ? '' : (/^\s*([A-Z][a-z]+)\b/.exec((UI.prompt || '').split('\n').pop() || '') || [])[1] || 'Choose';
   if (!it) return `<div class="shempty"><div class="shemi">${icon(worn ? 'armor' : 'potion')}</div><div>${viewer ? 'Point at anything to see what it is.' : esc(verb) + ' which one?'}</div><div class="sub">${viewer ? 'Click it to see what you can do with it.' : 'Click it in the list, or press its key.'}</div></div>`;
   const o = it.o, tab = itemsTab(), ic = tvIcon(o.tv), dk = itemsDescKey(it, tab), pinned = viewer && ITEMS.sel === it.k;
@@ -79,16 +88,35 @@ function itemsCardHtml(it, worn, viewer) {
   else if (!pinned) foot = `<div class="shgo ghost">Click it for what you can do</div>`;
   else {
     const hs = !worn && typeof hbFromObj === 'function' && hbFromObj(o);
-    const acts = objItems(o, worn).filter(a => a.k !== 'I').map(a => ({ k: a.k, n: a.n, run: () => { sendBytes([27]); setTimeout(a.run, 60); } }));
+    const gi = itemsGear() ? ITEMS.gs : -1;   // taken off from the gear tab: the tab comes back on that slot
+    const acts = objItems(o, worn).filter(a => a.k !== 'I').map(a => ({ k: a.k, n: a.n, run: () => { if (gi >= 0 && a.k === 't' && !S.p.wild) gearBack(gi); sendBytes([27]); setTimeout(a.run, 60); } }));
     if (hs) acts.push({ k: '', n: 'Put on the hotbar', run: () => hbSet(-1, hs) });
     ITEMS.acts = acts;
     foot = `<div class="iacts">${acts.map((a, i) => `<div class="iact ${i === 0 ? 'main' : ''}" data-iact="${i}">${i === 0 ? '<span class="key">Enter</span>' : ''}${esc(a.n)}</div>`).join('')}</div>`;
   }
+  const swap = itemsGear() && ITEMS.gs >= 0 && ITEMS.sel === it.k ? fitRows(ITEMS.gs, 'Swap it for') : '';
   return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(o.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${nameHtml(one, cap)}</div><div class="dir">${it.slot ? esc(it.slot) + ' · ' : ''}${o.num > 1 ? o.num + ' · ' : ''}${lb(o.w)} lb</div></div></div>
-    <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>
+    <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>${swap}
     <div class="shbuy">${foot}</div>`;
 }
+// the gear tab: the figure, its slots, and what you carry that would go in each
+const itemsGear = () => itemsViewer() && itemsTab().loc === 1 && !!S && !!S.equip && S.equip.length === UI.items.length && typeof slotFits === 'function';
+const gearIdx = () => ITEMS.gs >= 0 ? ITEMS.gs : ITEMS.gh;
+function fitRows(i, head) {
+  const fits = slotFits(i); if (!fits.length) return '';
+  ITEMS.fits = fits.map(o => ({ o, i }));
+  return `<div class="fitl"><div class="dsch">${esc(head)}</div>${fits.map((o, n) => { const ic = tvIcon(o.tv); return `<div class="fitr ${oq(o)}" data-fit="${n}" data-desc="p:${esc(o.k)}"><span class="key"${n < 9 ? '' : ' style="visibility:hidden"'}>${n + 1}</span><div class="slot t-${ic}">${artHtml(o.ki, 34) || icon(ic)}</div><span class="n nowrap">${nameHtml(o.n)}</span><span class="dir">${lb(o.w)} lb</span></div>`; }).join('')}</div>`;
+}
+function gearEmptyCard(i) {
+  ITEMS.acts = []; ITEMS.fits = []; ITEMS.want = '';
+  const e = S.equip[i], ic = SLOT_ICON[e.type] || 'ring', rows = fitRows(i, 'You carry'), pinned = ITEMS.gs === i, n = ITEMS.fits.length;
+  return `<div class="shhead"><div class="slot big empty t-${ic}">${icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${esc(e.slot)}</div><div class="dir">nothing here yet</div></div></div>
+    <div class="shdesc">${rows || `<div class="shempty" style="height:100%"><div>You carry nothing for this slot.</div><div class="sub">${esc(SLOT_WANTS[e.type] || '')}</div></div>`}</div>
+    <div class="shbuy"><div class="shgo ghost">${!n ? esc(SLOT_WANTS[e.type] || 'Nothing to pick') : S.p.wild ? 'Not out on the world map' : 'Click one to ' + slotVerb(e.type).toLowerCase().replace(/^hold up$/, 'hold') + ' it' + (pinned ? n === 1 ? ', or press Enter' : ', or press its number' : '')}</div></div>`;
+}
+function gearWear(n) { const f = ITEMS.fits[n]; if (!f) return false; if (S.p.wild) { postToast(WILD_NO); return true; } gearBack(f.i); sendBytes([27]); setTimeout(() => wearInto(f.o, f.i, true), 60); return true; }
 function itemsMove(d) {
+  if (itemsGear()) { const n = UI.items.length, i = ITEMS.gs; ITEMS.gs = i < 0 ? (d > 0 ? 0 : n - 1) : Math.max(0, Math.min(n - 1, i + d)); schedule(); return; }
   const list = UI.items.filter(i => i.o && i.k.trim()); if (!list.length) return;
   const i = list.findIndex(x => x.k === ITEMS.sel), j = i < 0 ? (d > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, i + d));
   ITEMS.sel = list[j].k; schedule();
@@ -105,6 +133,11 @@ function itemsKey(e) {
   }
   if (!itemsViewer() || !uiOnTop()) return false;
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { itemsMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
+  if (itemsGear() && ITEMS.gs >= 0) {
+    if (/^[1-9]$/.test(e.key) && ITEMS.fits[+e.key - 1]) return gearWear(+e.key - 1);
+    if (e.key === 'Enter' && !ITEMS.sel) { if (ITEMS.fits.length === 1) gearWear(0); return true; }
+    if (e.key === 'Escape') { ITEMS.gs = -1; schedule(); return true; }
+  }
   if (!ITEMS.sel) return false;
   if (e.key === 'Enter') { const a = ITEMS.acts[0]; if (a) a.run(); return true; }
   if (e.key === 'Escape') { ITEMS.sel = ''; schedule(); return true; }
@@ -114,12 +147,17 @@ document.addEventListener('click', ev => {
   if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
   const act = ev.target.closest('[data-iact]');
   if (act) { ev.stopPropagation(); ev.preventDefault(); const a = ITEMS.acts[+act.dataset.iact]; if (a) a.run(); return; }
+  const fit = ev.target.closest('.inv2 [data-fit]');
+  if (fit) { ev.stopPropagation(); ev.preventDefault(); gearWear(+fit.dataset.fit); return; }
+  const gs = itemsGear() && ev.target.closest('.inv2 [data-gs], .inv2 .gdoll [data-eqi]');
+  if (gs) { ev.stopPropagation(); ev.preventDefault(); const i = +(gs.dataset.gs != null ? gs.dataset.gs : gs.dataset.eqi); if (ITEMS.gs !== i) { ITEMS.gs = i; schedule(); } return; }
   const row = ev.target.closest('.inv2 [data-ik]'); if (!row || !itemsViewer()) return;
   ev.stopPropagation(); ev.preventDefault();   // looking through your things: a click pins the item, it does not type its letter
   if (ITEMS.sel !== row.dataset.ik) { ITEMS.sel = row.dataset.ik; schedule(); }
 }, true);
 document.addEventListener('mousemove', ev => {
   if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
+  if (itemsGear()) { const g = ev.target.closest('.inv2 [data-gs], .inv2 .gdoll [data-eqi]'); if (g) { const i = +(g.dataset.gs != null ? g.dataset.gs : g.dataset.eqi); if (i !== ITEMS.gh) { ITEMS.gh = i; if (ITEMS.gs < 0) schedule(); } } return; }
   const row = ev.target.closest('.inv2 [data-ik]'), id = row ? row.dataset.ik : '';
   if (id && id !== ITEMS.hov) { ITEMS.hov = id; if (!ITEMS.sel) schedule(); }
 });
@@ -379,6 +417,7 @@ function charMoreHtml(pg) {
 }
 document.addEventListener('click', ev => { const t = ev.target.closest && ev.target.closest('[data-charview]'); if (!t) return; if (t.dataset.charview === 'summary' && PAGER && PAGER.at > 0) { trigger(0xFF50, {}); CHAR_HOME = Date.now(); } CHARVIEW = t.dataset.charview; schedule(); });
 function nativeAfter() {
+  { const df = document.querySelector('#native canvas.dfig2'); if (df && S && S.p && S.p.form) { const d = 2 * SCALE * (devicePixelRatio || 1); df.width = df.height = 240 * d; const g = df.getContext('2d'); g.scale(d, d); g.imageSmoothingEnabled = false; sprite.flat = true; sprite(g, 'mon', S.p.form, 0, 0, 240); sprite.flat = false; } }
   lmapDraw();
   if (document.querySelector('#native canvas.ptart')) pickAfter();
   const cr = document.querySelector('#native .cdrows'); if (cr) { cr.scrollTop = CDX_TOP; const c = cr.querySelector('.cde.sel'); if (c) { const a = c.offsetTop - cr.offsetTop, h = cr.clientHeight; if (a < cr.scrollTop) cr.scrollTop = a; else if (a + c.offsetHeight > cr.scrollTop + h) cr.scrollTop = a + c.offsetHeight - h; } CDX_TOP = cr.scrollTop; }

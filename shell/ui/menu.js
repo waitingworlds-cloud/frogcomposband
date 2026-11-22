@@ -118,7 +118,22 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('[data-slk]'), r = ev.target.closest && ev.target.closest('[data-sly]'); if (!r) return;
   ev.stopPropagation(); ev.preventDefault(); sightListGo(+r.dataset.sly, b ? b.dataset.slk : '', 0);
 }, true);
+// "Choose an equipment slot": the thing fits more than one place (either hand, either ring finger), so each place is a button
+function slotAskHtml() {
+  if (!S || !S.equip) return '';
+  const got = [];
+  for (let y = 0; y < G.h; y++) { const m = /(?:^|\s)([a-z])\) ([A-Z][A-Za-z ]*?)\s*:/.exec(rowText(y)); if (m) { const e = S.equip.find(e => e.k === m[1] && e.slot === m[2].trim()); if (e) got.push(e); } }
+  if (got.length < 2) return '';
+  const what = typeof LASTPICK !== 'undefined' && LASTPICK && LASTPICK.c === 'w' && Date.now() - LASTPICK.t < 60000 ? LASTPICK.o : null;
+  const hands = got.every(e => e.type === 2 || e.type === 12), rings = got.every(e => e.type === 3);
+  const card = e => { const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring'; return `<div class="mcard slq" data-key="${esc(e.k)}"><span class="key">${esc(e.k)}</span><div class="slot t-${ic} ${e.o ? oq(e.o) : 'empty'}">${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}</div><span class="ml"><span class="mw">${esc(e.slot)}</span><small class="mwd">${e.o ? 'in place of ' + esc(e.o.n.replace(/\s*\{[^}]*\}\s*$/, '')) : 'empty'}</small></span></div>`; };
+  return `<div class="pane npanel nohub menup mcards slotq"><div class="mtitle ctitle">${hands ? 'Which hand?' : rings ? 'Which finger?' : 'Where should it go?'}${what ? `<small>${esc(cap(what.n.replace(/^(an?|the) /i, '').replace(/\s*\{[^}]*\}\s*$/, '')))}</small>` : ''}</div>
+    <div class="mgrid">${got.map(card).join('')}</div>
+    <div class="mfoot"><span class="row" data-key="Esc" style="cursor:pointer"><span class="key">Esc</span>Never mind</span><span class="mhint">click a place, or press its key</span></div></div>`;
+}
 function menuHtml() {
+  if (typeof SLOTPICK !== 'undefined' && SLOTPICK) return '';   // a slot was clicked: the game's "which slot?" is being answered for you
+  if (gridHas(/Choose an equipment slot/)) { const h = slotAskHtml(); if (h) return h; }
   { const sp = cmdMenuHtml() || petsMenuHtml() || sightListHtml(); if (sp) return sp; }
   const b = menuBox(); if (!b) return '';
   const rows = []; let n = 0, prose = 0; const pg = pagerInfo(b.y0, b.y1);

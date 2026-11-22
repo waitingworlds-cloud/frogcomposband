@@ -477,6 +477,7 @@ static void send_dict(void)
     dict_seed = seed_flavor;
 }
 
+static bool o_obj_fit = FALSE;   /* set while the things you carry are listed */
 static void o_obj(obj_ptr o, char label)
 {
     char name[MAX_NLEN];
@@ -495,6 +496,12 @@ static void o_obj(obj_ptr o, char label)
     if (object_is_artifact(o) && obj_is_known(o)) o_kint("art", 1);
     else if (o->name2 && obj_is_known(o)) o_kint("ego", 1);
     if (!obj_is_known(o)) o_kint("unk", 1);
+    if (o_obj_fit)
+    {   /* which of your slots would take it: one bit per slot, so a click on a slot can offer what fits there */
+        long fit = 0; int i;
+        for (i = 1; i <= equip_max() && i <= 30; i++) if (equip_verify_slot(i, o)) fit |= 1L << (i - 1);
+        if (fit) o_kint("fit", fit);
+    }
     o_close('}');
     o_raw(",");
 }
@@ -850,7 +857,9 @@ static void send_state(void)
     for (i = 1; i <= pack_max(); i++)
     {
         obj_ptr o = pack_obj(i);
+        o_obj_fit = TRUE;
         if (o) o_obj(o, slot_label(i));
+        o_obj_fit = FALSE;
     }
     o_close(']');
     o_raw(",");
