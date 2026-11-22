@@ -18,29 +18,149 @@ function uiOnTop() {
   return true;
 }
 
+// The pack and what you wear. Looking through them (i, e): click a thing to pin it to the card at the right, which
+// says what it is and offers what can be done with it as buttons. When the game asks "which one?" for some
+// command, a click simply answers, and the card previews whatever the pointer is on.
+const ITEMS = { sel: '', hov: '', acts: [], gs: -1, gh: -1, fits: [] };
+const itemsViewer = () => !!UI && UI.kind === 'items' && /examine which|inspect which/i.test(UI.prompt || '');
+function itemsTab() { return (UI.tabs || []).find(t => t.on) || (UI.tabs || [])[0] || {}; }
+function itemsCur() { const id = ITEMS.sel || ITEMS.hov; return id ? UI.items.find(i => i.o && i.k === id) : null; }
 function itemsHtml() {
-  const u = UI, tab = u.tabs.find(t => t.on) || u.tabs[0], equip = tab && tab.loc === 1;
+  const u = UI, tab = itemsTab(), equip = tab && tab.loc === 1, viewer = itemsViewer();
+  if (ITEMS.tab !== tab.name) { ITEMS.tab = tab.name; ITEMS.sel = ITEMS.hov = ''; ITEMS.gs = ITEMS.gh = -1; }
+  // what you wear, looked through: every slot can be picked, the empty ones too, by its row or on the figure
+  const gear = itemsGear();
+  if (gear) {
+    if (ITEMS.back != null) { ITEMS.gs = ITEMS.back; ITEMS.back = null; GEARHOLD = 0; }
+    if (!u.items[ITEMS.gs]) ITEMS.gs = -1; if (!u.items[ITEMS.gh]) ITEMS.gh = -1;
+    const k = i => i >= 0 && u.items[i].o ? u.items[i].k : '';
+    ITEMS.sel = k(ITEMS.gs); ITEMS.hov = k(ITEMS.gh);
+  } else ITEMS.back = null;
+  if (ITEMS.sel && (!viewer || !u.items.some(i => i.o && i.k === ITEMS.sel))) ITEMS.sel = '';
+  if (ITEMS.hov && !u.items.some(i => i.o && i.k === ITEMS.hov)) ITEMS.hov = '';
+  const gi = gear ? gearIdx() : -1, cur = gear ? (gi >= 0 && u.items[gi].o ? u.items[gi] : null) : itemsCur();
   let rows = '', lastCat = '', n = 0, cats = 0;
-  for (const it of u.items) {
-    const o = it.o, cat = equip ? '' : o ? TVCAT(o.tv) : '';
+  // throwing: what is made for it heads the list
+  const thr = !equip && /^Throw which/i.test(u.prompt || ''), good = o => thr && o && (o.tv === 77 || /\b(Throwing|Darts?|Javelins?|Shuriken|Boomerangs?|Iron Spikes?)\b/i.test(o.n));
+  for (const it of thr ? u.items.filter(i => good(i.o)).concat(u.items.filter(i => !good(i.o))) : u.items) {
+    const o = it.o, cat = equip ? '' : good(o) ? 'made to be thrown' : o ? TVCAT(o.tv) : '';
     if (cat && cat !== lastCat) { rows += `<div class="catr">${cat}</div>`; lastCat = cat; cats++; }
-    const ic = o ? tvIcon(o.tv) : 'ring'; n++;
-    const dk = o && it.k.trim() && (tab.loc === 1 || tab.loc === 2) ? ` data-desc="${tab.loc === 1 ? 'e' : 'p'}:${esc(it.k)}"` : '';
-    rows += `<div class="tr ${oq(o)}"${dk} ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${o ? ` data-tip="${esc(o.n + ' · ' + lb(o.w) + ' lb' + (it.k.trim() ? '\nclick: choose · right-click: more actions' : ''))}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}">${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
-      <span class="n nowrap">${o ? esc(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
-      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:#ff9a86">${(it.failr / 10).toFixed(1)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : ''}</span></div>`;
+    const gx = n, ge = gear && S.equip[gx], can = ge && !o ? slotFits(gx).length : 0;
+    const ic = o ? tvIcon(o.tv) : (ge && SLOT_ICON[ge.type]) || 'ring'; n++;
+    const has = !!(o && it.k.trim()), mark = gear ? (gi === gx ? (ITEMS.gs === gx ? 'sel' : 'hov') : '') : has && cur && cur.k === it.k ? (ITEMS.sel === it.k ? 'sel' : 'hov') : '';
+    rows += `<div class="tr ${oq(o)} ${mark}" ${it.k.trim() ? `data-key="${esc(it.k)}"` : ''}${has ? ` data-ik="${esc(it.k)}"` : ''}${gear ? ` data-gs="${gx}"` : ''}><span class="key" style="${it.k.trim() ? '' : 'visibility:hidden'}"${viewer ? '' : ' data-tip="Or press this key"'}>${esc(it.k)}</span><div class="slot t-${ic} ${o ? '' : 'empty'}">${(o && artHtml(o.ki, 34)) || icon(ic)}</div>
+      <span class="n nowrap">${o ? nameHtml(o.n) : '<i style="color:#5a5750">nothing</i>'}${it.slot ? `<small>${esc(it.slot)}</small>` : ''}</span>
+      <span class="num" style="text-align:right">${it.failr != null ? `<span style="color:${it.failr >= 250 ? '#ff9a86' : it.failr >= 100 ? '#e9b04f' : '#8f897d'};white-space:nowrap" data-tip="How often it fails when you use it">fails ${(it.failr / 10).toFixed(it.failr < 100 ? 1 : 0)}%</span>` : ''}</span><span class="dir">${o ? lb(o.w) + ' lb' : can ? `<span class="fitn">${can} to pick</span>` : ''}</span></div>`;
   }
   if (!n) rows = '<div class="sub" style="padding:18px 6px">Nothing here.</div>';
   // long lists: tighten the rows so the whole page fits
-  const room = 800 - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
-  const tabs = u.tabs.map(t => `<div class="${t.on ? 'on' : ''}">${esc(t.name)}</div>`).join('');
-  return `<div class="pane npanel inv" style="--rh:${rh}px;width:800px">
-    <div class="tabs">${tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
-    <div class="nrows">${rows}</div>
-    <div class="nfoot"><span class="live" style="white-space:pre-line">${rich(u.prompt.replace(/\n+/g, "\n"))}</span><span class="grow"></span>
+  const room = (viewer ? 730 : 590) - cats * 34, rh = Math.max(27, Math.min(38, Math.floor(room / Math.max(1, n))));
+  // a tab is a button: the game steps through its tabs with "/", so a click sends as many as it takes
+  const tcur = Math.max(0, u.tabs.findIndex(t => t.on)), tabs = u.tabs.map((t, i) => `<div class="${t.on ? 'on' : 'tgo'}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}" data-tip="Show ${esc(t.name.toLowerCase())}"`}>${esc(t.name)}</div>`).join('');
+  let ask = u.prompt.replace(/\n+/g, '\n').split('\n').filter(l => viewer ? !/examine which|inspect which/i.test(l) : true).join('\n');
+  // a "which one?" list with a single tab is headed by the question itself
+  const q1 = !viewer && /\?\s*$/.test(plain(ask)) && plain(ask).trim().split('\n').length === 1 ? plain(ask).trim().replace(/\s*\(Esc to exit\)/i, '').replace(/^Wear\/Wield/, 'Wear or wield') : '';
+  if (q1) ask = '';
+  return `<div class="pane npanel inv inv2" style="--rh:${rh}px">
+    <div class="tabs${u.tabs.length > 2 || !viewer ? ' multi' : ''}">${q1 ? `<div class="on">${esc(q1)}</div>${u.tabs.length > 1 ? `<span class="ptabs"><i>from your</i>${u.tabs.map((t, i) => `<span class="ptab${t.on ? ' on' : ''}"${t.on ? '' : ` data-key="${'/'.repeat((i - tcur + u.tabs.length) % u.tabs.length)}"`}>${esc(t.name.toLowerCase().replace(/^inventory$/, 'pack').replace(/^equipment$/, 'gear'))}</span>`).join('')}</span>` : ''}` : tabs}<span class="dir" style="margin-left:auto;align-self:center;font-size:14px">${lb(u.wgt)} lb${u.pages > 1 ? ` · page ${u.page} of ${u.pages}` : ''}</span></div>
+    <div class="sh2${gear ? ' gear3' : ''}">${gear ? `<div class="gdoll">${dollHtml(true)}<div class="sub gdh">Click a slot to see what goes there.</div></div>` : ''}<div class="nrows">${rows}</div><div class="shcard">${gear && gi >= 0 && !cur ? gearEmptyCard(gi) : itemsCardHtml(cur, equip, viewer)}</div></div>
+    <div class="nfoot">${q1 ? '<span class="sub">Click one, or press its key.</span>' : `<span class="live" style="white-space:pre-line">${rich(ask)}</span>`}<span class="grow"></span>
       ${u.tabs.length > 1 ? '<span class="row" data-key="/"><span class="key">/</span>next tab</span>' : ''}${u.pages > 1 ? '<span class="row" data-key=" "><span class="key">Space</span>next page</span>' : ''}<span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div>
   </div>`;
 }
+// when the game lists only some of your things (the potions, say) its letters are not the pack's letters:
+// find the thing itself among what you carry or wear, so the card describes the right one
+function itemsDescKey(it, tab) {
+  const list = tab.loc === 1 ? (S && S.equip) || [] : tab.loc === 2 ? (S && S.pack) || [] : null; if (!list) return '';
+  const same = list.filter(e => (e.o || e).n === it.o.n), hit = same.find(e => e.k === it.k) || same[0];
+  return hit ? (tab.loc === 1 ? 'e:' : 'p:') + hit.k : '';
+}
+function itemsCardHtml(it, worn, viewer) {
+  ITEMS.acts = []; ITEMS.fits = [];
+  const verb = viewer ? '' : (/^\s*([A-Z][a-z]+)\b/.exec((UI.prompt || '').split('\n').pop() || '') || [])[1] || 'Choose';
+  if (!it) return `<div class="shempty"><div class="shemi">${icon(worn ? 'armor' : 'potion')}</div><div>${viewer ? 'Point at anything to see what it is.' : esc(verb) + ' which one?'}</div><div class="sub">${viewer ? 'Click it to see what you can do with it.' : 'Click it in the list, or press its key.'}</div></div>`;
+  const o = it.o, tab = itemsTab(), ic = tvIcon(o.tv), dk = itemsDescKey(it, tab), pinned = viewer && ITEMS.sel === it.k;
+  if (dk && !DESC[dk] && !DESC_ASKED[dk]) { DESC_ASKED[dk] = 1; sendRaw('D ' + dk.replace(':', ' ')); }
+  ITEMS.want = dk;
+  const one = o.n.replace(/^(\d+|an?|the) /i, '');
+  let foot;
+  if (!viewer) foot = `<div class="shgo ghost">Click it to ${esc(verb.toLowerCase())}</div>`;
+  else if (!pinned) foot = `<div class="shgo ghost">Click it for what you can do</div>`;
+  else {
+    const hs = !worn && typeof hbFromObj === 'function' && hbFromObj(o);
+    const gi = itemsGear() ? ITEMS.gs : -1;   // taken off from the gear tab: the tab comes back on that slot
+    const acts = objItems(o, worn).filter(a => a.k !== 'I').map(a => ({ k: a.k, n: a.n, run: () => { if (gi >= 0 && a.k === 't' && !S.p.wild) gearBack(gi); sendBytes([27]); setTimeout(a.run, 60); } }));
+    if (hs) acts.push({ k: '', n: 'Put on the hotbar', run: () => hbSet(-1, hs) });
+    ITEMS.acts = acts;
+    foot = `<div class="iacts">${acts.map((a, i) => `<div class="iact ${i === 0 ? 'main' : ''}" data-iact="${i}">${i === 0 ? '<span class="key">Enter</span>' : ''}${esc(a.n)}</div>`).join('')}</div>`;
+  }
+  const swap = itemsGear() && ITEMS.gs >= 0 && ITEMS.sel === it.k ? fitRows(ITEMS.gs, 'Swap it for') : '';
+  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(o.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${nameHtml(one, cap)}</div><div class="dir">${it.slot ? esc(it.slot) + ' · ' : ''}${o.num > 1 ? o.num + ' · ' : ''}${lb(o.w)} lb</div></div></div>
+    <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>${swap}
+    <div class="shbuy">${foot}</div>`;
+}
+// the gear tab: the figure, its slots, and what you carry that would go in each
+const itemsGear = () => itemsViewer() && itemsTab().loc === 1 && !!S && !!S.equip && S.equip.length === UI.items.length && typeof slotFits === 'function';
+const gearIdx = () => ITEMS.gs >= 0 ? ITEMS.gs : ITEMS.gh;
+function fitRows(i, head) {
+  const fits = slotFits(i); if (!fits.length) return '';
+  ITEMS.fits = fits.map(o => ({ o, i }));
+  return `<div class="fitl"><div class="dsch">${esc(head)}</div>${fits.map((o, n) => { const ic = tvIcon(o.tv); return `<div class="fitr ${oq(o)}" data-fit="${n}" data-desc="p:${esc(o.k)}"><span class="key"${n < 9 ? '' : ' style="visibility:hidden"'}>${n + 1}</span><div class="slot t-${ic}">${artHtml(o.ki, 34) || icon(ic)}</div><span class="n nowrap">${nameHtml(o.n)}</span><span class="dir">${lb(o.w)} lb</span></div>`; }).join('')}</div>`;
+}
+function gearEmptyCard(i) {
+  ITEMS.acts = []; ITEMS.fits = []; ITEMS.want = '';
+  const e = S.equip[i], ic = SLOT_ICON[e.type] || 'ring', rows = fitRows(i, 'You carry'), pinned = ITEMS.gs === i, n = ITEMS.fits.length;
+  return `<div class="shhead"><div class="slot big empty t-${ic}">${icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${esc(e.slot)}</div><div class="dir">nothing here yet</div></div></div>
+    <div class="shdesc">${rows || `<div class="shempty" style="height:100%"><div>You carry nothing for this slot.</div><div class="sub">${esc(SLOT_WANTS[e.type] || '')}</div></div>`}</div>
+    <div class="shbuy"><div class="shgo ghost">${!n ? esc(SLOT_WANTS[e.type] || 'Nothing to pick') : S.p.wild ? 'Not out on the world map' : 'Click one to ' + slotVerb(e.type).toLowerCase().replace(/^hold up$/, 'hold') + ' it' + (pinned ? n === 1 ? ', or press Enter' : ', or press its number' : '')}</div></div>`;
+}
+function gearWear(n) { const f = ITEMS.fits[n]; if (!f) return false; if (S.p.wild) { postToast(WILD_NO); return true; } gearBack(f.i); sendBytes([27]); setTimeout(() => wearInto(f.o, f.i, true), 60); return true; }
+function itemsMove(d) {
+  if (itemsGear()) { const n = UI.items.length, i = ITEMS.gs; ITEMS.gs = i < 0 ? (d > 0 ? 0 : n - 1) : Math.max(0, Math.min(n - 1, i + d)); schedule(); return; }
+  const list = UI.items.filter(i => i.o && i.k.trim()); if (!list.length) return;
+  const i = list.findIndex(x => x.k === ITEMS.sel), j = i < 0 ? (d > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, i + d));
+  ITEMS.sel = list[j].k; schedule();
+}
+// keys that belong to the list and its card while you look through your things; every other key goes to the game
+function itemsKey(e) {
+  if (e.ctrlKey || e.altKey || e.metaKey) return false;
+  // a "which one?" list: the arrows move a highlight, Enter takes it (or the only thing there is)
+  if (UI && UI.kind === 'items' && !itemsViewer() && uiOnTop() && !(typeof spbPicking === 'function' && spbPicking())) {
+    const its = UI.items.filter(i => i.o && i.k.trim()); if (!its.length) return false;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const i = its.findIndex(x => x.k === ITEMS.hov), d = e.key === 'ArrowDown' ? 1 : -1; ITEMS.hov = its[i < 0 ? (d > 0 ? 0 : its.length - 1) : Math.max(0, Math.min(its.length - 1, i + d))].k; schedule(); return true; }
+    if (e.key === 'Enter') { const it = its.find(x => x.k === ITEMS.hov) || (its.length === 1 ? its[0] : null); if (it) { sendText(it.k); return true; } ITEMS.hov = its[0].k; schedule(); return true; }
+    return false;
+  }
+  if (!itemsViewer() || !uiOnTop()) return false;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { itemsMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
+  if (itemsGear() && ITEMS.gs >= 0) {
+    if (/^[1-9]$/.test(e.key) && ITEMS.fits[+e.key - 1]) return gearWear(+e.key - 1);
+    if (e.key === 'Enter' && !ITEMS.sel) { if (ITEMS.fits.length === 1) gearWear(0); return true; }
+    if (e.key === 'Escape') { ITEMS.gs = -1; schedule(); return true; }
+  }
+  if (!ITEMS.sel) return false;
+  if (e.key === 'Enter') { const a = ITEMS.acts[0]; if (a) a.run(); return true; }
+  if (e.key === 'Escape') { ITEMS.sel = ''; schedule(); return true; }
+  return false;
+}
+document.addEventListener('click', ev => {
+  if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
+  const act = ev.target.closest('[data-iact]');
+  if (act) { ev.stopPropagation(); ev.preventDefault(); const a = ITEMS.acts[+act.dataset.iact]; if (a) a.run(); return; }
+  const fit = ev.target.closest('.inv2 [data-fit]');
+  if (fit) { ev.stopPropagation(); ev.preventDefault(); gearWear(+fit.dataset.fit); return; }
+  const gs = itemsGear() && ev.target.closest('.inv2 [data-gs], .inv2 .gdoll [data-eqi]');
+  if (gs) { ev.stopPropagation(); ev.preventDefault(); const i = +(gs.dataset.gs != null ? gs.dataset.gs : gs.dataset.eqi); if (ITEMS.gs !== i) { ITEMS.gs = i; schedule(); } return; }
+  const row = ev.target.closest('.inv2 [data-ik]'); if (!row || !itemsViewer()) return;
+  ev.stopPropagation(); ev.preventDefault();   // looking through your things: a click pins the item, it does not type its letter
+  if (ITEMS.sel !== row.dataset.ik) { ITEMS.sel = row.dataset.ik; schedule(); }
+}, true);
+document.addEventListener('mousemove', ev => {
+  if (!UI || UI.kind !== 'items' || !ev.target.closest) return;
+  if (itemsGear()) { const g = ev.target.closest('.inv2 [data-gs], .inv2 .gdoll [data-eqi]'); if (g) { const i = +(g.dataset.gs != null ? g.dataset.gs : g.dataset.eqi); if (i !== ITEMS.gh) { ITEMS.gh = i; if (ITEMS.gs < 0) schedule(); } } return; }
+  const row = ev.target.closest('.inv2 [data-ik]'), id = row ? row.dataset.ik : '';
+  if (id && id !== ITEMS.hov) { ITEMS.hov = id; if (!ITEMS.sel) schedule(); }
+});
 
 let uiSel = '', spHover = '';
 function gridHas(re) { for (let y = 0; y < G.h; y++) if (re.test((G.s[y] || '').replace(/\x01/g, ' '))) return true; return false; }
@@ -50,97 +170,213 @@ const SP_ELEM = [[/acid|corro/i, '#a6e05a'], [/lightning|zap|shock|thunder|storm
   [/dark|nether|shadow|death|drain|curse|doom|vampir|necro/i, '#a06ad0'], [/heal|cure|bless|holy|\blight\b|sun|star|radian|prayer|protection/i, '#ffe08a'],
   [/mana|chaos|missile|arcane|teleport|blink|portal|time|gravity|nexus|dimension/i, '#c08aff']];
 function spElem(n) { const m = SP_ELEM.find(([re]) => re.test(n)); return m ? m[1] : ''; }
-function spellsHtml() {
-  const u = UI, rows = u.rows, big = rows.length <= 14;
-  const prompt = (G.s[0] || '').replace(/\x01/g, ' ').trim();
-  const cur = rows.find(r => r.n === spHover) || rows.find(r => r.n === uiSel) || (u.sel >= 0 ? rows[u.sel] : null);
-  const unit = u.unit === 'HP' ? 'life' : u.unit === 'au' ? 'gold' : 'mana';
-  const have = u.unit === 'HP' ? S.p.hp : u.unit === 'au' ? S.p.au : S.p.sp;   // a cost above what you have shows red
-  const study = /\bStudy\b/i.test(prompt);   // learning: a spell you do not know yet but may learn stands out
-  const cards = rows.map((r, i) => {
-    const f = r.fail == null ? null : r.fail, fc = f == null ? '' : f <= 15 ? '#a9c98c' : f <= 40 ? '#ffc46a' : '#ff7a66';
-    const el = spElem(r.n), early = r.lvl != null && S.p.lev < r.lvl;   // a spell above your level: not yet yours to learn or cast
-    return `<div class="spc ${r.dim || early || (!r.ok && !study) ? 'dim' : ''} ${cur === r ? 'sel' : ''} ${big ? '' : 'sm'} ${el ? 'el' : ''}" data-key="${esc(r.k)}" data-sp="${esc(r.n)}"${el ? ` style="--el:${el}"` : ''}>
-      <span class="key kb">${esc(r.k)}</span>
-      <div class="grow" style="min-width:0"><div class="spn nowrap" style="${r.col && r.col !== 1 ? `color:${readable(col(r.col))}` : ''}">${esc(r.n)}</div>${big ? `<div class="sps nowrap">${esc([r.info, r.lvl != null ? (early ? 'needs level ' : 'level ') + r.lvl : '', r.prof ? r.prof.replace(/[\[\]]/g, '').trim() + (r.max ? ' (max)' : '') : '', r.stat || ''].filter(Boolean).join(' · '))}</div>` : ''}</div>
-      ${!big && r.lvl != null ? `<span class="dir">lv ${r.lvl}</span>` : ''}
-      ${r.cost != null ? `<span class="spm ${u.unit === 'HP' ? 'hp' : ''} ${r.cost > have ? 'short' : ''}"${r.cost > have ? ` data-tip="You have ${have} ${unit}: not enough to cast this safely."` : ''}>${icon('potion')}<b>${r.cost}</b></span>` : ''}
-      ${f != null ? `<span class="ring" style="--p:${Math.min(100, f)};--rc:${fc}"><span class="rv">${f}%</span></span>` : ''}</div>`;
-  }).join('');
-  const detail = cur ? `<div class="spd"><div class="spn" style="font-size:24px">${esc(cur.n)}</div><div class="grow" style="font-size:17px;line-height:1.35;color:#d9d2c4">${esc(cur.desc || '')}${cur.info ? `<div style="color:#ffcf9e;margin-top:4px">${esc(cur.info)}</div>` : ''}</div>
-     <div class="facts" style="grid-template-columns:auto auto;gap:4px 22px">${cur.cost != null ? `<div><span class="lbl">costs</span><b>${cur.cost} ${unit}</b></div>` : ''}${cur.fail != null ? `<div><span class="lbl">fails</span><b>${cur.fail}%</b></div>` : ''}${cur.lvl != null ? `<div><span class="lbl">level</span><b>${cur.lvl}</b></div>` : ''}</div></div>`
-    : `<div class="spd"><div class="sub">Point at a spell to read what it does.</div></div>`;
-  return `<div class="pane npanel" style="width:${rows.length > 28 ? 1500 : 1180}px">
-    <div class="tabs"><div class="on">${esc(u.realm || 'Spells')}</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${u.unit === 'au' ? '' : u.unit === 'HP' ? `you have ${S.p.hp} life` : `you have ${S.p.sp} mana`}</span></div>
-    <div class="spg" style="grid-template-columns:repeat(${rows.length > 28 ? 3 : 2},1fr)">${cards}</div>${detail}
-    <div class="nfoot"><span class="live">${esc(prompt)}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
-}
-
-const SHOP_TIPS = { b: 'Buy: pick an item, then how many', s: 'Sell or give an item from your pack', g: 'Take an item into your pack', x: 'Read what an item does (or rest the pointer on it)', '?': 'The game&#39;s help for this place', '\x1b': 'Leave' };
+const SHOP_TIPS = { B: 'Buy everything on the shelves', S: 'Pay to swap the stock for new goods', R: 'Pay to have an item held for you', '?': 'The game&#39;s help for this place', '\x1b': 'Leave' };
+// The shop works by pointing: click a thing to see it on the card at the right, set how many, press Buy (or Sell).
+// Nothing is asked by letter. The card sends the game the item and the count in one go ("B b slot count").
+// The keys still do what they always did: b and s start the game's own questions, shown on the line below the list.
+const SHOP = { tab: 'buy', sel: null, hov: null, qty: 1, name: '', sure: '' };
+// the home and the museum are the same shelves without prices: take and leave instead of buy and sell
+const shopLike = () => !!UI && (UI.kind === 'shop' || UI.kind === 'home');
+const shopWords = () => { const u = UI, home = u.kind === 'home', mus = home && !!u.museum;
+  return { home, mus, free: home || !!u.nosell,
+    t1: mus ? 'On display' : home ? 'Kept here' : 'For sale', t2: mus ? 'Donate from your pack' : home ? 'Leave from your pack' : (u.nosell ? 'Give' : 'Sell') + ' from your pack',
+    get: mus ? '' : home ? 'Take' : 'Buy', put: mus ? 'Donate' : home ? 'Leave here' : u.nosell ? 'Give' : 'Sell',
+    kget: home ? 'g' : 'b', kput: home ? 'd' : 's' }; };
+const shopAsking = () => /which item|quantity|really |\[y\/n\]|-more-|\(Inven|\(Equip/i.test([0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ')).join(' '));
+const shopId = r => (r.wh ? 's' + r.wh : 'b') + ':' + r.sl;
+function shopRows() { const rows = (UI && UI.rows) || []; return { buy: rows.filter(r => !r.wh), sell: rows.filter(r => r.wh) }; }
+function shopCur() { const { buy, sell } = shopRows(), id = SHOP.sel || SHOP.hov; return id ? buy.concat(sell).find(r => shopId(r) === id) : null; }
+// how many of this could change hands: what is there, and what the gold reaches
+function shopMax(r) { return r.wh || UI.kind === 'home' ? r.num : Math.max(0, Math.min(r.num, r.price > 0 ? Math.floor(UI.gold / r.price) : r.num)); }
 function shopHtml() {
-  const u = UI, rows = u.rows, two = rows.length > 13;
+  const u = UI, { buy, sell } = shopRows(), W = shopWords(), gold = u.gold != null ? u.gold : S && S.p ? S.p.au : 0;
+  if (SHOP.name !== u.name) { SHOP.name = u.name; SHOP.tab = 'buy'; SHOP.sel = SHOP.hov = null; SHOP.qty = 1; SHOP.sure = ''; }
   const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
-  const asking = /which item/i.test(msg);
-  const list = rows.map(r => { const ic = tvIcon(r.tv); return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${r.ok ? '' : 'cant'}" data-key="${asking ? '' : 'b'}${esc(r.k)}"${r.sl ? ` data-desc="s:${r.sl}"` : ''} data-tip="${esc(r.n)}\n${asking ? 'click: choose this' : `click: buy · ${r.price.toLocaleString()} gold${r.ok ? '' : ' (more than you have)'}`}">
-    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
-    <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w)} lb${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
-    <span class="price num">${r.price.toLocaleString()}</span></div>`; }).join('') || '<div class="sub" style="padding:20px">The shelves are empty.</div>';
-  const cmds = [['b', 'buy'], ['s', u.nosell ? 'give' : 'sell'], ['x', 'examine'], ['B', 'buy out'], ['S', 'shuffle stock'], ['R', 'reserve'], ['?', 'help'], ['\x1b', 'leave']];
-  return `<div class="pane npanel shopp" style="width:${two ? 1400 : 860}px">
+  const asking = shopAsking(), askSell = asking && /sell which|give which|drop which|donate which|\(Inven|\(Equip/i.test(msg);
+  if (SHOP.sel && !buy.concat(sell).some(r => shopId(r) === SHOP.sel)) SHOP.sel = null;
+  if (SHOP.hov && !buy.concat(sell).some(r => shopId(r) === SHOP.hov)) SHOP.hov = null;
+  const tab = askSell ? 'sell' : asking ? 'buy' : SHOP.tab, list = tab === 'sell' ? sell : buy, cur = asking ? null : shopCur();
+  if (cur) SHOP.qty = Math.max(1, Math.min(SHOP.qty, Math.max(1, shopMax(cur))));
+  const rowsHtml = list.map(r => { const ic = tvIcon(r.tv), id = shopId(r), selling = !!r.wh, dead = W.home ? false : selling ? (!u.nosell && !r.price) : !r.ok;
+    const act = asking ? (selling ? '' : ` data-key="${esc(r.k)}"`) : ` data-shop="${id}"`;
+    return `<div class="srow ${r.art || r.ego ? 'ego' : ''} ${dead ? 'cant' : ''} ${cur && shopId(cur) === id ? (SHOP.sel === id ? 'sel' : 'hov') : ''}"${act}>
+    ${selling ? '' : `<span class="key kb" data-tip="With the keys: ${W.mus ? 'x' : W.kget}, then ${esc(r.k)}">${esc(r.k)}</span>`}<div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
+    <div class="grow" style="min-width:0"><div class="n nowrap">${nameHtml(r.n)}</div><div class="dir">${lb(r.w)} lb${r.num > 1 && W.home ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div>
+    <span class="price num"${W.home ? ' style="color:#c9b28a" data-tip="About what it is worth, in gold"' : ''}>${W.home ? (r.score ? '<i class="wth">worth</i> ' + r.score.toLocaleString() : '') : selling && u.nosell ? '' : selling && !r.price ? '<i>no interest</i>' : r.price.toLocaleString()}</span></div>`; }).join('')
+    || `<div class="sub" style="padding:20px">${tab === 'sell' ? (W.home ? 'Your pack is empty.' : 'You carry nothing this shop takes.') : W.mus ? 'Nothing has been donated yet.' : W.home ? 'Your home is empty. Leave things here from the other tab.' : 'The shelves are empty.'}</div>`;
+  const cmds = W.mus ? [['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']] : W.home ? [['r', 'throw away'], ['?', 'help'], ['\x1b', 'leave']] : [['B', 'buy everything'], ['S', 'new stock'], ['R', 'hold an item'], ['?', 'help'], ['\x1b', 'leave']];
+  const tot = W.home ? buy.reduce((a, r) => a + r.w * r.num, 0) : 0;
+  return `<div class="pane npanel shopp shop2">
     <div class="row" style="gap:18px;align-items:flex-end;border-bottom:1px solid #000;box-shadow:0 1px 0 #4a4e54;padding-bottom:10px">
-      <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(u.name)}</div><div class="sub">${esc(u.owner)}, ${/^[aeiou]/i.test(u.race) ? 'an' : 'a'} ${esc(u.race.toLowerCase())}, keeps this shop · pays up to ${u.purse.toLocaleString()} for one item</div></div>
-      <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${u.gold.toLocaleString()}</div></div></div>
-    <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
-    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${lookKeys(esc(msg))}${qtyKeys()}</div>
-    <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"${SHOP_TIPS[k] ? ` data-tip="${SHOP_TIPS[k]}"` : ''}><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
+      <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(u.name)}</div><div class="sub">${W.home ? `${u.count} ${u.count === 1 ? 'thing' : 'things'}${W.mus ? ' on display · donations are final' : ` kept here · ${lb(tot)} lb on this page`}` : `${esc(u.owner)}, ${/^[aeiou]/i.test(u.race) ? 'an' : 'a'} ${esc(u.race.toLowerCase())}, keeps this shop · pays up to ${u.purse.toLocaleString()} for one item`}</div></div>
+      <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${gold.toLocaleString()}</div></div></div>
+    <div class="sh2">
+      <div class="sh2l">
+        <div class="shtabs"><div class="${tab === 'buy' ? 'on' : ''}" data-shoptab="buy">${W.t1} <small>${buy.length}</small></div><div class="${tab === 'sell' ? 'on' : ''}" data-shoptab="sell">${W.t2} <small>${sell.length}</small></div>${u.pages > 1 ? `<span class="grow"></span><span class="row shpg" data-key=" " data-tip="Next page of the shelves (Space)">page ${u.page} of ${u.pages} &rsaquo;</span>` : ''}</div>
+        <div class="shlist">${rowsHtml}</div>
+      </div>
+      <div class="shcard">${asking ? shopAskHtml(msg, W, buy, sell) : shopCardHtml(cur)}</div>
+    </div>
+    <div class="live shmsg">${asking || /^Unrecognized command/.test(msg) ? '' : lookKeys(esc(msg))}</div>
+    <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"${SHOP_TIPS[k] ? ` data-tip="${SHOP_TIPS[k]}"` : ''}><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span><span class="sub">keys: ${W.mus ? '' : `<b>${W.kget}</b> ${W.get.toLowerCase()} · `}<b>${W.kput}</b> ${W.put.toLowerCase()} · arrows, Tab and Enter work on the list</span></div></div>`;
 }
+// the game's own questions in a shop (asked when you use the keys: b, s and their kind) as a card with buttons
+function shopAskQ(msg) { const m = /Quantity \((\d+)(?:-| to )(\d+)\):\s*(\d*)/.exec(msg); return m ? { lo: +m[1], hi: +m[2], v: m[3] === '' ? +m[1] : Math.max(+m[1], Math.min(+m[2], +m[3])) } : null; }
+function shopAskHtml(msg, W, buy, sell) {
+  const btn = (k, label, cls, name) => `<span class="btn ${cls || ''}" data-key="${k}"><span class="key">${name || k}</span>${label}</span>`, cancel = btn('Esc', 'Cancel');
+  let m;
+  if ((m = /(\w+) which item/i.exec(msg))) {
+    const put = /sell|give|drop|donate|leave/i.test(m[1]);
+    SHOP.ask = { tab: put ? 'sell' : 'buy', t: Date.now(), row: null };
+    return `<div class="shask"><div class="shaskh">${/^reserve$/i.test(m[1]) ? 'Hold which item?' : esc(cap(m[1].toLowerCase())) + ' what?'}</div><div class="hint">Click it in the list, or press its letter.</div><div class="askb">${cancel}</div></div>`;
+  }
+  const q = shopAskQ(msg);
+  if (q) {
+    const A = SHOP.ask;
+    if (A && !A.row && SHOP.key && SHOP.key.t >= A.t - 50 && Date.now() - A.t < 60000) A.row = (A.tab === 'sell' ? sell : buy).find(r => r.k === SHOP.key.k) || 'none';
+    const r = A && A.row && A.row !== 'none' ? A.row : null, half = Math.max(q.lo, Math.ceil(q.hi / 2)), put = A && A.tab === 'sell';
+    const verb = put ? W.put : W.get || 'Take', tot = r && r.price && !W.free ? r.price * q.v : 0;
+    return `<div class="shask">${r ? `<div class="shhead"><div class="slot big t-${tvIcon(r.tv)}">${artHtml(r.ki, 84) || icon(tvIcon(r.tv))}</div><div class="grow"><div class="spn shname">${esc(cap(baseName(r.n)))}</div><div class="sub">${r.num} ${put ? 'in your pack' : 'in stock'}${r.price && !W.free ? ` · ${r.price.toLocaleString()} gold each` : ''}</div></div></div>` : ''}
+      <div class="shaskh">How many?</div>
+      <div class="shqty"><span class="key kb ${q.v <= q.lo ? 'off' : ''}" data-shq="-1" data-tip="One fewer (Left)">&minus;</span><b class="num">${q.v}</b><span class="key kb ${q.v >= q.hi ? 'off' : ''}" data-shq="1" data-tip="One more (Right)">+</span>
+        <span class="shchip" data-shq="=${q.lo}">${q.lo}</span>${q.hi > 3 ? `<span class="shchip" data-shq="=${half}">half</span>` : ''}<span class="shchip" data-shq="=${q.hi}">all ${q.hi}</span></div>
+      ${tot ? `<div class="shsum"><span>Total</span><span class="grow"></span><b class="num tot">${tot.toLocaleString()}</b></div>` : ''}
+      <div class="askb">${btn('\r', r ? `${esc(verb)} ${q.v}` : 'OK', 'go', 'Enter')}${cancel}</div></div>`;
+  }
+  if ((m = /Really (buy|sell|give|donate) (.*) for (\d+) gp\? \[y\/n\]\s*$/i.exec(msg))) { const r = SHOP.ask && SHOP.ask.row && SHOP.ask.row !== 'none' ? SHOP.ask.row : null, v = m[1].toLowerCase();
+    return `<div class="shask">${r ? `<div class="shhead"><div class="slot big t-${tvIcon(r.tv)}">${artHtml(r.ki, 84) || icon(tvIcon(r.tv))}</div><div class="grow"><div class="spn shname">${esc(cap(m[2].replace(/^an? /, '').replace(/\s*[\[({].*$/, '')))}</div></div></div>` : ''}<div class="shaskh">${esc(cap(v))} ${esc(r ? 'it' : m[2])}?</div><div class="shask2">${v === 'buy' ? 'It costs' : 'You get'} ${(+m[3]).toLocaleString()} gold.</div><div class="askb">${btn('y', cap(v), 'go')}${btn('n', 'No')}</div></div>`; }
+  if (/buy the entire inventory of this store\? \[y\/n\]\s*$/i.test(msg)) return `<div class="shask"><div class="shaskh">Buy everything on the shelves?</div><div class="shask2">You get every whole stack you can afford, from the top of the list down.</div><div class="askb">${btn('y', 'Buy it all', 'go')}${btn('n', 'No')}</div></div>`;
+  // the two paid services, said plainly, with the price and whether you can afford it
+  if ((m = /(Shuffle stock|Reserve (.+?)) for (\d+) gp\? \[y\/n\]\s*$/i.exec(msg))) { const cost = +m[3], gold = (UI && UI.gold != null ? UI.gold : S && S.p ? S.p.au : 0) || 0, short = gold && cost > gold;
+    return `<div class="shask"><div class="shaskh">${m[2] ? 'Have ' + esc(m[2].replace(/^\d+ /, '')) + ' held for you?' : 'Ask for new stock?'}</div><div class="shask2">${m[2] ? 'It stays on the shelf until you come back to buy it.' : 'The shopkeeper clears the shelves and brings out other wares.'} It costs ${cost.toLocaleString()} gold${short ? ', more than you carry' : ''}.</div><div class="askb">${btn('y', 'Pay ' + cost.toLocaleString(), 'go')}${btn('n', 'No')}</div></div>`; }
+  if ((m = /^(?:.*\d\s+)?(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg.replace(/^Quantity \([^)]*\):\s*\d*\s*/, ''))) && (m[1].length >= 12 || (m = /^()(\S.*?)\s*\[(y\/n)\]\s*$/i.exec(msg)) && (m[1] = m[2]))) return `<div class="shask"><div class="shaskh">${esc(m[1])}</div><div class="askb">${btn('y', 'Yes', 'go')}${btn('n', 'No')}</div></div>`;
+  if (/-more-/.test(msg)) return `<div class="shask"><div class="shaskh lite">${esc(msg.replace(/\s*-more-\s*/g, ' ').trim())}</div><div class="askb">${btn(' ', 'Continue', 'go', 'Space')}</div></div>`;
+  return `<div class="shask"><div class="dsch">${W.home ? 'the game asks' : 'the shopkeeper asks'}</div><div class="live" style="font-size:20px">${lookKeys(esc(msg))}${qtyKeys()}</div><div class="hint">Answer with the keys, or click an item in the list. Esc cancels.</div></div>`;
+}
+document.addEventListener('click', ev => { const q = ev.target.closest && ev.target.closest('[data-shq]'); if (!q || !shopLike()) return; ev.stopPropagation(); ev.preventDefault(); shopAskStep(q.dataset.shq); }, true);
+function shopAskStep(d) {
+  const a = shopAskQ([0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ')); if (!a) return false;
+  const n = Math.max(a.lo, Math.min(a.hi, String(d)[0] === '=' ? +String(d).slice(1) : a.v + (+d)));
+  sendText('\b'.repeat(8) + '\x7f'.repeat(8) + n); return true;
+}
+function shopCardHtml(r) {
+  const u = UI;
+  if (!r) return `<div class="shempty"><div class="shemi">${icon('gold')}</div><div>Point at anything to see what it is.</div><div class="sub">Click it to ${shopWords().mus ? 'look closer, or donate from your pack' : shopWords().home ? 'take it or leave it here' : 'buy or sell'}.</div></div>`;
+  const W = shopWords(), gold = u.gold != null ? u.gold : S && S.p ? S.p.au : 0;
+  const selling = !!r.wh, id = shopId(r), pinned = SHOP.sel === id, ic = tvIcon(r.tv), dk = selling ? (r.wh === 'p' ? 'p:' + r.k : '') : (W.home ? 'h:' : 's:') + r.sl;
+  if (dk && !DESC[dk] && !DESC_ASKED[dk]) { DESC_ASKED[dk] = 1; sendRaw('D ' + dk.replace(':', ' ')); }
+  SHOP.want = dk;
+  const price = r.price || 0, max = shopMax(r), q = Math.min(SHOP.qty, Math.max(1, max)), total = price * q, free = W.free;
+  const cant = W.home ? '' : selling ? (!free && !price ? 'This shop has no interest in it' : '') : (max < 1 ? 'You do not have enough gold' : '');
+  const one = r.n.replace(/^(\d+|an?|the) /i, ''), verb = selling ? W.put : W.get, view = !verb;   // the museum's shelves are only for looking
+  const step = r.num > 1 && !cant && !view ? `<div class="shqty"><span class="lbl">how many</span>
+      <span class="key kb ${q <= 1 ? 'off' : ''}" data-shopq="-1" data-tip="One fewer (Left)">&minus;</span><b class="num">${q}</b><span class="key kb ${q >= max ? 'off' : ''}" data-shopq="1" data-tip="One more (Right)">+</span>
+      <span class="shchip" data-shopq="=1">1</span>${max > 3 ? `<span class="shchip" data-shopq="=${Math.ceil(max / 2)}">half</span>` : ''}<span class="shchip" data-shopq="=${max}" data-tip="${selling || W.home ? 'All ' + r.num : max < r.num ? 'As many as your gold buys' : 'All ' + r.num}">${selling || W.home || max >= r.num ? 'all' : 'max'} ${max}</span></div>` : '';
+  const sum = free ? (W.home && !view ? `<div class="sub shafter">${selling ? 'Your pack will be' : 'You will carry'} <b>${lb(r.w * q)} lb</b> ${selling ? 'lighter' : 'more'}</div>` : '') : `<div class="shsum"><span>${selling ? 'They pay' : 'Price'}</span><b class="num">${price.toLocaleString()}</b><span class="sub">${r.num > 1 ? 'each' : 'gold'}</span>
+      ${q > 1 || r.num > 1 ? `<span class="grow"></span><span>Total</span><b class="num tot">${total.toLocaleString()}</b>` : ''}</div>
+      <div class="sub shafter">${cant ? '' : `Leaves you with <b>${(gold + (selling ? total : -total)).toLocaleString()}</b> gold`}</div>`;
+  const final = W.mus && selling, sure = final && SHOP.sure === id;
+  const label = sure ? 'Yes, donate it for good' : `${verb}${q > 1 ? ' ' + q : ''}${free ? '' : ` for ${total.toLocaleString()} gold`}`;
+  return `<div class="shhead"><div class="slot big t-${ic}">${artHtml(r.ki, 84) || icon(ic)}</div><div class="grow" style="min-width:0"><div class="shn">${nameHtml(one, cap)}</div><div class="dir">${r.num > 1 ? `${r.num} ${selling ? 'in your pack' : W.home ? 'here' : 'in stock'} · ` : ''}${lb(r.w)} lb${r.num > 1 ? ' each' : ''}${r.off ? ` · <span style="color:#a9c98c">${r.off}% off</span>` : ''}</div></div></div>
+    <div class="shdesc">${(dk && DESC[dk] && shopDescTrim(DESC[dk])) || (dk ? '<span class="sub">reading the label…</span>' : '')}</div>
+    <div class="shbuy">${pinned ? step : ''}${sum}
+      ${final && pinned ? `<div class="sub shafter" style="color:#ff9a86">${sure ? 'It can never be taken back.' : 'Donations are final.'}</div>` : ''}
+      ${view ? `<div class="shgo ghost">On display. Donations cannot be taken back.</div>` : cant ? `<div class="shgo off">${cant}</div>` : pinned ? `<div class="shgo ${sure ? 'warn' : ''}" data-shopgo="1"><span class="key">Enter</span>${label}</div>` : `<div class="shgo ghost">Click the item to ${verb.toLowerCase()}${/here$/.test(verb) ? '' : ' it'}</div>`}</div>`;
+}
+// the game's page opens with the item's name and weight, which the card already shows above
+const shopDescTrim = h => h.replace(/<div class="dsc">[^\n]*\n/g, '<div class="dsc">');
+function shopTrade() {
+  const r = shopCur(); if (!r || SHOP.sel !== shopId(r) || shopAsking()) return false;
+  const W = shopWords(), max = shopMax(r), q = Math.max(1, Math.min(SHOP.qty, max));
+  if (W.home) {
+    if (!r.wh && W.mus) return true;                                             // nothing leaves the museum
+    if (r.wh && W.mus && SHOP.sure !== shopId(r)) { SHOP.sure = shopId(r); schedule(); return true; }   // a donation is asked twice
+    sendRaw(r.wh ? `H d ${r.wh} ${r.sl} ${q}` : `H g ${r.sl} ${q}`);
+  } else {
+    if (max < 1 || (r.wh && !UI.nosell && !r.price)) return true;
+    sendRaw(r.wh ? `B s ${r.wh} ${r.sl} ${q}` : `B b ${r.sl} ${q}`);
+  }
+  SHOP.qty = 1; SHOP.sure = ''; return true;
+}
+function shopQty(d) { const r = shopCur(); if (!r) return; const max = Math.max(1, shopMax(r)); SHOP.qty = Math.max(1, Math.min(max, String(d)[0] === '=' ? +String(d).slice(1) : SHOP.qty + (+d))); schedule(); }
+function shopMove(d) {
+  const { buy, sell } = shopRows(), list = SHOP.tab === 'sell' ? sell : buy; if (!list.length) return;
+  const i = list.findIndex(r => shopId(r) === SHOP.sel), j = i < 0 ? (d > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, i + d));
+  SHOP.sel = shopId(list[j]); SHOP.qty = 1; SHOP.sure = ''; schedule();
+  requestAnimationFrame(() => { const e = document.querySelector('.shlist .srow.sel'); if (e && e.scrollIntoView) e.scrollIntoView({ block: 'nearest' }); });
+}
+// keys that belong to the list and its card; every other key goes to the game as before
+function shopKey(e) {
+  if (!shopLike() || !uiOnTop() || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (shopAsking()) { if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === '+' || e.key === '=') return shopAskStep(1); if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === '-') return shopAskStep(-1); return false; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { shopMove(e.key === 'ArrowDown' ? 1 : -1); return true; }
+  if (e.key === 'Tab') { SHOP.tab = SHOP.tab === 'buy' ? 'sell' : 'buy'; SHOP.sel = SHOP.hov = null; SHOP.qty = 1; SHOP.sure = ''; schedule(); return true; }
+  if (!SHOP.sel) return false;
+  if (e.key === 'Enter') return shopTrade();
+  if (e.key === 'Escape') { SHOP.sel = null; SHOP.qty = 1; SHOP.sure = ''; schedule(); return true; }
+  if (e.key === 'ArrowRight' || e.key === '+' || e.key === '=') { shopQty(1); return true; }
+  if (e.key === 'ArrowLeft' || e.key === '-') { shopQty(-1); return true; }
+  return false;
+}
+document.addEventListener('click', ev => {
+  if (!shopLike() || !ev.target.closest) return;
+  const go = ev.target.closest('[data-shopgo]'), q = ev.target.closest('[data-shopq]'), tb = ev.target.closest('[data-shoptab]'), row = ev.target.closest('[data-shop]');
+  if (!go && !q && !tb && !row) return;
+  ev.stopPropagation(); ev.preventDefault();
+  if (go) shopTrade();
+  else if (q) shopQty(q.dataset.shopq);
+  else if (tb) { if (!shopAsking() && SHOP.tab !== tb.dataset.shoptab) { SHOP.tab = tb.dataset.shoptab; SHOP.sel = SHOP.hov = null; SHOP.qty = 1; SHOP.sure = ''; schedule(); } }
+  else if (SHOP.sel !== row.dataset.shop) { SHOP.sel = row.dataset.shop; SHOP.qty = 1; SHOP.sure = ''; schedule(); }
+}, true);
+document.addEventListener('dblclick', ev => { const row = ev.target.closest && ev.target.closest('[data-shop]'); if (row && shopLike() && SHOP.sel === row.dataset.shop) { ev.preventDefault(); shopTrade(); } }, true);
+document.addEventListener('mousemove', ev => {
+  if (!shopLike() || !ev.target.closest) return;
+  const row = ev.target.closest('[data-shop]'), id = row ? row.dataset.shop : null;
+  if (id && id !== SHOP.hov) { SHOP.hov = id; if (!SHOP.sel) schedule(); }
+});
+document.addEventListener('wheel', ev => { if (shopLike() && SHOP.sel && ev.target.closest && ev.target.closest('.shqty')) { ev.preventDefault(); shopQty(ev.deltaY < 0 ? 1 : -1); } }, { passive: false });
 
-/* the home and the museum: the same shelves look as a shop, with weights and the game's score instead of prices */
-function homeHtml() {
-  const u = UI, rows = u.rows, two = rows.length > 13, mus = !!u.museum;
-  const msg = [0, 1, 2].map(y => (G.s[y] || '').replace(/\x01/g, ' ').trim()).filter(Boolean).join(' ');
-  const asking = /which item|\(Inven|\(Equip|quantity/i.test(msg);
-  const tot = rows.reduce((a, r) => a + r.w * r.num, 0);
-  const list = rows.map(r => { const ic = tvIcon(r.tv); const act = asking ? 'click: choose this' : mus ? 'click: examine' : 'click: take it with you';
-    return `<div class="srow ${r.art || r.ego ? 'ego' : ''}" data-key="${asking ? '' : mus ? 'x' : 'g'}${esc(r.k)}" data-desc="h:${r.sl}" data-tip="${esc(r.n)}\n${act}">
-    <span class="key kb">${esc(r.k)}</span><div class="slot t-${ic}">${artHtml(r.ki, 40) || icon(ic)}</div>
-    <div class="grow" style="min-width:0"><div class="n nowrap">${esc(r.n)}</div><div class="dir">${lb(r.w * r.num)} lb</div></div>
-    <span class="price num" style="color:#c9b28a" title="score">${r.score.toLocaleString()}</span></div>`; }).join('') || `<div class="sub" style="padding:20px">${mus ? 'Nothing has been donated yet.' : 'Your home is empty. Press d to leave something here.'}</div>`;
-  const cmds = mus ? [['d', 'donate'], ['x', 'examine'], ['r', 'remove'], ['?', 'help'], ['\x1b', 'leave']]
-    : [['g', 'take'], ['d', 'leave here'], ['x', 'examine'], ['r', 'destroy'], ['?', 'help'], ['\x1b', 'leave']];
-  return `<div class="pane npanel shopp" style="width:${two ? 1400 : 860}px">
-    <div class="row" style="gap:18px;align-items:flex-end;border-bottom:1px solid #000;box-shadow:0 1px 0 #4a4e54;padding-bottom:10px">
-      <div class="grow"><div class="spn" style="font-size:34px;color:var(--em2)">${esc(mus ? 'The Museum' : 'Your Home')}</div><div class="sub">${mus ? 'Donations are final, and shown here for good' : 'Safe storage. Nothing here is ever lost or stolen'} · ${u.count} ${u.count === 1 ? 'item' : 'items'}${rows.length ? ` · ${lb(tot)} lb on this page` : ''}</div></div>
-      <div style="text-align:right"><div class="lbl">your gold</div><div class="num" style="font-size:28px;color:#ffcf6a">${S && S.p ? S.p.au.toLocaleString() : ''}</div></div></div>
-    <div class="shg" style="grid-template-columns:repeat(${two ? 2 : 1},1fr)">${list}</div>
-    <div class="live" style="min-height:26px;font-size:19px;padding:2px 4px">${lookKeys(esc(msg))}${qtyKeys()}</div>
-    <div class="nfoot" style="flex-wrap:wrap">${cmds.map(([k, n]) => `<span class="row" data-key="${k}"${SHOP_TIPS[k] ? ` data-tip="${SHOP_TIPS[k]}"` : ''}><span class="key">${k === '\x1b' ? 'Esc' : k}</span>${n}</span>`).join('')}<span class="grow"></span>${u.pages > 1 ? `<span class="row" data-key=" "><span class="key">Space</span>page ${u.page} of ${u.pages}</span>` : ''}</div></div>`;
-}
+function homeHtml() { return shopHtml(); }
 
 const LMC = { wall: '#5a5e64', door: '#a06a34', dooropen: '#a06a34', up: '#7fd0f0', down: '#7fd0f0', water: '#2f5f86', lava: '#b8441c', tree: '#2f5a2a', grass: '#3c5530', shop: '#ffb070', rubble: '#6c665c', pit: '#101113', trap: '#c84a36', snow: '#9aa4ad', floor: '#33373c', other: '#3d4046' };
-function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 640 / u.h, 14)); return { s, W: Math.round(u.w * s), H: Math.round(u.h * s) }; }
+function lmapGeo() { const u = UI, s = Math.max(2, Math.min(1400 / u.w, 590 / u.h, 14)); return { s, W: Math.round(u.w * s), H: Math.round(u.h * s) }; }
 function lmapHtml() {
   const u = UI, g = lmapGeo(), pois = [];
   let known = 0;
-  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); if (cls === 'up' || cls === 'down' || cls === 'shop') pois.push({ n: (DICT.f[f] || [''])[0], cls, x: i % u.w, y: (i / u.w) | 0 }); });
+  const named = {}; for (const [x, y, n] of u.pl || []) named[x + ',' + y] = n;   // the towns and dungeons by name
+  u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c; if (!f) return; known++; const cls = featClass(f); const nm = (DICT.f[f] || [''])[0], x = i % u.w, y = (i / u.w) | 0, pn = named[x + ',' + y], town = u.wild && /^town$/i.test(nm);
+    if (cls === 'up' || cls === 'down' || cls === 'shop' || town) pois.push({ n: pn ? (town ? pn : u.wild ? cap(dunThe(pn)) : 'Way into ' + dunThe(pn)) : u.wild && cls === 'down' ? 'Dungeon' : nm, kind: u.wild ? (town ? 'town' : 'dungeon') : '', cls: u.wild ? 'place' : cls, x, y }); });
   pois.sort((a, b) => Math.max(Math.abs(a.x - u.px), Math.abs(a.y - u.py)) - Math.max(Math.abs(b.x - u.px), Math.abs(b.y - u.py)));
   const seen = {}, list = pois.filter(p => p.cls !== 'shop' || p.n !== 'Building').filter(p => { const k = p.cls === 'shop' ? p.n : p.n + (seen[p.n] || 0); seen[p.n] = (seen[p.n] || 0) + 1; return p.cls === 'shop' ? seen[p.n] === 1 : seen[p.n] <= 3; }).slice(0, 14);
-  const leg = [['#ffb070', 'You'], ['#ff5a3c', 'Creature in sight'], ['#7fd0f0', 'Stairs'], ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
-  return `<div class="pane npanel" style="width:${Math.max(900, g.W + 60)}px">
-    <div class="tabs"><div class="on">Level map</div><span class="dir" style="margin-left:auto;align-self:center;font-size:15px">${esc(u.place)}${u.dlvl ? `, level ${u.dlvl} · ${u.dlvl * 50} ft` : ''}</span></div>
-    <div style="display:flex;justify-content:center;margin:12px 0 8px"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
-    <div class="row" style="gap:20px;flex-wrap:wrap;font-size:14px;color:#b3ac9f">${leg.map(([c, n]) => `<span class="row" style="gap:7px"><i style="width:11px;height:11px;background:${c};display:inline-block"></i>${n}</span>`).join('')}</div>
-    ${list.length && !u.wild ? `<div class="catr" style="margin-top:6px">go to</div><div class="row" style="gap:8px;flex-wrap:wrap">${list.map(p => `<div class="grp" style="font-size:17px;padding:6px 12px;cursor:pointer" data-go="${p.x - u.px},${p.y - u.py}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>` : ''}
-    <div class="nfoot"><span class="sub">${u.wild ? 'The wilderness map.' : 'Click anywhere you have explored to walk there.'}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
+  if (u.wild) { list.length = 0; pois.slice(0, 12).forEach(p => list.push(p)); }
+  // the world: every town you can walk to, then the nearest dungeons
+  const goBtn = p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}">${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`;
+  const wildGo = u.wild && (u.pl || []).length ? `<div class="lmgo"><span class="catr">towns</span>${pois.filter(p => p.kind === 'town').slice(0, 10).map(goBtn).join('')}</div><div class="lmgo"><span class="catr">dungeons</span>${pois.filter(p => p.kind === 'dungeon').slice(0, 7).map(goBtn).join('')}</div>` : '';
+  const leg = [['#fff6e6', 'You'], ['#ff5a3c', 'Creature'], ['#7fd0f0', 'Stairs'], pois.some(p => p.cls === 'shop') ? ['#ffb070', 'Shop'] : ['#a06a34', 'Door'], ['#ffcf6a', 'Item'], ['#33373c', 'Explored floor'], ['#5a5e64', 'Wall']];
+  if (u.wild) leg.splice(0, leg.length, ['#fff6e6', 'You'], ['#ffb070', 'Town'], ['#7fd0f0', 'Dungeon'], ['#3c5530', 'Open land'], ['#2f5a2a', 'Forest'], ['#2f5f86', 'Water'], ['#5a5e64', 'Mountains'], ['#b8441c', 'Lava']);
+  return `<div class="pane npanel lmapp">
+    <div class="lmhd"><b>${u.wild ? 'The world' : esc(u.place)}</b>${u.dlvl ? `<span>level ${u.dlvl} · ${u.dlvl * 50} ft</span>` : ''}<span class="grow"></span>${leg.map(([c, n]) => `<span class="lmlg"><i style="background:${c}"></i>${n}</span>`).join('')}</div>
+    <div class="lmbox"><canvas id="lmapc" style="width:${g.W}px;height:${g.H}px;box-shadow:0 0 0 1px #000,0 0 0 2px #2e3135;background:#0c0d0e;cursor:pointer"></canvas></div>
+    ${wildGo || !list.length ? wildGo : `<div class="lmgo"><span class="catr">go to</span>${list.map(p => `<div class="grp" data-go="${p.x - u.px},${p.y - u.py}" data-gxy="${p.x},${p.y}"${p.kind ? ` data-tip="${p.kind === 'town' ? 'A town' : 'A dungeon'}"` : ''}>${esc(cap(p.n))} <small>${dirOf(p.x - u.px, p.y - u.py)}</small></div>`).join('')}</div>`}
+    <div class="nfoot"><span class="sub">${u.wild ? 'The whole land. Click a place to travel there.' : 'Click anywhere you have explored to walk there.'}</span><span class="grow"></span><span class="row" data-key="\x1b"><span class="key">Esc</span>close</span></div></div>`;
 }
+let LM_HI = null;
+document.addEventListener('mouseover', e => { const g = e.target.closest && e.target.closest('[data-gxy]'), v = g ? g.dataset.gxy : null; if (v !== LM_HI) { LM_HI = v; lmapDraw(); } });
 function lmapDraw() {
   const cv = $('#lmapc'); if (!cv || !UI || UI.kind !== 'lmap') return;
   const u = UI, g = lmapGeo(), d = SCALE * (devicePixelRatio || 1); cv.width = Math.round(g.W * d); cv.height = Math.round(g.H * d);
   const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); const s = g.s;
   u.c.forEach((c, i) => { const f = Array.isArray(c) ? c[0] : c, cx = (i % u.w) * s, cy = ((i / u.w) | 0) * s;
-    if (f) { x.fillStyle = LMC[featClass(f)] || LMC.other; x.fillRect(cx, cy, s + .4, s + .4); }
+    if (f) { x.fillStyle = u.wild && /^town$/i.test((DICT.f[f] || [''])[0]) ? LMC.shop : LMC[featClass(f)] || LMC.other; x.fillRect(cx, cy, s + .4, s + .4); }
     if (Array.isArray(c)) { if (c[2]) { x.fillStyle = '#ffcf6a'; x.fillRect(cx + s * .2, cy + s * .2, s * .6, s * .6); } if (c[1]) { x.fillStyle = '#ff5a3c'; x.fillRect(cx - 1, cy - 1, s + 2, s + 2); } } });
-  x.fillStyle = '#ffb070'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#000'; x.lineWidth = 1; x.strokeRect(u.px * s - 2.5, u.py * s - 2.5, s + 5, s + 5);
+  if (LM_HI) { const [hx, hy] = LM_HI.split(',').map(Number); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.beginPath(); x.arc(hx * s + s / 2, hy * s + s / 2, Math.max(9, s * 1.6), 0, 7); x.stroke(); x.fillStyle = '#ff8a3c'; x.fillRect(hx * s - 1, hy * s - 1, s + 2, s + 2); }
+  x.fillStyle = '#fff6e6'; x.fillRect(u.px * s - 2, u.py * s - 2, s + 4, s + 4); x.strokeStyle = '#ff8a3c'; x.lineWidth = 2; x.strokeRect(u.px * s - 4, u.py * s - 4, s + 8, s + 8);
+  if (u.wild) {   // the towns by name, on the map itself
+    x.font = '600 12px "Inter", system-ui, sans-serif'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    for (const [tx, ty, n] of u.pl || []) { const f = u.c[ty * u.w + tx], fid = Array.isArray(f) ? f[0] : f; if (!/^town$/i.test((DICT.f[fid] || [''])[0])) continue;
+      const w = x.measureText(n).width, left = tx * s + s + 5 + w > g.W - 4, lx = left ? tx * s - 5 - w : tx * s + s + 5, ly = ty * s + s / 2;
+      x.strokeStyle = 'rgba(8,9,10,.85)'; x.lineWidth = 3.5; x.strokeText(n, lx, ly); x.fillStyle = '#ffd9b0'; x.fillText(n, lx, ly); }
+  }
 }
 let NATIVE_SIDE = false;
 const SKL = ['very bad', 'bad', 'poor', 'fair', 'good', 'very good', 'excellent', 'superb', 'heroic', 'legendary'];
@@ -151,7 +387,7 @@ function charHtml() {
   const bars = d => { let i = SKL.indexOf(d.toLowerCase().replace(/\[.*$/, '').trim()); if (i < 0) i = 9; const n = Math.max(1, Math.round((i + 1) * .8)); return `<span class="sbar">${Array.from({ length: 8 }, (_, k) => `<i class="${k < n ? 'on' : ''} ${i >= 8 ? 'hero' : ''}"></i>`).join('')}</span>`; };
   return `<div class="pane npanel charp" style="width:660px">
     <div class="tabs"><div class="on">Character</div></div>
-    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(p.race)} ${esc(p.cls)}</span></div>
+    <div style="margin:8px 0 2px"><span class="spn" style="font-size:30px;color:#f4efe4">${esc(p.name)}</span> <span class="sub" style="font-size:18px">the level ${p.lev} ${esc(heroKind(p))}</span></div>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${[u.sex, p.pers + ' personality', p.realm ? p.realm + ' realm' : ''].filter(Boolean).map(t => `<span class="grp" style="font-size:15px;padding:4px 10px">${esc(t)}</span>`).join('')}</div>
     <div class="catr">progress</div>
     <div class="ptiles">${tile(u.kills.toLocaleString(), 'kills')}${tile(u.uniques, 'uniques slain')}${tile(u.arts < 0 ? 'n/a' : u.arts, 'artifacts found')}${tile(u.maxdepth ? u.maxdepth * 50 + ' ft' : 'none', 'deepest dive')}${tile('Day ' + p.day, 'at ' + p.hour + ':' + String(p.min).padStart(2, '0'))}${tile(h + 'h ' + String(m).padStart(2, '0') + 'm', 'played')}</div>
@@ -161,21 +397,43 @@ function charHtml() {
     ${sk.map(r => `<div class="row skl"><span class="grow">${esc(r.n)}</span>${bars(r.d)}<span style="width:110px;text-align:right;color:${readable(col(r.col))}">${esc(r.d)}</span></div>`).join('')}
     <div class="catr">resistances</div>
     <div class="resg">${res.map(r => `<div class="rs ${r.pct > 0 ? 'on' : r.pct < 0 ? 'bad' : ''}"><span>${esc(r.n)}</span><b>${r.pct ? r.pct + '%' : '–'}</b></div>`).join('')}</div>
-    <div class="sub" style="font-size:14px;margin-top:8px">The full sheet is on the right. Arrow keys and Page Down scroll it.</div></div>`;
+    </div>`;
 }
-function nativeAfter() { lmapDraw(); }
+// the second column of the character tab: what you are made of and what you wear, with the game's long record a click away
+let CHARVIEW = 'summary', CHAR_HOME = 0;
+const CH_STATS = [['Strength', 'hitting hard, carrying more'], ['Intelligence', 'arcane spells, magic devices'], ['Wisdom', 'prayers, resisting magic'], ['Dexterity', 'more blows, aim, dodging'], ['Constitution', 'life, and healing'], ['Charisma', 'prices, and some magic']];
+function charMoreHtml(pg) {
+  const p = S.p, worn = (S.equip || []).filter(e => e.o), tile = (v, l, c) => `<div class="tile ch"><div class="ch"><b${c ? ` style="color:${c}"` : ''}>${v}</b><span class="lbl">${l}</span></div></div>`;
+  const lb = n => (n / 10).toFixed(n % 10 ? 1 : 0);
+  return `<div class="chm">
+    <div class="catr">attributes</div>
+    <div class="chst">${CH_STATS.map(([n, d], i) => `<div class="chs"><b>${esc(String((p.stats || [])[i] || '').trim())}</b><div><span>${n}</span><i>${d}</i></div></div>`).join('')}</div>
+    <div class="catr">in the field</div>
+    <div class="ptiles chv">${tile(p.hp + '<small> / ' + p.mhp + '</small>', 'life', '#ff9a86')}${p.msp ? tile(p.sp + '<small> / ' + p.msp + '</small>', 'mana', '#9fd8f2') : ''}${tile(p.ac, 'armour')}${tile((p.speed > 0 ? '+' : '') + p.speed, 'speed')}${tile(Number(p.au).toLocaleString(), 'gold', '#ffcf6a')}${tile(lb(p.wgt) + '<small> / ' + lb(p.wlim) + ' lb</small>', 'burden')}</div>
+    <div class="catr">worn and wielded</div>
+    <div class="chw">${worn.length ? worn.map(e => `<div class="chwi" data-desc="e:${esc(e.k)}">${artHtml(e.o.ki, 36) || '<i class="oart" style="width:36px;height:36px"></i>'}<div><b>${typeof nameHtml === 'function' ? nameHtml(cap(String(e.o.n).replace(/^(an?|the) /i, ''))) : esc(cap(String(e.o.n).replace(/^(an?|the) /i, '')))}</b><span>${esc(e.slot)}</span></div></div>`).join('') : '<div class="sub">Nothing yet.</div>'}</div>
+    <div class="grow"></div>
+    <div class="chrec"><span class="btn go" data-charview="record">Read the full record</span><span class="sub">Every number the game keeps on you, ${pg.of} lines of it. Page Down opens it too.</span><span class="grow"></span><span class="btn${p.hp < 0 ? ' go' : ''}" data-key="Esc">${p.hp < 0 ? 'Continue' : 'Close'}</span></div></div>`;
+}
+document.addEventListener('click', ev => { const t = ev.target.closest && ev.target.closest('[data-charview]'); if (!t) return; if (t.dataset.charview === 'summary' && PAGER && PAGER.at > 0) { trigger(0xFF50, {}); CHAR_HOME = Date.now(); } CHARVIEW = t.dataset.charview; schedule(); });
+function nativeAfter() {
+  { const df = document.querySelector('#native canvas.dfig2'); if (df && S && S.p && S.p.form) { const d = 2 * SCALE * (devicePixelRatio || 1); df.width = df.height = 240 * d; const g = df.getContext('2d'); g.scale(d, d); g.imageSmoothingEnabled = false; sprite.flat = true; sprite(g, 'mon', S.p.form, 0, 0, 240); sprite.flat = false; } }
+  lmapDraw();
+  if (document.querySelector('#native canvas.ptart')) pickAfter();
+  const cr = document.querySelector('#native .cdrows'); if (cr) { cr.scrollTop = CDX_TOP; const c = cr.querySelector('.cde.sel'); if (c) { const a = c.offsetTop - cr.offsetTop, h = cr.clientHeight; if (a < cr.scrollTop) cr.scrollTop = a; else if (a + c.offsetHeight > cr.scrollTop + h) cr.scrollTop = a + c.offsetHeight - h; } CDX_TOP = cr.scrollTop; }
+  document.querySelectorAll('#native .rmob').forEach(c => { if (c._ok) return; const d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', c.dataset.n, 0, 0, 72); sprite.flat = false; });
+}
 
 function nativeHtml() {
   NATIVE_SIDE = false;
   if (!(G.ov || G.icky)) return '';
   const dh = deathHtml(); if (dh) return dh;
-  if (!UI || !UI.kind || !uiOnTop()) return optsHtml() || menuHtml();
-  if (UI.kind === 'items') return itemsHtml();
+  if (!UI || !UI.kind || !uiOnTop()) return bldgHtml() || optsHtml() || menuHtml();
+  if (UI.kind === 'items') return spbPicking() ? spellsHtml() : itemsHtml();
   if (UI.kind === 'spells') return spellsHtml();
   if (UI.kind === 'shop') return shopHtml();
   if (UI.kind === 'home') return homeHtml();
   if (UI.kind === 'lmap') return lmapHtml();
-  if (UI.kind === 'char' && VW >= 1760) { NATIVE_SIDE = true; return charHtml(); }
   return UI.kind === 'char' ? '' : menuHtml();
 }
 
@@ -196,13 +454,23 @@ function deathRead() {
 function deathHtml() {
   const d = deathRead(); if (!d) return ''; DIED = d;
   const ask = d.after.map(r => r.replace(/\s+$/, '')).filter(Boolean);
+  // the game offers to write the character to a file: say so plainly, with the name being typed in a field
+  const fi = ask.findIndex(l => /^\s*Filename:/.test(l));
+  if (fi >= 0) {
+    const typed = ask[fi].replace(/^\s*Filename:\s?/, '');
+    return deathFrame(d, `<div class="dnote">Type a name to keep a record of this character as a file, or leave it empty.</div><div class="dfield">${esc(typed)}<i class="dcaret"></i></div>`,
+      `<span class="pgb" data-key="\r"><span class="key">Enter</span>${typed.trim() ? 'save the record' : 'see the character'}</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span>`);
+  }
   const cy = G.cy - (G.s.length - d.after.length), live = ask.map((l, i) => `<div class="dl">${esc(l)}${G.cv && i === ask.length - 1 ? '<i class="dcaret"></i>' : ''}</div>`).join('');
+  return deathFrame(d, live, `<span class="pgb" data-key="\r"><span class="key">Enter</span>${/-more-/.test(msgTop()) ? 'continue' : 'see the character'}</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span>`);
+}
+function deathFrame(d, live, btns) {
   const where = /^Level 0$/i.test(d.where) ? 'in the town' : d.where ? 'on ' + d.where.toLowerCase().replace(/^level/, 'dungeon level') : '';
   return `<div class="pane npanel deathp"><div class="dhead">Here lies</div><div class="dname">${esc(d.name)}</div><div class="dtitle">${esc([d.title, d.cls].filter(Boolean).join(' · '))}</div>
     <div class="dby">${/^quitting$/i.test(d.by) ? 'Laid down the quest ' : d.by ? `Slain by <b>${esc(d.by)}</b> ` : ''}${esc(where)}</div>
     <div class="dstats"><div><b>${esc(d.lev)}</b><span>level</span></div><div><b>${esc(d.exp)}</b><span>experience</span></div><div><b>${esc(d.au)}</b><span>gold</span></div></div>
     <div class="dwhen">${esc(d.when)}</div><div class="dask">${live}</div>
-    <div class="dbtns"><span class="pgb" data-key="\r"><span class="key">Enter</span>see the character</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>skip</span></div></div>`;
+    <div class="dbtns">${btns}</div></div>`;
 }
 
 /* ---------- mouse ---------- */
@@ -254,7 +522,7 @@ function cellTip(cell) {
   const out = [], m = S.mons.find(m => m.dx === cell.dx && m.dy === cell.dy);
   if (!cell.dx && !cell.dy) out.push('<b>You</b>');
   if (m) out.push(`<b style="color:${m.uniq ? '#ffb070' : '#f4efe4'}">${esc(cap(m.n.replace(/^(an?|the) /i, '')))}</b><br><span class="sub">${(DICT.r[m.r] || [])[3] != null ? 'level ' + DICT.r[m.r][3] + (threat(m) ? ` <b style="color:${threat(m) === 'deadly' ? '#ff8a70' : '#ffc46a'}">${threat(m)}</b>` : '') + ' · ' : ''}${m.asleep ? 'asleep' : m.afraid ? 'afraid' : m.pet ? 'your pet' : m.friendly ? 'friendly' : 'awake'} · ${esc(m.health)}</span>`);
-  for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(esc(o.n));
+  for (const o of S.floor) if (o.dx === cell.dx && o.dy === cell.dy) out.push(nameHtml(o.n));
   if (c[0]) out.push(`<span style="color:#b3ac9f">${esc(cap((DICT.f[c[0]] || [''])[0]))}</span>`);
   if (lookMode()) return (out.join('<br>') || 'here') + `<div class="hint">${lookMode() === 'target' ? 'click: target this' : 'click: look here'}</div>`;
   if (aimMode()) return (out.join('<br>') || 'here') + `<div class="hint">${aimMode() === 'dir' ? (Math.max(Math.abs(cell.dx), Math.abs(cell.dy)) === 1 ? 'click: this way' : 'pick a square next to you') : (() => { const b = aimPath(cell.dx, cell.dy); return b ? (b.why === 'wall' ? 'a wall is in the way · ' : `it would hit ${esc(b.m.n.replace(/^(an?|the) /i, 'the '))} first · `) : ''; })() + 'click: aim here'}</div>`;
@@ -279,9 +547,28 @@ function tipRefresh() {
   }
   showTip(cellTip(cell), MAPEV);
 }
+let TIP_EL = null;   // the button a hint belongs to: when a redraw takes the button away, the hint goes with it
+function tipStale() { if (TIP_EL && !TIP_EL.isConnected) { TIP_EL = null; const t = $('#tip'); if (t) t.style.display = 'none'; } }
+// A tip waits until the pointer rests on something (TIP_WAIT), so sweeping the mouse across the screen opens nothing.
+// Once one is open it follows the pointer while it stays on the same thing; moving on to something else closes it, and
+// the next one opens after a shorter rest while you are still reading along a row (TIP_WARM).
+const TIP = { t: 0, pend: null, x: -9, y: -9, html: '', hid: 0 }, TIP_WAIT = 450, TIP_WARM = 200;
 function showTip(html, ev) {
-  const t = $('#tip'); if (!html) { t.style.display = 'none'; return; }
-  t.innerHTML = html; t.style.display = 'block';
+  const t = $('#tip');
+  if (!html) { clearTimeout(TIP.t); TIP.t = 0; TIP.pend = null; if (t.style.display !== 'none') { t.style.display = 'none'; TIP.hid = Date.now(); } TIP.html = ''; return; }
+  const x = ev && ev.clientX != null ? ev.clientX : TIP.x, y = ev && ev.clientY != null ? ev.clientY : TIP.y, vis = t.style.display === 'block';
+  const still = Math.abs(x - TIP.x) < 5 && Math.abs(y - TIP.y) < 5;
+  if (vis && (html === TIP.html || still)) { if (html !== TIP.html) { t.innerHTML = html; TIP.html = html; } tipPlace(t, x, y); return; }
+  if (vis) { t.style.display = 'none'; TIP.hid = Date.now(); TIP.html = ''; }
+  TIP.pend = { html, x, y, wide: t.classList.contains('wide') };
+  if (!still || !TIP.t) { TIP.x = x; TIP.y = y; clearTimeout(TIP.t); TIP.t = setTimeout(tipOpen, Date.now() - TIP.hid < 700 ? TIP_WARM : TIP_WAIT); }
+}
+function tipOpen() {
+  TIP.t = 0; const p = TIP.pend, t = $('#tip'); if (!p) return; TIP.pend = null;
+  t.classList.toggle('wide', p.wide); t.innerHTML = p.html; t.style.display = 'block'; TIP.html = p.html; tipPlace(t, p.x, p.y);
+}
+function tipPlace(t, cx, cy) {
+  const ev = { clientX: cx, clientY: cy };
   const sw = innerWidth / SCALE, sh = VH, w = t.offsetWidth, h = t.offsetHeight;
   let x = ev.clientX / SCALE + 18, y = ev.clientY / SCALE + 20;
   if (x + w > sw - 8) x = ev.clientX / SCALE - w - 14; if (y + h > sh - 8) y = ev.clientY / SCALE - h - 12;
@@ -292,7 +579,9 @@ function descRows(list) {
   const rows = list.map(r => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
     const s = r.s.replace(/\s+$/, ''); for (let x = 0; x < s.length; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h; });
   while (rows.length && !rows[rows.length - 1]) rows.pop();
-  return `<div class="dsc">${rows.join('\n')}</div>`;
+  // the game's "Score" is what it reckons the item is worth, in gold
+  const out = rows.join('\n').replace(/Score: (<\/span>\s*<span[^>]*>)?([\d,]+)/, 'Worth: $1about $2 gold').replace(/ \(L(\d+)\)/, ' · level $1');
+  return `<div class="dsc">${out}</div>`;
 }
 /* ---------- compare: what changes if you put this on ----------
  * From the two describe pages: armour, damage per hit, to-hit, weight and launcher power as numbers, then every
@@ -349,6 +638,7 @@ function cmpHtml(rows, cmp) {
 }
 function descIn(m) {
   if (typeof loreIn === 'function') loreIn(m);
+  if ((shopLike() && SHOP.want === m.key) || (UI && UI.kind === 'items' && ITEMS.want === m.key)) setTimeout(schedule, 0);
   // something you could wear arrives with what you wear in that place now, shown beside it
   DESC[m.key] = m.cmp && m.cmp.length ? cmpHtml(m.rows, m.cmp) + `<div class="dscw"><div><div class="dsch">this</div>${descRows(m.rows)}</div><div><div class="dsch">what you wear now</div>${descRows(m.cmp)}</div></div>` : descRows(m.rows);
   if (descHover === m.key && descEv && loreKey === m.key && hover) { $('#tip').classList.add('wide'); showTip(cellTip(hover) + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #3a2a1c">' + DESC[m.key] + '</div>', descEv); return; }
@@ -359,20 +649,22 @@ document.addEventListener('mousemove', ev => {
   const atEl = ev.target.closest && ev.target.closest('[data-at]'), atv = atEl ? atEl.dataset.at : '';
   if (atv !== atHover) { atHover = atv; if (S && S.map) requestAnimationFrame(drawMap); }
   if (atEl && atEl.classList.contains('mob') && S && S.mons) { const [ax, ay] = atv.split(',').map(Number); recallSet(S.mons.find(m => m.dx === ax && m.dy === ay)); }   // a creature or item in the side lists: show where it is
-  if (CTX) return showTip('', ev);
+  if (typeof CTX !== 'undefined' && CTX) return showTip('', ev);
   const tipEl = ev.target.closest && ev.target.closest('[data-tip]');
   // an item: its full description from the game, fetched once and kept until the next turn
   const de = ev.target.closest && ev.target.closest('[data-desc]');
   descHover = de ? de.dataset.desc : ''; descEv = ev;
   if (de) { const d = DESC[descHover]; if (d) { $('#tip').classList.add('wide'); return showTip(d + descHint(de), ev); } if (!DESC_ASKED[descHover]) { DESC_ASKED[descHover] = 1; sendRaw('D ' + descHover.replace(':', ' ')); } }
   const sp = ev.target.closest && ev.target.closest('[data-sp]'); if ((sp ? sp.dataset.sp : '') !== spHover) { spHover = sp ? sp.dataset.sp : ''; schedule(); }
-  const tp = ev.target.closest && ev.target.closest('[data-topic]'), th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : '';
+  const tp = ev.target.closest && ev.target.closest('[data-topic]'); const tf0 = TOPIC_FILE; if (tp && tp.dataset.tf != null) TOPIC_FILE = tp.dataset.tf; const th = tp ? topicHtml(tp.dataset.topic, tp.dataset.tt) : ''; TOPIC_FILE = tf0;
   $('#tip').classList.toggle('wide', !!th);
   if (th) return showTip(th, ev);
+  TIP_EL = tipEl || null;
   if (tipEl) { const [a, b] = tipEl.dataset.tip.split('\n'); return showTip(esc(a) + (b ? `<div class="hint">${esc(b)}</div>` : ''), ev); }
   if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s), c = UI.c[cy * UI.w + cx];
-    const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
+    const f = Array.isArray(c) ? c[0] : c, out = []; if (Array.isArray(c) && c[1]) out.push('<b>' + esc(cap((DICT.r[c[1]] || ['?'])[0])) + '</b>'); if (Array.isArray(c) && c[2]) out.push(esc((DICT.k[c[2]] || ['item'])[0])); const pl = (UI.pl || []).find(p => p[0] === cx && p[1] === cy); if (pl) out.push('<b>' + esc(pl[2]) + '</b>');
+    if (f) out.push(`<span style="color:#b3ac9f">${esc((DICT.f[f] || [''])[0])}</span>`);
     return showTip(out.join('<br>'), ev);
   }
   if (ev.target.id === 'mini' && playing()) {
@@ -421,10 +713,12 @@ document.addEventListener('mousedown', ev => {
     return;
   }
   const go = ev.target.closest && ev.target.closest('[data-go]');
-  if (go) { const [dx, dy] = go.dataset.go.split(','); sendRaw(`M 3 ${dx} ${dy}`); return; }
-  if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap' && !UI.wild) {
+  // on the world map the game has no travel of its own: close the map, then walk there a step at a time
+  const wildTo = (x, y) => { const route = wildRoute(UI, x, y); if (route && route.hard) postToast('Mountains stand in the way: you will get as near as the road goes'); sendText('\x1b'); setTimeout(() => { if (S && S.p && S.p.wild && playing()) wildGo(x, y, route); }, 260); };
+  if (go) { const [dx, dy] = go.dataset.go.split(','); if (UI && UI.wild) wildTo(UI.px + +dx, UI.py + +dy); else sendRaw(`M 3 ${dx} ${dy}`); return; }
+  if (ev.target.id === 'lmapc' && UI && UI.kind === 'lmap') {
     const r = ev.target.getBoundingClientRect(), g = lmapGeo(), cx = Math.floor((ev.clientX - r.left) / SCALE / g.s), cy = Math.floor((ev.clientY - r.top) / SCALE / g.s);
-    const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); return;
+    const c = UI.c[cy * UI.w + cx]; if (c && (Array.isArray(c) ? c[0] : c)) { if (UI.wild) wildTo(cx, cy); else sendRaw(`M 3 ${cx - UI.px} ${cy - UI.py}`); } return;
   }
   if (ev.target.id === 'map' && S && /-more-|Press Space to continue/.test(msgTop()) && ev.button === 0) { ev.preventDefault(); sendText(' '); return; }   // more to read: a click reads on
   if (ev.target.id === 'map' && playing() && lookMode() && G.lk && ev.button === 0) {
@@ -467,7 +761,7 @@ document.addEventListener('mousedown', ev => {
     sendRaw(`M ${ev.button === 2 ? 2 : 1} ${cell.dx} ${cell.dy}`); ev.preventDefault(); return;
   }
   // the plain text panel: clicking a line that offers a lettered choice presses that letter
-  if (ev.target.id === 'termc' && TERMGEO && ev.button === 0) {
+  if (ev.target.classList && ev.target.classList.contains('t-c') && TERMGEO && ev.button === 0) {
     const r = ev.target.getBoundingClientRect(), gx = TERMGEO.x0 + Math.floor((ev.clientX - r.left) / SCALE / TERMGEO.cw), gy = TERMGEO.y0 + Math.floor((ev.clientY - r.top) / SCALE / TERMGEO.chh);
     if (BROWSE && G.cv) { browsePick(gx, gy, ev.detail >= 2); return; }
     const s = (G.s[gy] || '').replace(/\x01/g, ' '); let best = null, m; const re = /(^|[\s\[(])([A-Za-z0-9])[)\]]( |$)/g;
@@ -491,7 +785,7 @@ function browsePick(gx, gy, dbl) {
 }
 let wheelAcc = 0;
 document.addEventListener('wheel', ev => {
-  if (BROWSE && ev.target.closest && ev.target.closest('#term')) {   // a list: the wheel walks the picked line
+  if (BROWSE && ev.target.closest && ev.target.closest('#term,.hubterm')) {   // a list: the wheel walks the picked line
     wheelAcc += ev.deltaY; const n = Math.trunc(wheelAcc / 40); if (!n) return; wheelAcc -= n * 40;
     sendText((n > 0 ? '2' : '8').repeat(Math.min(8, Math.abs(n)))); return;
   }

@@ -9,7 +9,11 @@ const STEP_MS = 95, HIT_MS = 55, HOLD_MS = 45, BACK_MS = 90;   // lunge out, hol
 function fxOnState(prev, cur) {
   if (!FX.on || !prev || !prev.map || !cur.map || !prev.p || !cur.p) return;
   const t = now(), same = prev.p.place === cur.p.place && prev.p.dlvl === cur.p.dlvl;
-  const mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
+  let mx = cur.px - prev.px, my = cur.py - prev.py, near = same && Math.abs(mx) <= 2 && Math.abs(my) <= 2;
+  if (same && !near) {   // the town and wilds scroll under you, so the numbers jump on an ordinary step: if the ground around you only moved a square, it was a walk
+    const st = mapStep(prev.map, cur.map, mx, my);
+    if (st) { const bx = mx - st[0], by = my - st[1]; prev = Object.assign({}, prev, { px: prev.px + bx, py: prev.py + by }); mx = st[0]; my = st[1]; near = true; FX.parts = []; FX.rings = []; }
+  }
   fxSelf(prev, cur, same, near);
   // death: the world drains of colour and the fall is named
   document.body.classList.toggle('dying', cur.p.hp < 0);
@@ -207,13 +211,29 @@ function fxSpell(lx, ly, ch, c) {
   fxBurst(lx + .5, ly + .5, FX.lastEl, c, ch === '*', t);
   fxKick();
 }
-// what is upon us, shown each turn as a few motes around the player: never a running animation
+// how far the ground moved between two views centred on you: [dx, dy] of a single step (or none), or null when it does not line up
+function mapStep(a, b, jx, jy) {
+  if (!a || !b || a.w !== b.w || a.h !== b.h) return null;
+  const w = a.w, h = a.h, sx = w >> 1, sy = h >> 1, R = 12;
+  const fit = (dx, dy) => { let n = 0, ok = 0;
+    for (let y = Math.max(0, sy - R); y <= Math.min(h - 1, sy + R); y++) for (let x = Math.max(0, sx - R); x <= Math.min(w - 1, sx + R); x++) {
+      const ox = x + dx, oy = y + dy; if (ox < 0 || oy < 0 || ox >= w || oy >= h) continue;
+      const p = a.c[oy * w + ox], q = b.c[y * w + x]; if (!p || !q || !p[0] || !q[0]) continue; n++; if (p[0] === q[0]) ok++;
+    }
+    return n >= 10 ? ok / n : 0; };
+  let best = null, bs = .9;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const f = fit(dx, dy); if (f > bs) { bs = f; best = [dx, dy]; } }
+  // a real blink lines up at least as well at the distance you actually went: then it was one
+  return best && fit(jx, jy) < bs ? best : null;
+}
+// what comes upon us, shown once as a few motes around the player when it starts: not on every step after
 const AURA = [[/Pois/i, '#7dff6a', 'up', 2], [/Cut|Graze|Wound|Bleed|Gash/i, '#d0302a', 'drop', 1], [/Fast|Haste|Speed/i, '#e8f4ff', 'streak', 2],
   [/Bless|Hero|Berserk|Shero/i, '#ffd36b', 'up', 2], [/Afraid|Terror|Fear/i, '#b08aff', 'up', 1], [/Stun|Knocked/i, '#fff07a', 'orbit', 2], [/Conf|Halluc/i, '#ff8ad8', 'orbit', 2],
   [/Slow/i, '#8a8f96', 'drop', 1], [/Invuln|Wraith|Shield/i, '#9fd6ff', 'orbit', 1]];
 function fxAura(cur, txt) {
-  if (!FX.on || !txt) return; const x = cur.px + .5, y = cur.py + .5, t = now(); let any = 0;
-  for (const [re, c, kind, n] of AURA) { if (!re.test(txt)) continue; any = 1;
+  const had = FX.auraHad || (FX.auraHad = new Set()), on = new Set(AURA.filter(([re]) => re.test(txt || '')).map(a => a[1] + a[2]));
+  FX.auraHad = on; if (!FX.on || !txt) return; const x = cur.px + .5, y = cur.py + .5, t = now(); let any = 0;
+  for (const [re, c, kind, n0] of AURA) { if (!re.test(txt) || had.has(c + kind)) continue; any = 1; const n = n0 * 3;
     for (let i = 0; i < n; i++) {
       if (kind === 'up') fxPart(x + rnd1() * .35, y + .25, rnd1() * .12, -.6 - Math.random() * .5, 650 + Math.random() * 300, 3.2, c, 'mote');
       else if (kind === 'drop') FX.parts.length < 700 && FX.parts.push({ x: x + rnd1() * .25, y: y, vx: rnd1() * .2, vy: .2, t, life: 500, size: 3.4, c, kind: 'drop', g: 2.5, solid: true });

@@ -26,16 +26,82 @@ const hex = bytes => bytes.map(b => (b & 255).toString(16).padStart(2, '0')).joi
 let sendQ = Promise.resolve();
 function sendRaw(line) {
   // a walk of more than a step goes through the game's travel, which will not go in the dark: remember it, so it can be walked another way
-  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line); if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now() };
+  const mv = /^M ([13]) (-?\d+) (-?\d+)$/.exec(line);
+  if (mv && S && S.p && S.p.wild && !wildGo.busy) { if (Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1) { // the part of the world in view is enough to find the way round a mountain
+      const m = S.map, ox = m ? S.px - (m.w >> 1) : 0, oy = m ? S.py - (m.h >> 1) : 0, tx = (m ? m.w >> 1 : 0) + +mv[2], ty = (m ? m.h >> 1 : 0) + +mv[3];
+      const route = m && tx >= 0 && ty >= 0 && tx < m.w && ty < m.h ? wildRoute({ c: m.c, w: m.w, h: m.h, px: m.w >> 1, py: m.h >> 1 }, tx, ty, ox, oy) : null;
+      return wildGo(S.px + +mv[2], S.py + +mv[3], route); } }
+  else if (mv && S && S.p && (mv[1] === '3' || Math.max(Math.abs(+mv[2]), Math.abs(+mv[3])) > 1)) { TRAVEL = { x: S.px + +mv[2], y: S.py + +mv[3], t: Date.now(), sx: S.px, sy: S.py, hp: S.p.hp }; setTimeout(travelStalled, 520); }
+  if (mv && S && S.p && TRAVEL && Date.now() - TRAVEL.t < 8 && TRAVEL.sx === S.px && TRAVEL.sy === S.py && !(typeof EXP !== 'undefined' && EXP.on)) { WALK = { k: mv[1], x: TRAVEL.x, y: TRAVEL.y, hp: S.p.hp, pos: S.px + ',' + S.py, at: Date.now(), t0: Date.now(), n: WALK_N, where: S.p.place + '/' + S.p.dlvl }; WALK_N = 0; }
+  else if (/^X /.test(line)) { WALK = null; if (WILD) { clearInterval(WILD.timer); WILD = null; } }   // any key of yours ends a walk that was under way
   sendQ = sendQ.then(() => fetch('/in', { method: 'POST', body: line }).catch(() => {}));
 }
-let TRAVEL = null;
+let TRAVEL = null, WALK = null, WALK_N = 0;
+// On the world map a click walks you there a step at a time. It stops when you arrive, when the way is shut (mountains,
+// deep water), when anything is said or asked, and the moment you are pulled down to the ground (an ambush).
+let WILD = null;
+// The way across the world map to a place: round the mountain chains (which nobody walks through), and by land rather than
+// through deep water or lava where there is a choice. u is the world map as the game sent it.
+function wildRoute(u, tx, ty, ox = 0, oy = 0) {
+  if (!u || !u.c || !u.w) return null;
+  const W = u.w, H = u.h, N = W * H, cost = new Float64Array(N), prev = new Int32Array(N).fill(-1), dist = new Float64Array(N).fill(Infinity);
+  for (let i = 0; i < N; i++) { const c = u.c[i], f = Array.isArray(c) ? c[0] : c; if (!f) { cost[i] = 0; continue; } const k = featClass(f), n = ((DICT.f[f] || [''])[0] || '').toLowerCase();
+    cost[i] = k === 'wall' ? 500 : k === 'lava' ? 40 : k === 'water' ? (/deep/.test(n) ? 12 : 2) : k === 'tree' ? 1.5 : 1; }
+  const s0 = u.py * W + u.px, t = ty * W + tx; if (s0 === t || !cost[t]) return null;
+  dist[s0] = 0; const open = [s0];   // few thousand squares: a plain list does
+  while (open.length) {
+    let bi = 0; for (let i = 1; i < open.length; i++) if (dist[open[i]] < dist[open[bi]]) bi = i;
+    const cur = open[bi]; open[bi] = open[open.length - 1]; open.pop(); if (cur === t) break;
+    const cx = cur % W, cy = (cur / W) | 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const ni = ny * W + nx; if (!cost[ni]) continue; const nd = dist[cur] + cost[ni] + (dx && dy ? .01 : 0); if (nd < dist[ni]) { if (dist[ni] === Infinity) open.push(ni); dist[ni] = nd; prev[ni] = cur; } }
+  }
+  if (prev[t] < 0) return null;
+  const path = {}; for (let c = t; c !== s0 && c >= 0; c = prev[c]) path[prev[c]] = c;   // from each square on the way, the next one
+  return { W, path, hard: dist[t] >= 500, ox, oy };
+}
+function wildGo(x, y, route) {
+  clearInterval(WILD && WILD.timer); WILD = { x, y, pos: '', at: Date.now(), hp: S.p.hp, n: 0, route };
+  WILD.timer = setInterval(() => {
+    const w = WILD; if (!w) return; const stop = () => { clearInterval(w.timer); if (WILD === w) WILD = null; };
+    if (!S || !S.p || !S.p.wild || !playing() || G.icky || G.ov || S.p.hp < w.hp || (typeof askKind === 'function' && askKind()) || (S.px === w.x && S.py === w.y) || w.n > 400) return stop();
+    const pos = S.px + ',' + S.py;
+    if (pos === w.pos) { if (Date.now() - w.at > 700) stop(); return; }   // no step came of the last ask: the way is shut
+    if (w.pos && msgTop().trim() && !WALK_OK.test(msgTop())) return stop();
+    w.pos = pos; w.at = Date.now(); w.n++; wildGo.busy = true; { const r = w.route, lx = r ? S.px - r.ox : -1, ly = r ? S.py - r.oy : -1, nx = r && lx >= 0 && ly >= 0 && lx < r.W ? r.path[ly * r.W + lx] : null, rx = nx != null ? nx % r.W + r.ox : null, ry = nx != null ? ((nx / r.W) | 0) + r.oy : null;
+      sendRaw(nx != null ? `M 1 ${rx - S.px} ${ry - S.py}` : `M 1 ${Math.sign(w.x - S.px)} ${Math.sign(w.y - S.py)}`); } wildGo.busy = false;
+  }, 70);
+}
+// A long walk the game cut short for something harmless (a blessing wearing off, a feeling about an item) carries on by
+// itself, twice at most. Anything that might matter stops it for good: a creature in view, a lost hit point, a question.
+const WALK_OK = /wears off|no longer|in your pack|proficient|have learned|recharged|You feel (less|yourself|more) |is (average|good|excellent|special)\b|sun has (risen|set)/i;
+function walkWatch() {
+  const w = WALK; if (!w) return;
+  if (!S || !S.p || !playing() || Date.now() - w.t0 > 60000 || (typeof EXP !== 'undefined' && EXP.on) || w.where !== S.p.place + '/' + S.p.dlvl || (S.px === w.x && S.py === w.y)) { WALK = null; return; }
+  const pos = S.px + ',' + S.py; if (pos !== w.pos) { w.pos = pos; w.at = Date.now(); return; }
+  if (Date.now() - w.at < 450) return;
+  WALK = null;
+  if (w.n >= 2 || S.p.hp < w.hp || G.icky || G.ov || (typeof UI !== 'undefined' && UI && uiOnTop()) || (typeof askKind === 'function' && askKind())) return;
+  if ((S.mons || []).some(m => !m.pet && !m.friendly) || !WALK_OK.test(msgTop())) return;
+  WALK_N = w.n + 1; sendRaw(`M ${w.k} ${w.x - S.px} ${w.y - S.py}`);
+}
+setInterval(walkWatch, 150);
 // after each turn: the travel just asked for was refused ("You cannot see!" with no light, "No route is found!"), so walk it a step at a time over what you have seen
 function travelRetry() {
   if (!TRAVEL || !S || !S.p) return; if (Date.now() - TRAVEL.t > 2500) { TRAVEL = null; return; }
   if (!/You cannot see!|No route is found/.test(msgTop())) return;
   const t = TRAVEL; TRAVEL = null; if (typeof EXP !== 'undefined' && EXP.on) return;
   setTimeout(() => { if (playing() && !(typeof EXP !== 'undefined' && EXP.on) && !exploreGoto(t.x - S.px, t.y - S.py)) postToast('No way there that you know'); }, 60);
+}
+// the game's travel gives up after a step whenever a creature is in view. If the walk just asked for stalled that way, and nothing
+// is beside you and you are unhurt, carry it on a step at a time (that walk stops for anything new, for a hit, and beside a foe)
+function travelStalled() {
+  const t = TRAVEL; if (!t || !S || !S.p || !playing() || Date.now() - t.t > 2500 || (typeof EXP !== 'undefined' && EXP.on)) return;
+  if (G.icky || G.ov || msgTop().trim() || (typeof UI !== 'undefined' && UI && uiOnTop())) return;
+  if ((S.px === t.x && S.py === t.y) || Math.max(Math.abs(S.px - t.sx), Math.abs(S.py - t.sy)) > 1 || S.p.hp < t.hp) return;
+  const foes = (S.mons || []).filter(m => !m.pet && !m.friendly); if (!foes.length || foes.some(m => m.dist <= 1)) return;
+  TRAVEL = null; const dx = t.x - S.px, dy = t.y - S.py;
+  exploreGoto(dx, dy, foes.find(m => m.dx === dx && m.dy === dy));
 }
 // the spell last picked from the spell list, so aiming it can show how wide it bursts
 let CAST = { n: '', t: 0 };
@@ -55,7 +121,7 @@ function leaveGame() { sendRaw('E'); try { window.close(); } catch (e) {} }
 document.addEventListener('click', e => { if (e.target.closest('#again')) playAgain(); else if (e.target.closest('#leave')) leaveGame(); });
 addEventListener('keydown', e => {
   if (GAMEOVER) { if (e.key === 'Enter') playAgain(); else if (e.key === 'Escape') leaveGame(); e.preventDefault(); return; }
-  if (hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
+  if (askKey(e) || pickKey(e) || spbKey(e) || shopKey(e) || itemsKey(e) || hotbarKey(e) || ambKey(e) || gmenuKey(e) || controlsKey(e) || ctxKey(e) || postKey(e) || sndKey(e) || exploreKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F11' || e.key === 'F12' || (e.ctrlKey && /^[-+=0]$/.test(e.key))) return;   // window keys stay with the window
   if (e.metaKey) return;
   let handled = true;
@@ -77,6 +143,23 @@ addEventListener('keydown', e => {
 });
 
 /* ---------- messages from the game ---------- */
+// item descriptions are kept until the turn or what you carry, wear or stand by changes: clearing them on every
+// redraw made a hovered item's card blink between its short tip and its full description
+let DESC_SIG = '', DESC_SHOP = '';
+const descSig = m => [m.px, m.py, m.gx, m.gy, m.p && [m.p.day, m.p.hour, m.p.min, m.p.au, m.p.lev, m.p.stats].join(), (m.msgs || []).slice(-1).map(x => x.turn + x.s).join(), (m.pack || []).map(o => o && o.n).join('|'), (m.equip || []).map(o => o && o.n).join('|'), (m.floor || []).map(o => o && o.n + o.dx + ',' + o.dy).join('|'), (m.mons || []).map(o => o.r + ':' + o.hp).join('|')].join('#');
+// a screen keeps the largest size it has had while it stays open, so new text inside it (a longer list, a
+// note, a prompt) never makes the whole panel jump or shrink under the pointer
+let PHOLD = null;
+function panelHold(root) {
+  const p = root && root.querySelector('.npanel'); if (!p) { PHOLD = null; return; }
+  const ttl = p.querySelector('.tabs .on, .mtitle, .dhead'), id = p.className.replace(/\bnaming\b/, '').trim() + '|' + (ttl ? ttl.textContent.trim() : '');
+  if (!PHOLD || PHOLD.id !== id) PHOLD = { id, w: 0, h: 0 };
+  p.style.minWidth = p.style.minHeight = '';
+  const cs = getComputedStyle(p), r = p.getBoundingClientRect(), padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  const w = r.width / SCALE - (cs.boxSizing === 'border-box' ? 0 : padX), h = r.height / SCALE - (cs.boxSizing === 'border-box' ? 0 : padY);
+  PHOLD.w = Math.max(PHOLD.w, w); PHOLD.h = Math.max(PHOLD.h, h);
+  p.style.minWidth = PHOLD.w + 'px'; p.style.minHeight = PHOLD.h + 'px';
+}
 function onMsg(m) {
   if (m.t === 'hello') { PAL = m.pal; }
   else if (m.t === 'dict') { DICT = m; }
@@ -87,11 +170,12 @@ function onMsg(m) {
     if (!ftimer) ftimer = setTimeout(() => { ftimer = 0; schedule(); }, 22);
     ctxOnFrame();
   }
-  else if (m.t === 's') { DESC = {}; DESC_ASKED = {}; if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} if (!seen) setTimeout(() => controlsToggle(true), 1200); } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); }
+  else if (m.t === 's') { { const sg = descSig(m); if (sg !== DESC_SIG) { DESC_SIG = sg; DESC = {}; DESC_ASKED = {}; } } if (!m.map && S && S.map) { m.map = S.map; m.stale = 1; } fxOnState(S, m); if (typeof lvlOnState === 'function') lvlOnState(S, m); if (!S && m.map) { let seen = 1; try { seen = localStorage.getItem('ctl.seen'); localStorage.setItem('ctl.seen', '1'); } catch (x) {} } S = m; if (S.map && !S.stale && S.p && typeof exploreRemember === 'function') exploreRemember(); BASE = { s: G.s.slice(), a: G.a.map(r => r.slice()) }; clearTimeout(ftimer); ftimer = 0; schedule(); if (typeof tipRefresh === 'function') tipRefresh(); travelRetry(); if (typeof toastPlace === 'function') toastPlace(); if (typeof hbOnState === 'function') hbOnState(); if (typeof gearOnState === 'function') gearOnState(); }
   else if (m.t === 'ui') {
+    if (m.kind === 'shop' || m.kind === 'home') { const sg = JSON.stringify(m.rows || m.items || m); if (sg !== DESC_SHOP) { DESC_SHOP = sg; for (const k in DESC) if (/^[sh]:/.test(k)) { delete DESC[k]; delete DESC_ASKED[k]; } } }
     if (m.kind) { if (UI && (UI.kind === 'shop' || UI.kind === 'home') && m.kind !== UI.kind) UIback = UI; UI = m; }
     else { UI = m.all ? null : UIback; UIback = null; }
-    uiSel = ''; schedule(); ctxOnUi(m);
+    uiSel = ''; schedule(); ctxOnUi(m); if (typeof spbOnUi === 'function') spbOnUi(m); if (typeof lightOnUi === 'function') lightOnUi(m); if (typeof fireOnUi === 'function') fireOnUi(m);
   }
   else if (m.t === 'snd') sndEvent(m.v);
   else if (m.t === 'desc') descIn(m);
@@ -109,7 +193,42 @@ function onMsg(m) {
   }
 }
 let pend = false, ftimer = 0, BASE = null;
-const setHtml = (el, h) => { if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; };
+// A redraw used to replace a panel's whole markup: every scrolled list jumped back to its top, a wheel scroll under way
+// was cut off whenever the pointer crossed a row, and pictures were built anew each time. Now the new markup is laid
+// over the old one: only what differs is changed, so lists keep their scroll and the rest stays as it was. A different
+// page (another tab, another shop list) is put in fresh, from its top; a write-up starts at its top when its text changes.
+const MORPH_T = document.createElement('template');
+function scrollPage(root) { let t = ''; for (const e of root.querySelectorAll('.hubtab.on, .tabs > .on, .ptab.on, .shtabs > .on, .mtitle, .ctitle, .pgt')) t += '|' + e.textContent.replace(/\d+/g, '').trim().slice(0, 40); return t.slice(0, 400); }
+function scrollText(e) { const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); let t = '', n; while (t.length < 80 && (n = w.nextNode())) t += n.nodeValue.trim(); return t.slice(0, 80); }
+function attrsSame(a, b) { if (a.attributes.length !== b.attributes.length) return false; for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) return false; return true; }
+function attrsSync(a, b) {
+  for (let i = a.attributes.length; i--;) { const n = a.attributes[i].name; if (!b.hasAttribute(n)) a.removeAttribute(n); }
+  for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value);
+}
+function morphKids(from, to) {
+  let a = from.firstChild, b = to.firstChild;
+  while (b) {
+    const nb = b.nextSibling;
+    if (!a) { from.appendChild(b); b = nb; continue; }
+    const na = a.nextSibling;
+    if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName) from.replaceChild(b, a);
+    else if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; }
+    else if (a.nodeName === 'CANVAS') { if (!attrsSame(a, b)) from.replaceChild(b, a); }   // a picture already drawn stays drawn
+    else { attrsSync(a, b); morphKids(a, b); }
+    a = na; b = nb;
+  }
+  while (a) { const na = a.nextSibling; from.removeChild(a); a = na; }
+}
+const setHtml = (el, h) => {
+  if (!el || el._h === h) return false;
+  el._h = h;
+  MORPH_T.innerHTML = h || ''; const nf = MORPH_T.content, pg = scrollPage(nf);
+  if (!el.firstChild || !h || el._pg !== pg) { el._pg = pg; el.replaceChildren(nf); return true; }
+  const desc = []; for (const e of el.querySelectorAll('[class*="desc"], [class*="dsc"]')) if (e.scrollTop > 0) desc.push([e, scrollText(e)]);
+  morphKids(el, nf);
+  for (const [e, t] of desc) if (e.isConnected && scrollText(e) !== t) e.scrollTop = 0;
+  return true;
+};
 function schedule() { if (!pend) { pend = true; requestAnimationFrame(() => { pend = false; draw(); }); } }
 
 /* ---------- helpers over the text grid ---------- */
@@ -139,6 +258,7 @@ function readable(c) {
 // live text on the game's message line (prompts, -more-), as coloured runs
 // the whole message area as one line of text (a long message wraps onto the rows below the top one)
 function msgTop() { const r = (S && S.rmsg) || [0, 0, 0, 1]; return G.s.slice(r[1], r[1] + Math.max(1, Math.min(8, r[3]))).map(l => r[2] ? (l || '').substr(r[0], r[2]) : l).join(' ').replace(/\x01/g, ' ').replace(/\s+/g, ' ').trim(); }
+let BN_FLIP = 0, BN_MK = '';
 function liveHtml() {
   const r = S.rmsg; let out = '', any = false;
   for (let y = r[1]; y < r[1] + r[3] && y < G.h; y++) {
@@ -150,6 +270,10 @@ function liveHtml() {
     flush();
     if (line) { out += (any ? ' ' : '') + line; any = true; }
   }
+  const pl0 = out.replace(/<[^>]+>/g, '');
+  if (/^You (are|were) (wearing|wielding|shooting with|carrying) /.test(pl0)) out = out.replace(/\s*(<\/span><span[^>]*>)?\s*\([a-z]\)\.(<\/span>)$/, '$1.$2');   // the slot letter means nothing here
+  if (LIGHT_ON.test(pl0)) out = out.replace('You are wearing ', 'Your light is now ');
+  out = shotTidy(out);
   return lookKeys(out) + qtyKeys();
 }
 // "Quantity (1-7):" gets buttons for one, half and all; each clears what was typed and answers
@@ -193,7 +317,7 @@ function rectText(r) {   // r = [x,y,w,h]; rows of {text, attr of first ink}
   }
   return out;
 }
-const DIRS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
+const DIRS = ['\u2192', '\u2198', '\u2193', '\u2199', '\u2190', '\u2196', '\u2191', '\u2197'];   // an arrow reads at a glance where 'NW 12' has to be worked out
 function dirOf(dx, dy) { if (!dx && !dy) return 'here'; const a = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)); return DIRS[(a + 8) % 8] + ' ' + Math.max(Math.abs(dx), Math.abs(dy)); }
 function tvIcon(tv) {
   if (tv >= 90 && tv <= 109) return 'book';
@@ -228,22 +352,28 @@ const hpc = h => h > 75 ? 'ok' : h > 45 ? 'mid' : '';
 const DOLLPOS = { 10: [[113, 6]], 8: [[44, 80]], 5: [[182, 80]], 7: [[113, 144]], 2: [[0, 208], [226, 208]], 12: [[0, 208], [226, 208]], 1: [[52, 294]], 6: [[174, 294]],
   3: [[0, 358], [226, 358]], 9: [[113, 404]], 4: [[0, 404]], 14: [[226, 404]], 11: [[113, 294], [113, 230]], 13: [[113, 294]] };
 const FIG = `<svg class="fig" viewBox="0 0 200 392"><g fill="#2c2f34" opacity=".55"><circle cx="100" cy="46" r="26"/><path d="M88 70h24v14q34 4 44 22l12 150h-22l-8-104v68l6 164h-34l-10-140-10 140H56l6-164v-68l-8 104H32L44 106q10-18 44-22z"/></g></svg>`;
-function dollHtml() {
+function dollHtml(gear) {
   const used = {}, extra = [];
   let h = '';
-  for (const e of S.equip) {
+  S.equip.forEach((e, i) => {
     const list = DOLLPOS[e.type] || [], n = used[e.type] = (used[e.type] || 0) + 1, p = list[n - 1];
     const ic = e.o ? tvIcon(e.o.tv) : SLOT_ICON[e.type] || 'ring';
-    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'}" style="${st}" data-tip="${esc(e.o ? e.o.n : e.slot + ': nothing')}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
+    // an empty slot that something you carry would fill says so, and a click offers it
+    const fits = typeof slotFits === 'function' ? slotFits(i) : [], can = fits.length;
+    const tip = e.o ? e.o.n + (gear ? '' : '\nclick: what you can do with it' + (can ? ', or swap it' : '')) : e.slot + ': nothing' + (can ? '\nclick: ' + (can === 1 ? slotVerb(e.type).toLowerCase() + ' ' + fitName(fits[0]) : can + ' things you carry go here') : '');
+    const slot = (st) => `<div class="slot t-${ic} ${oq(e.o)} ${e.o ? '' : 'empty'} ${!e.o && can ? 'canfit' : ''} ${gear && ITEMS.gs === i ? 'gsel' : ''}" style="${st}" data-eqi="${i}" data-tip="${esc(tip)}"${e.o ? ` data-worn="${esc(e.k)}" data-desc="e:${esc(e.k)}"` : ''}>${(e.o && artHtml(e.o.ki, 38)) || icon(ic)}${!e.o && can ? '<i class="fitdot"></i>' : ''}<span class="key" style="${p && p[0] > 136 ? 'right:auto;left:-6px' : ''}">${esc(e.k)}</span></div>`;
     if (p) h += slot(`left:${p[0]}px;top:${p[1]}px`); else extra.push(slot('position:relative;width:40px'));
-  }
-  return `<div class="doll dB" style="height:452px;flex:none">${FIG}${h}</div>` + (extra.length ? `<div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
+  });
+  // a creature character is drawn as the creature it is, not as a human outline
+  const beast = S.p.cls === 'Monster' && S.p.form && TS && TS.mon && TS.mon[tkey(S.p.form)];
+  return `<div class="doll dB" style="height:452px;flex:none">${beast ? (gear ? '<canvas class="dfig dfig2"></canvas>' : '<canvas id="dfig" class="dfig"></canvas>') : FIG}${h}</div>` + (extra.length ? `<div class="row dollx" style="gap:10px;flex-wrap:wrap;margin-top:8px">${extra.join('')}</div>` : '');
 }
 let lastEff = '';
+let CAN_STUDY = false;   // the game says there is a spell to learn
 function effectsHtml() {
   if (G.icky || G.ov) return lastEff || '<div class="sub" style="font-size:14px">nothing unusual</div>';
   const out = [];
-  for (const r of rectText(S.reff)) if (r) out.push(r);
+  for (const r of rectText(S.reff)) if (r && !/^\??\s*for help\s*$/.test(r.text == null ? String(r) : r.text) && (r.text == null ? String(r) : r.text).trim() !== '?') out.push(r);   // the beginner's "? for help" hint is not a condition: Help has its own button
   // the status bar packs several short words into one line, each in its own colour
   const sb = S.rstatus, y = sb[1];
   if (y < G.h) {
@@ -256,25 +386,29 @@ function effectsHtml() {
   }
   // in the dungeon with a light in the pack but none in hand: say so, and a click wields one
   const noLight = S.p.dlvl > 0 && (S.equip || []).some(e => e.slot === 'Light' && !e.o) && S.pack.some(o => o.tv === 39);
+  { const was = CAN_STUDY; CAN_STUDY = out.some(e => /^Study/.test(e.text || '')); if (was !== CAN_STUDY && typeof LV !== 'undefined' && LV.data) lvlDraw(); }
   if (!out.length && !noLight) return lastEff = '<div class="sub" style="font-size:14px">nothing unusual</div>';
-  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(e.text)}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-key="\\w" data-tip="You carry a light but are not holding one.&#10;click or press w: wield it">No light</div>` : ''}</div>`;
+  return lastEff = `<div class="conds">${out.map(e => { const t = condTip(e.text), study = /^Study/.test(e.text); return `<div class="chip${study ? ' go' : ''}" style="color:${col(e.a)}"${t ? ` data-tip="${esc(t)}"` : ''}${study ? ' data-key="\\G"' : ''}>${esc(study ? e.text.replace(/^Study(?: \((\d+)\))?.*$/, (m, n) => +n > 1 ? 'Learn a spell · ' + n + ' waiting' : 'Learn a spell') : condSay(e.text))}</div>`; }).join('')}${noLight ? `<div class="chip go" style="color:#ffc46a" data-wlight="1" data-tip="You carry a light but are not holding one.&#10;click: hold one up">No light</div>` : ''}</div>`;
 }
 // what the common conditions mean, for their tooltips
-const COND_TIPS = [[/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
+const COND_TIPS = [[/^Heavy Wield/, 'Your weapon is too heavy for you: you hit less often with it.'], [/^Icky Wield/, 'Your calling is not at ease with this weapon: you fight worse with it.'], [/^Heavy Armor/, 'Your armour is too heavy for your calling: it slows your blows.'], [/^Encumbrance/, 'The weight of your armour cuts into your mana.'], [/^Icky Light/, 'Your calling is not at ease with this light.'], [/^Heavy Shoot/, 'Your launcher is too heavy for you: you shoot worse with it.'], [/^Poison:/, 'Poisoned: you lose life each turn. The number falls as it wears off.'], [/^Study/, 'You can learn a new spell. The number is how many you may learn.\nclick or press G: study one'], [/^Fast|^Haste/, 'Hasted: you act more often than usual.'], [/^Slow/, 'Slowed: everything gets more turns than you.'],
   [/^Blind/, 'Blind: you cannot see, read scrolls or cast most spells.'], [/^Conf/, 'Confused: you stumble in random directions and cannot read.'], [/^Pois/, 'Poisoned: you lose life each turn until it wears off.'],
   [/^(Afraid|Scared|Fear|Terror|Panic)/, 'Afraid: you cannot attack in melee.'], [/^Paral/, 'Paralyzed: you cannot act.'], [/^Hungry/, 'Hungry: eat something soon (E).'], [/^Weak/, 'Weak from hunger: eat now (E) or you will faint.'],
   [/^(Faint|Starv)/, 'Starving: eat now (E)!'], [/^Full/, 'Well fed.'], [/^Gorged/, 'Gorged: you ate too much and are slowed.'], [/Stun|Knocked/, 'Stunned: you fight and cast worse. A heavy stun knocks you out.'],
   [/Cut|Graze|Wound|Gash|Bleed/, 'Bleeding: you lose life each turn until it closes.'], [/^Hallu|^Image/, 'Hallucinating: what you see cannot be trusted.'], [/^Hero/, 'Heroism: better to-hit and no fear.'],
   [/^Bers|^Shero/, 'Berserk: big to-hit bonus and no fear, but worse armour.'], [/^Bless/, 'Blessed: better armour and to-hit.'], [/^(Res|R)(Fire|Cold|Elec|Acid|Pois)|^Rfire|^Rcold/i, 'A temporary resistance.'],
   [/^S?Inv|^SeeInv/, 'You can see invisible things.'], [/^Lev|^Float/, 'Levitating: you float over traps and water.'], [/^Prot|^PrtEvl/, 'Protected from evil.'], [/^Recall|^Recl|^Deep/, 'Word of Recall is active: you will be pulled away soon.'],
-  [/^D?Trap/i, 'Traps nearby have been detected.'], [/^Slp|^Sleep/, 'Asleep.']];
+  [/^D?Trap/i, 'You have searched this stretch for traps: any here are marked. Walk out of it and you are guessing again.'], [/^Slp|^Sleep/, 'Asleep.']];
+const COND_SAY = { DTrap: 'Traps found', Recall: 'Being recalled', SInv: 'See invisible', PrtEvl: 'Shielded from evil', 'Heavy Wield': 'Weapon too heavy', 'Icky Wield': 'Weapon ill-suited', 'Heavy Armor': 'Armour too heavy', Encumbrance: 'Armour hampers spells', 'Icky Light': 'Light ill-suited', 'Heavy Shoot': 'Bow too heavy' };
+// counters the game draws as "Poison:3": the word first, the number after it
+const condSay = t => { const m = /^Poison:\s*(\d+)$/.exec(t); return m ? 'Poisoned · ' + m[1] : COND_SAY[t] || t; };
 function condTip(t) { const m = COND_TIPS.find(([re]) => re.test(t)); return m ? m[1] : ''; }
 const STAT_TIPS = ['Strength: melee damage, how much you can carry, digging.', 'Intelligence: spell power and mana for book learners, magic devices.', 'Wisdom: saving throws, and spell power and mana for priests.', 'Dexterity: blows per round, armour, keeping thieves off your pack.', 'Constitution: hit points and how fast you heal.', 'Charisma: shop prices, and power for some classes.'];
 function leftHtml() {
   const p = S.p, st = ['str', 'int', 'wis', 'dex', 'con', 'chr'];
   return `<div class="rail l" style="grid-row:1/3;grid-column:1">
-  <div class="who" data-key="${esc(cmd('C'))}" data-tip="Character level ${p.lev} ${esc(p.race)} ${esc(p.cls)}&#10;click or press C: character sheet" style="cursor:pointer"><div style="position:relative;width:86px"><div class="portrait ch"><div class="in ch"><canvas id="port"></canvas></div></div><div class="lvl"><b>${p.lev}</b></div></div>
-    <div style="min-width:0"><div class="name nowrap" style="font-size:${p.name.length > 9 ? 28 : p.name.length > 6 ? 34 : 42}px">${esc(p.name)}</div><div class="sub" style="margin-top:5px;line-height:1.25">${esc(p.race)} ${esc(p.cls)}<br>${esc([p.realm, p.pers].filter(Boolean).join(' · '))}</div></div></div>
+  <div class="who" data-key="${esc(cmd('C'))}" data-tip="Character level ${p.lev} ${esc(heroKind(p))}&#10;click or press C: character sheet" style="cursor:pointer"><div style="position:relative;width:86px"><div class="portrait ch"><div class="in ch"><canvas id="port"></canvas></div></div><div class="lvl"><b>${p.lev}</b></div></div>
+    <div style="min-width:0"><div class="name nowrap" style="font-size:${p.name.length > 9 ? 28 : p.name.length > 6 ? 34 : 42}px">${esc(p.name)}</div><div class="sub" style="margin-top:5px;line-height:1.25">${esc(heroKind(p))}<br>${esc([p.realm, p.pers].filter(Boolean).join(' · '))}</div></div></div>
   <div data-tip="Life ${p.hp} of ${p.mhp}. At zero you die.&#10;Resting (R) brings it back.">${vb('hp', 'Life', p.hp, p.mhp)}</div>${p.msp > 0 ? `<div data-tip="Mana ${p.sp} of ${p.msp}, spent on spells.&#10;It comes back as you rest.">${vb('sp', 'Mana', p.sp, p.msp)}</div>` : ''}
   <div class="row" data-tip="Experience ${p.exp.toLocaleString()}. Level ${p.lev + 1} at ${p.expNext.toLocaleString()}." style="gap:10px;margin:1px 2px 0"><span class="lbl">level ${p.lev}</span><div class="xp grow"><i style="width:${Math.max(0, Math.min(100, p.exp / Math.max(1, p.expNext) * 100))}%"></i></div><span class="num" style="font-size:12px;color:#a39a8a">${Math.max(0, p.expNext - p.exp).toLocaleString()} to go</span></div>
   <div class="tiles">${[['armour', p.ac, '', 'Armour class. The higher it is, the less often blows land and the less they hurt.'], ['speed', (p.speed >= 0 ? '+' : '') + p.speed, p.speed > 0 ? 'color:#b9d6a0' : p.speed < 0 ? 'color:#ff7a66' : '', 'Speed. +10 is twice as many moves as a normal creature; below zero you are slowed.'], ['gold', p.au.toLocaleString(), 'color:#ffcf6a', 'Gold, for the shops in town.']].map(([a, b, c, tip]) => `<div class="tile ch" data-tip="${tip}"><div class="ch"><span class="num" style="${c}">${b}</span><span class="lbl">${a}</span></div></div>`).join('')}</div>
@@ -303,6 +437,39 @@ function mobsHtml(g) {
   <div class="hpb ${hpc(m.hp)}" style="grid-column:2/4"><i style="width:${m.hp}%"></i></div></div>`).join('') + (g.length > 9 ? `<div class="sub" style="font-size:14px;padding-top:4px">and ${g.length - 9} more · <span class="key">[</span> full list</div>` : '');
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+// "a Dagger (1d5) (+0,+0) {average}" as a name and small tags: the name reads cleanly, the numbers sit beside it in
+// plain little chips, and a bonus of nothing at all is not shown
+// the game's inscription codes said plainly: @ma = "a" picks it when you cast, !k = it asks before you destroy it, =g = picked up without asking.
+// Anything else (your own words, a code we do not know) shows as written.
+const INS_VERB = { m: 'cast', b: 'browse', G: 'study', r: 'read', q: 'drink', a: 'aim', z: 'zap', u: 'use', E: 'eat', f: 'fire', v: 'throw', w: 'wield', d: 'drop', A: 'activate', k: 'destroy', s: 'sell', g: 'pick up', t: 'take off' };
+function insTags(w) {
+  const keys = [], guards = [], out = [];
+  const rest = w.replace(/@([A-Za-z])([A-Za-z0-9])/g, (x, c, k) => { keys.push([c, k]); return ''; }).replace(/@([0-9])/g, (x, k) => { keys.push(['', k]); return ''; }).replace(/!([A-Za-z*])/g, (x, c) => { guards.push(c); return ''; }).replace(/=g/g, () => { out.push({ t: 'auto pickup', c: 'ins', tip: 'More of these are picked up without asking\nwritten on it: ' + w }); return ''; });
+  if (rest.trim() || !(keys.length || guards.length || out.length)) return [{ t: w, c: 'ins', tip: 'Your note on it' }];
+  if (guards.length) out.unshift({ t: 'guarded', c: 'ins', tip: 'The game asks before you ' + (guards.includes('*') ? 'do anything with it' : guards.map(c => INS_VERB[c] || c).join(' or ') + ' it') + '\nwritten on it: ' + w });
+  if (keys.length) out.unshift({ t: 'key ' + [...new Set(keys.map(k => k[1]))].join(' '), c: 'ins', tip: keys.map(([c, k]) => `Press ${k} to pick it when you ${INS_VERB[c] || 'use it'}`).join('\n') + '\nwritten on it: ' + w });
+  return out;
+}
+const NAME_Q = { average: ['plain', 'Nothing special about it'], good: ['good', 'Better than plain'], excellent: ['excellent', 'A fine piece with a power of its own'], special: ['special', 'One of a kind'], unidentified: ['unknown', 'You do not know what it does yet'], cursed: ['cursed', ''], bad: ['poor', 'Worse than plain'], awful: ['awful', ''], terrible: ['terrible', ''], enchanted: ['enchanted', 'It has some magic on it'], tried: ['tried', 'You used one and saw nothing happen'], empty: ['empty', 'No charges left'] };
+function nameParts(n) {
+  let s = String(n), m; const tags = [];
+  for (let i = 0; i < 8; i++) {
+    if ((m = /\s*\{([^}]*)\}$/.exec(s))) { for (const w of m[1].split(/,\s*/).reverse()) { const q = NAME_Q[w.toLowerCase()]; tags.unshift(...(q ? [{ t: q[0], c: 'q q-' + w.toLowerCase(), tip: q[1] }] : /^\d+% off$/.test(w) ? [{ t: w, c: 'off', tip: 'It was marked down when you bought it' }] : insTags(w))); } }
+    else if ((m = /\s*\(with (\d+) turns? of light\)$/.exec(s))) tags.unshift({ t: (+m[1]).toLocaleString() + ' turns', tip: 'Light left in it' });
+    else if ((m = /\s*\((\d+) charges?\)$/.exec(s))) tags.unshift({ t: m[1] + (m[1] === '1' ? ' charge' : ' charges'), tip: 'Uses left before it needs recharging' });
+    else if ((m = /\s*\((\d+d\d+)\)$/.exec(s))) tags.unshift({ t: m[1], c: 'dmg', tip: 'Damage each hit: ' + m[1].replace('d', ' dice of ') });
+    else if ((m = /\s*\(([+-]\d+),([+-]\d+)\)$/.exec(s))) { if (+m[1] || +m[2]) tags.unshift({ t: m[1].replace('-', '−') + ' / ' + m[2].replace('-', '−'), c: +m[1] < 0 || +m[2] < 0 ? 'neg' : 'pos', tip: `${m[1]} to hit, ${m[2]} to damage` }); }
+    else if ((m = /\s*\(x(\d+(?:\.\d+)?)\)$/.exec(s))) tags.unshift({ t: '×' + (+m[1]), c: 'dmg', tip: 'Multiplies the damage of what it shoots' });
+    else if ((m = /\s*\[(\d+),([+-]\d+)\]$/.exec(s))) tags.unshift({ t: 'armour ' + m[1] + (+m[2] ? ' ' + m[2].replace('-', '−') : ''), c: +m[2] < 0 ? 'neg' : '', tip: `Armour ${m[1]}${+m[2] ? ', ' + m[2] + ' from enchantment' : ''}` });
+    else if ((m = /\s*\[(\d+)\]$/.exec(s))) tags.unshift(/Quiver/.test(s) ? { t: 'holds ' + m[1], tip: 'How many arrows, bolts or shots it carries' } : { t: 'armour ' + m[1], tip: `Armour ${m[1]}` });
+    else if ((m = /\s*\[([+-]\d+)\]$/.exec(s))) tags.unshift({ t: 'armour ' + m[1].replace('-', '−'), c: +m[1] < 0 ? 'neg' : 'pos', tip: `${m[1]} to armour` });
+    else if ((m = /\s*\(([+-]\d+)\)$/.exec(s))) { const arm = tags[0] && /^armour/.test(tags[0].t); if (+m[1]) tags.unshift({ t: m[1].replace('-', '−') + (arm ? ' to hit' : ''), c: +m[1] < 0 ? 'neg' : 'pos', tip: arm ? `${m[1]} to hit while you wear it` : `${m[1]} to what it improves` }); }
+    else break;
+    s = s.slice(0, m.index);
+  }
+  return { base: s, tags };
+}
+function nameHtml(n, f) { const p = nameParts(n); return esc(f ? f(p.base) : p.base) + p.tags.map(t => `<span class="ich ${t.c || ''}"${t.tip ? ` data-tip="${esc(t.tip)}"` : ''}>${esc(t.t)}</span>`).join(''); }
 // Recall: the creature under the pointer (on the map or in the list above), else your target, else the nearest.
 // It stays on the last one pointed at, so you can move over to read it.
 let RC_HOVER = null; const LORE = {}, LORE_ASKED = {};
@@ -314,18 +481,26 @@ function loreAsk(key) { const t = Date.now(); if (LORE_ASKED[key] && t - LORE_AS
 function loreIn(m) { if (/^m:/.test(m.key)) { LORE[m.key] = { h: loreRows(m.rows), t: Date.now() }; if (S && S.mons.some(x => 'm:' + x.r === m.key)) schedule(); } }
 // the game's recall page, its lines joined back into paragraphs to fit the side panel; "Label : value" lines stay lines
 function loreRows(list) {
-  const out = []; let para = null, grid = null;
+  const out = []; let para = null, grid = null, atk = null;
   list.forEach((r, n) => {
     const s = r.s.replace(/\s+$/, ''); if (n === 0 && /^Name\s*:/.test(s)) return;
     if (!s.trim()) { para = null; grid = null; return; }
     const seg = (x0, x1) => { let h = '', cur = -1, txt = ''; const fl = () => { if (txt) h += cur === 1 || cur === 0 ? esc(txt) : `<span style="color:${readable(col(cur))}">${esc(txt)}</span>`; txt = ''; };
       for (let x = x0; x < x1; x++) { const a = parseInt(r.a.substr(x * 2, 2), 16); if (s[x] !== ' ' && a !== cur) { fl(); cur = a; } txt += s[x]; } fl(); return h.replace(/ {2,}/g, ' ').trim(); };
+    // the attack table ("Attacks : Type  Effects" and a row for each blow) becomes a short list
+    const ah = /^Attacks\s*:\s*Type(\s+)Effects/.exec(s);
+    if (ah) { atk = { x: s.indexOf('Effects'), rows: [] }; out.push(atk); para = null; grid = null; return; }
+    if (atk && /^\s{6,}\S/.test(s)) { atk.rows.push([seg(0, atk.x), seg(atk.x, s.length)]); return; }
+    atk = null;
     if (/^[A-Z][A-Za-z ]{0,10}:\s/.test(s)) {   // "Level : 9    Speed: 1.0x": short facts, two to a row
       if (!grid) { grid = []; out.push(grid); } para = null;
-      const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) grid.push(seg(m.index, m.index + m[0].length));
+      const re = /\S+(?: \S+)*(?: *: *\S+(?: \S+)*)?/g; let m; while ((m = re.exec(s))) {
+        const raw = m[0]; if (/:\s*\??$/.test(raw)) continue;   // a fact you have not learned yet says nothing: leave it out
+        grid.push(seg(m.index, m.index + m[0].length).replace(/^AC(\s*:)/, 'Armour$1').replace(/^HP(\s*:)/, 'Life$1').replace(/^Kills(\s*:)/, 'Slain$1').replace(/^([A-Za-z ]+?)\s+:/, '$1:').replace(/^Spells:\s*(?:<span[^>]*>)?\?%(?:<\/span>)?$/, 'Casts spells')); }
+      if (!grid.length) { out.pop(); grid = null; }
     } else { grid = null; const h = seg(0, s.length); if (para) para.h += ' ' + h; else { para = { h }; out.push(para); } }
   });
-  return out.map(p => Array.isArray(p) ? `<div class="rcfs">${p.map(f => `<span>${f}</span>`).join('')}</div>` : `<p>${p.h}</p>`).join('');
+  return out.map(p => Array.isArray(p) ? `<div class="rcfs">${p.map(f => `<span>${f}</span>`).join('')}</div>` : p.rows ? (p.rows.length ? `<div class="rcatk"><i>Attacks</i>${p.rows.map(([t, e]) => `<div><b>${t}</b><span>${e}</span></div>`).join('')}</div>` : '') : `<p>${p.h}</p>`).join('');
 }
 function recallHtml() {
   if (!S.mons.length) return '';
@@ -353,38 +528,58 @@ function targetHtml() {
 function floorHtml() {
   const f = [...S.floor].sort((a, b) => Math.max(Math.abs(a.dx), Math.abs(a.dy)) - Math.max(Math.abs(b.dx), Math.abs(b.dy)));
   if (!f.length) return '<div class="sub" style="font-size:14.500px;padding:4px 2px">nothing known nearby</div>';
-  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk over and pick it up' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${esc(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
+  return f.slice(0, 9).map(o => { const ic = tvIcon(o.tv); return `<div class="row" data-at="${o.dx},${o.dy}" data-n="${esc(o.n)}"${o.oi ? ` data-desc="o:${o.oi}"` : ''} data-tip="${o.dx || o.dy ? 'click: walk over and pick it up' : 'click: pick it up'} · right-click: actions" style="gap:10px;height:27px;cursor:pointer"><span class="t-${ic}" style="font-size:19px">${artHtml(o.ki, 24) || icon(ic)}</span><span class="grow nowrap">${nameHtml(o.n)}</span><span class="dir">${dirOf(o.dx, o.dy)}</span></div>`; }).join('') + (f.length > 9 ? `<div class="sub" style="font-size:14px">and ${f.length - 9} more · <span class="key">]</span> full list</div>` : '');
 }
 function rightHtml() {
   const g = groupMons(), awake = S.mons.filter(m => !m.asleep).length;
   return `<div class="rail r" style="grid-row:1/3;grid-column:-2/-1">${card('<span data-tip="Creatures you can see, nearest first&#10;click one: target it · right-click: actions · rest the pointer: what you know">In sight</span>', mobsHtml(g), '', S.mons.length ? `${awake} awake` : '')}${recallHtml()}${card('<span data-tip="Items you can see on the ground&#10;click one: walk over and pick it up">On the floor</span>', floorHtml(), 'grow')}
-  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk on until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span><span class="key">M</span>`)}</div>`;
+  ${card('<span data-tip="The level around you&#10;click: travel there · M: the whole level">Area map</span>', `<div class="minibox"><canvas id="mini"></canvas></div>`, '', `${S.p.wild ? '' : `<span class="xpl${typeof EXP !== 'undefined' && EXP.on ? ' on' : ''}" data-explore="1" data-tip="Explore: walk the level and pick up what you find, until something turns up.&#10;${S.p.rl ? 'click' : 'click or press x'}; any key stops it">${S.p.rl ? '' : '<span class="key">x</span>'}explore</span>`}${!S.p.dlvl && !S.p.wild && !S.p.rl ? `<span class="xpl" data-key="${esc(cmd('<'))}" data-tip="The world map: the whole land, to travel between towns.&#10;You cannot open it with a creature close by."><span class="key">&lt;</span>world</span>` : ''}<span class="key">M</span>`)}</div>`;
 }
 const ACTIONS = [['m', 'Cast', 'book'], ['f', 'Fire', 'sling'], ['q', 'Quaff', 'potion'], ['r', 'Read', 'scroll'], ['a', 'Aim', 'wand'], ['E', 'Eat', 'food'], ['R', 'Rest', 'cloak'], ['g', 'Pick up', 'gold']];
 const RL_KEY = { f: 't', a: 'z' };   // the roguelike keys show their own letters; a click always sends the plain command
 const ACT_TIPS = { m: 'Cast a spell from a book', f: 'Fire your launcher', q: 'Quaff a potion', r: 'Read a scroll', a: 'Aim a wand', E: 'Eat something', R: 'Rest until healed or disturbed', g: 'Pick up what you stand on' };
 const HINTS = [['?', 'help'], ['C', 'character'], ['i', 'pack'], ['=', 'options'], ['M', 'map'], ['Esc', 'menu']];
 function countTv(pred) { let n = 0; for (const o of S.pack) if (pred(o.tv)) n += o.num; return n; }
+// the log keeps the game's questions with the key that answered them: say the answer in words, and drop the key lists
+// the game logs its own questions as you answer them: those that say nothing once answered are left out of the log
+const LOG_SKIP = /^(?:\w+ which item\b.*|Quantity \([^)]*\):\s*\d*|Unrecognized command.*|Direction or <click>.*|Inscription:.*|Rest \(0-9999.*|[&*]|\d{1,4})$/i;
+// in the heat of a fight "The Arrow (3d4) (+0,+0) hits" reads as "The Arrow hits": the numbers stay on the item itself
+const shotTidy = s => s.replace(/ \(\+0,\+0\)/g, '').replace(/((?:The|Your) [A-Z][^.(<]*?)(?: \(\d+d\d+\))?(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails to harm|breaks|disappears|is destroyed)\b)/g, '$1').replace(/ \([a-z]\)(?=(?:<[^>]+>)*(?: in your pack| you are (?:wearing|wielding|carrying|shooting with)))/g, '');
+const LIGHT_ON = /^You are wearing (?:a|an|the) [^.]*\b(?:Torch|Lantern|Lamp)\b/;
+function logTidy(s) {
+  s = shotTidy(String(s));
+  const lit = LIGHT_ON.test(s.replace(/<[^>]+>/g, ''));
+  s = String(s).replace(/\s*(?:<color:\w>)*\*\*\* LOW HITPOINT WARNING! \*\*\*(?:<\/color>)*\s*Press (?:<color:\w>)?Space(?:<\/color>)? to continue\.(?:<\/color>)*(?:\s*(?:<color:\w>)*=>\s*(?:<color:\w>)?.?(?:<\/color>)?\.?(?:<\/color>)*)?/g, ' <color:v>Your life is low.</color>')
+    .replace(/ gp\?/g, ' gold?')
+    .replace(/((?:<color:\w>)?You (?:are|were) (?:wearing|wielding|shooting with|carrying)[^.]*?) \([a-z]\)\./g, '$1.')
+    .replace(/^((?:<color:\w>)?The [^.]*?) \(\d+d\d+\)(?: \([+-]\d+,[+-]\d+\))?(?= (?:hits|misses|fails|breaks|disappears|sticks))/, '$1')
+    .replace(/\s*(?:<color:\w>)?\[(?:y\/n(?:\/Auto)?|Y\/N|Y,n)\](?:<\/color>)?/g, '')
+    .replace(/\s*=>\s*(?:<color:\w>)?(.)(?:<\/color>)?\./g, (m0, k) => ({ y: ' <color:y>Yes.</color>', Y: ' <color:y>Yes.</color>', n: ' <color:y>No.</color>', N: ' <color:y>No.</color>', A: ' <color:y>Always.</color>' })[k] || '');
+  // the same plain words the question cards use
+  s = s.replace(/This is the entrance of (.+?) \(Danger level: (\d+)\)/, 'The entrance of $1, danger level $2.').replace('Do you really go into this dungeon?', 'Go in?').replace('You are already there!!', 'You are already there.').replace('Do you really want to commit suicide?', 'End this character for good?').replace(/Unknown command\. Type (?:<color:\w>)?\?(?:<\/color>)? for help\./, 'That key does nothing here.').replace(/^Sorry\?$/, 'Never mind.')
+    .replace('Are you sure you want to buy the entire inventory of this store?', 'Buy everything on the shelves?').replace(/Shuffle stock for /, 'New stock for ').replace(/^Reserve (.+ for (?:<color:\w>)?\d+(?:<\/color>)? gold\?)/, 'Hold $1');
+  return lit ? s.replace('You are wearing ', 'Your light is now ') : s;
+}
 function consoleHtml() {
   const cnt = { q: countTv(t => t === 75), r: countTv(t => t === 70), E: countTv(t => t === 80), a: countTv(t => t === 65 || t === 66 || t === 55) };
   const noBow = !(S.equip || []).some(e => e.slot === 'Shooting' && e.o); if (!noBow) { const n = countTv(t => t >= 16 && t <= 18); if (n) cnt.f = n; }   // ammunition in the pack shows on the Fire button (a worn quiver keeps its own, so none here is not 'none')
   const noFloor = !S.floor.some(o => !o.dx && !o.dy);   // nothing to fire with: say so on the button
   const msgs = S.msgs.filter(m => (String(m.s).match(/\n/g) || []).length < 3).slice(-8);   // a picture of the map kept in the log (after a death) is not a line to read
   const lastTurn = msgs.length ? msgs[msgs.length - 1].turn : 0;   // this turn's lines read bright, older ones step back
-  const log = msgs.map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(m.s)}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
+  const log = msgs.filter(m => !LOG_SKIP.test(plain(m.s).trim())).map(m => `<div style="color:${m.c && m.c !== 1 ? readable(col(m.c)) : ''}${m.turn !== lastTurn ? ';opacity:.58' : ''}">${rich(logTidy(m.s))}${m.n > 1 ? ` <span style="opacity:.6">(x${m.n})</span>` : ''}</div>`).join('');
   return `<div class="console"><div class="logbox ch" data-key="\x10" data-tip="Message history (Ctrl+P)"><div class="log ch">${log}</div></div>
-  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
+  ${HB.mode === 'A' ? `<div class="hbcol">${hotbarHtml()}` : ''}<div class="belt ch"><div class="acts ch">${ACTIONS.map(a => a[0] === 'm' && !(S.p.msp > 0 || S.p.realm) && S.p.powers ? ['U', 'Powers', 'book'] : a).map(([k, n, ic]) => `<div class="act${cnt[k] === 0 || (k === 'f' && noBow) || (k === 'g' && noFloor) || (k === 'm' && !(S.p.msp > 0 || S.p.realm)) ? ' none' : ''}" data-key="${S.p.rl ? esc(cmd(k)) : k}" data-tip="${ACT_TIPS[k]}${k === 'f' && noBow ? ' · you hold no launcher' : k === 'g' && noFloor ? ' · nothing here now' : cnt[k] != null ? (cnt[k] ? ` · ${cnt[k]} in your pack` : ' · none in your pack') : ''} · ${S.p.rl ? RL_KEY[k] || k : k}"><div class="slot t-${ic}">${icon(ic)}<span class="key">${S.p.rl ? RL_KEY[k] || k : k}</span>${cnt[k] ? `<span class="cnt">${cnt[k]}</span>` : ''}</div>${n}</div>`).join('')}</div></div>${HB.mode === 'A' ? '</div>' : ''}
   <div class="hints">${HINTS.map(([k, n]) => `<div class="row" ${k === 'Esc' ? 'data-gmenu="1" data-tip="The game menu: save, options, knowledge, quit"' : `data-key="${k}"`}${k === '?' ? ' data-tip="The game\'s own help.&#10;F1: what the mouse and the new keys do"' : ''}><span class="key">${k}</span>${n}</div>`).join('')}</div></div>`;
 }
 function plaqueHtml() {
   const p = S.p, t = `${p.hour}:${String(p.min).padStart(2, '0')}`;
-  return `${esc(p.place)}${p.dlvl ? `<s></s><b>level ${p.dlvl}</b><s></s>${p.dlvl * 50} ft` : ''}<s></s>day ${p.day}, ${t}`;
+  return `${p.wild ? 'The world map' : esc(p.place)}${p.dlvl ? `<s></s><b>level ${p.dlvl}</b><s></s>${p.dlvl * 50} ft` : ''}<s></s>day ${p.day}, ${t}`;
 }
 const MC = ['tl', 'tr', 'bl', 'br'].map(p => `<svg class="mcorner ${p}" viewBox="0 0 54 54"><defs><linearGradient id="mc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a8f96"/><stop offset=".5" stop-color="#3a3d42"/><stop offset="1" stop-color="#1a1c1f"/></linearGradient></defs>
   <path fill="url(#mc)" stroke="#000" d="M8 .5H53.500L47 14H22L14 22V47L.5 53.500V8z"/><path fill="none" stroke="#ff8a3c" stroke-opacity=".75" d="M43 9.500H20L9.500 20V43"/><path fill="#ff8a3c" stroke="#000" d="M14 9l5 5-5 5-5-5z"/></svg>`).join('');
 
 function buildMain() {
-  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div>${MC}<div id="hbplate"></div></div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
+  $('#app').innerHTML = `<div id="L" style="display:contents"></div><div class="mapwrap"><div class="plaque ch"><div class="ch" id="plaque"></div></div><div class="clip"><canvas id="map"></canvas></div><div id="banner"></div><div id="here"></div>${MC}<div id="hbplate"></div></div><div id="R" style="display:contents"></div><div id="C" style="display:contents"></div>`;
   built = true;
 }
 function drawMobCanvas(cv, rIdx, size) {
@@ -403,10 +598,10 @@ function drawToken(g, x, y, T, r, uniq) {
 }
 
 /* ---------- tileset (optional): shell/ui/tiles/atlas.json, see tiles/README.md ---------- */
-let TS = null;
+let TS = null, TS_NEW = false;   // TS_NEW: the art has just arrived, so pictures drawn without it are drawn again
 function loadTiles() {
   fetch('tiles/atlas.json').then(r => r.ok ? r.json() : null).then(j => {
-    if (!j || !j.images || !j.images.length) return; let left = j.images.length; j.img = j.images.map(n => { const im = new Image(); im.onload = im.onerror = () => { if (--left === 0) { TS = j; fclassClear(); schedule(); } }; im.src = 'tiles/' + n; return im; });
+    if (!j || !j.images || !j.images.length) return; let left = j.images.length; j.img = j.images.map(n => { const im = new Image(); im.onload = im.onerror = () => { if (--left === 0) { TS = j; TS_NEW = true; fclassClear(); schedule(); } }; im.src = 'tiles/' + n; return im; });
   }).catch(() => {});
 }
 const tkey = s => String(s || '').toLowerCase().replace(/[&~#]/g, '').replace(/\s+/g, ' ').trim().replace(/^(an?|the) /, '');
@@ -436,6 +631,13 @@ function spriteFlash(g, r, x, y, T, k) {
 // how much bigger or smaller a creature is drawn than one square, by the size class the tileset gives it
 const SIZE_MUL = { tiny: .8, medium: 1, large: 1.2, huge: 1.5 };
 // draw a named sprite into a T-sized square; false when the set has none
+// the hero's own picture: a creature character is drawn as the creature it is now, anyone else by calling
+function heroSprite(g, x, y, T) {
+  const p = S.p; if (p.form && TS && TS.mon && TS.mon[tkey(p.form)] && sprite(g, 'mon', p.form, x, y, T)) return true;
+  return sprite(g, 'player', p.race + ' ' + p.cls, x, y, T, tkey(p.cls).replace(/ /g, '-')) || sprite(g, 'player', p.race, x, y, T, 'default');
+}
+// "Half-Troll Warrior"; for a creature character, the creature it is now
+const heroKind = p => p.cls === 'Monster' ? cap(p.form || p.sub || p.race) : `${p.race} ${p.cls}`;
 function sprite(g, kind, name, x, y, T, alt) {
   if (!TS || !TS[kind]) return false;
   const e = TS[kind][tkey(name)] || (alt && TS[kind][alt]); if (!e) return false;
@@ -489,13 +691,24 @@ function walkPath(tx, ty) {
   const mw = S.map.w, mh = S.map.h, cells = S.map.c, sx = mw >> 1, sy = mh >> 1, gx = sx + tx, gy = sy + ty;
   let out = null;
   const ok = (x, y) => { if (x < 0 || y < 0 || x >= mw || y >= mh) return false; const c = cells[y * mw + x]; return !!(c && c[0]) && !NOWALK[featClass(c[0])]; };
-  if (ok(gx, gy)) {
-    const prev = new Int32Array(mw * mh).fill(-1), q = [sy * mw + sx]; prev[q[0]] = q[0];
-    for (let h = 0; h < q.length && prev[gy * mw + gx] < 0; h++) {
+  if (ok(gx, gy) && (gx !== sx || gy !== sy)) {
+    // steps from the target to every square (the game's own travel map), then walk down it
+    // from you the way the game's travel does: fewest steps, trying straight moves before diagonals
+    const cost = new Int32Array(mw * mh).fill(-1), q = [gy * mw + gx]; cost[q[0]] = 0;
+    for (let h = 0; h < q.length && cost[sy * mw + sx] < 0; h++) {
       const i = q[h], x = i % mw, y = (i / mw) | 0;
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy, j = ny * mw + nx; if (ok(nx, ny) && prev[j] < 0) { prev[j] = i; q.push(j); } }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy, j = ny * mw + nx; if ((ok(nx, ny) || (nx === sx && ny === sy)) && cost[j] < 0) { cost[j] = cost[i] + 1; q.push(j); } }
     }
-    if (prev[gy * mw + gx] >= 0) { out = []; for (let i = gy * mw + gx; i !== sy * mw + sx; i = prev[i]) out.push([i % mw - sx, ((i / mw) | 0) - sy]); out.reverse(); }
+    if (cost[sy * mw + sx] > 0) {
+      out = []; let x = sx, y = sy;
+      const D = [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+      while (x !== gx || y !== gy) {
+        let bx = -1, by = -1, bc = 1e9;
+        for (const [dx, dy] of D) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= mw || ny >= mh) continue; const c = cost[ny * mw + nx]; if (c < 0) continue; if (c < bc) { bx = nx; by = ny; bc = c; } }
+        if (bx < 0 || out.length > mw * mh) { out = null; break; }
+        x = bx; y = by; out.push([x - sx, y - sy]);
+      }
+    }
   }
   pathMemo = { k, m: S.map, p: out }; return out;
 }
@@ -516,7 +729,12 @@ function drawMap() {
   const cellAt = (x, y) => (x < 0 || y < 0 || x >= mw || y >= mh) ? 0 : cells[y * mw + x];
   const isWall = c => c && c[0] && featClass(c[0]) === 'wall';
   const x0 = Math.max(0, Math.floor(-ox / T)), x1 = Math.min(mw - 1, Math.ceil((W - ox) / T)), y0 = Math.max(0, Math.floor(-oy / T)), y1 = Math.min(mh - 1, Math.ceil((H - oy) / T));
+  const dayOut = S.p && !S.p.dlvl && !S.p.wild && S.p.hour >= 6 && S.p.hour < 18 ? Math.min(1, .65 + .12 * Math.min(S.p.hour - 6, 17 - S.p.hour)) : 0;   // above ground by day: the open ground takes a wash of daylight
   const later = [], fxl = [], lon = LIGHT.on, gridOk = !S.stale && !G.icky && !G.ov && BASE, ml = S.rmsg;
+  // something thrown or shot is drawn as itself while it flies, not as the game's letter for it
+  const flyK = typeof LASTPICK !== 'undefined' && LASTPICK && LASTPICK.o && Date.now() - LASTPICK.t < 5000 && DICT && DICT.k ? DICT.k[LASTPICK.o.ki] : null;
+  const fly = flyK && TS && TS.obj && TS.obj[tkey(objArt(LASTPICK.o.ki))] ? { ch: String.fromCharCode(flyK[3]), art: objArt(LASTPICK.o.ki) } : null;
+  const fxPush = (sx, sy, ch, at) => later.push(fly && ch === fly.ch ? [sx, sy, 0, 0, 1, 1, fly.art] : [sx, sy, ch, col(at), 1, 0]);
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = cells[y * mw + x], gy = S.gy + y - pcy, gx = S.gx + x - pcx;
     // what the game's own grid shows here: at rest (base) and right now (spell effects in flight)
@@ -527,12 +745,12 @@ function drawMap() {
     const fx = ch !== ' ' && (ch !== bch || at !== bat);
     const sx = ox + x * T, sy = oy + y * T;
     if (fx) fxl.push([x, y, at]);
-    if (!c) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
+    if (!c) { if (fx) fxPush(sx, sy, ch, at); continue; }
     const f = c[0], fl = c[1], lit = lon || !!(fl & 1), cls = f ? featClass(f) : 'floor';
     const fd = DICT.f[f] || ['', 46, 1], fcol = col(fd[2]), v = rnd(x + S.px, y + S.py);
-    if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) later.push([sx, sy, ch, col(at), 1, 0]); continue; }
+    if (!f && !c[2] && !c[3] && !(fl & 4)) { if (fx) fxPush(sx, sy, ch, at); continue; }
     if (!f) { /* something seen on ground we have not mapped */ }
-    else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } }
+    else if (TS && TS.feat && sprite(g, 'feat', fd[0], sx, sy, T, TS.feat['class:' + cls] ? 'class:' + cls : null)) { if (!lit) { g.fillStyle = 'rgba(6,7,9,.5)'; g.fillRect(sx, sy, T, T); } else if (dayOut && (cls === 'floor' || cls === 'grass' || cls === 'tree' || cls === 'other')) { g.fillStyle = cls === 'grass' || cls === 'tree' ? `rgba(104,140,78,${.3 * dayOut})` : `rgba(164,146,110,${.22 * dayOut})`; g.fillRect(sx, sy, T, T); } }
     else
     if (cls === 'wall') {
       const below = cellAt(x, y + 1), open = below && below[0] && !isWall(below);
@@ -566,13 +784,12 @@ function drawMap() {
     if (c[3]) { const k = DICT.k[c[3]] || ['', 0, 0, 42, 1], own = bch !== ' ' && !c[2] && !(fl & 4); later.push([sx, sy, own ? bch : String.fromCharCode(k[3]), readable(own ? col(bat) : col(k[4])), 1, 1, objArt(c[3])]); }
     if (c[2]) later.push([sx, sy, c[2], null, lit ? 1 : .8, 2, monAt[(x - pcx) + ',' + (y - pcy)]]);
     else if (fl & 4) later.push([sx - scx * T, sy - scy * T, 0, null, 1, 3]);
-    if (fx) later.push([sx, sy, ch, col(at), 1, 0]);
+    if (fx) fxPush(sx, sy, ch, at);
   }
   // player light
   const px = ox + (pcx + .5 - scx) * T, py = oy + (pcy + .5 - scy) * T; g.globalCompositeOperation = 'lighter';
   let gr = g.createRadialGradient(px, py, 10, px, py, T * 7); gr.addColorStop(0, 'rgba(255,140,60,.2)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
   if (lon) lightPass(g, ox, oy, T, cells, mw, mh, pcx, pcy, fxl, scx, scy);
-  ambMotes(g, px, py, T, W, H);
   for (let [sx, sy, what, c, al, kind, nm] of later) {
     if (lon && kind !== 0 && kind !== 2 && kind !== 3) { const lx = Math.round((sx - ox) / T), ly = Math.round((sy - oy) / T); if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) al *= .45 + .55 * Math.min(1, lightAt(lx, ly, mw) * 1.5); }
     g.globalAlpha = al;
@@ -582,7 +799,7 @@ function drawMap() {
     else if (kind === 3) { const lu = fxLunge('p'); sx += lu[0] * T; sy += lu[1] * T;
       // a thin ring at your feet, so you find yourself at a glance on a dark or busy map
       g.save(); g.globalAlpha = .7; g.strokeStyle = '#ff9a4a'; g.lineWidth = Math.max(1.2, T / 26); g.beginPath(); g.ellipse(sx + T / 2, sy + T * .94, T * .44, T * .14, 0, 0, Math.PI * 2); g.stroke(); g.restore();
-      if (!sprite(g, 'player', S.p.race + ' ' + S.p.cls, sx, sy, T, tkey(S.p.cls).replace(/ /g, '-')) && !sprite(g, 'player', S.p.race, sx, sy, T, 'default')) drawMob(g, MOBS['@'], sx, sy, T); }
+      if (!heroSprite(g, sx, sy, T)) drawMob(g, MOBS['@'], sx, sy, T); }
     else if (kind === 0 && drawSpell(g, sx, sy, T, what, c)) { fxSpell(S.px + Math.round((sx - ox) / T) - pcx, S.py + Math.round((sy - oy) / T) - pcy, what, c); }
     else { g.font = `700 ${Math.round(T * (kind ? .62 : .66))}px Inter`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 3; g.strokeStyle = '#0b0a09'; g.lineJoin = 'round'; g.strokeText(what, sx + T / 2, sy + T / 2 + 1); g.fillStyle = c; g.fillText(what, sx + T / 2, sy + T / 2 + 1); }
     g.globalAlpha = 1;
@@ -648,6 +865,7 @@ function drawMap() {
     const wp = !am && !lm && !G.icky && (Math.abs(hover.dx) > 1 || Math.abs(hover.dy) > 1) && !monAt[hover.dx + ',' + hover.dy] ? walkPath(hover.dx, hover.dy) : null;
     if (wp) { g.save(); for (let i = 0; i < wp.length - 1; i++) { const [wx, wy] = wp[i]; g.fillStyle = `rgba(255,207,158,${.75 - .35 * i / wp.length})`; g.beginPath(); g.arc(ox + (pcx + wx + .5) * T, oy + (pcy + wy + .5) * T, Math.max(2, T * .08), 0, 7); g.fill(); } g.restore(); }
   }
+  if (atHover && !document.querySelector('[data-at="' + atHover + '"]:hover')) atHover = '';   // the row went away under a still mouse (you picked the thing up): its mark goes too
   if (atHover) {   // the side list row under the mouse: mark its square and draw the line to it
     const [adx, ady] = atHover.split(',').map(Number), ax = ox + (pcx + adx) * T, ay = oy + (pcy + ady) * T, k = T * .3;
     g.save(); g.strokeStyle = 'rgba(255,207,158,.55)'; g.lineWidth = 1.5; g.setLineDash([T * .16, T * .14]); g.beginPath(); g.moveTo(ox + (pcx + .5) * T, oy + (pcy + .5) * T); g.lineTo(ax + T / 2, ay + T / 2); g.stroke(); g.setLineDash([]);
@@ -680,7 +898,8 @@ function drawMini(pcx, pcy, vw, vh) {
 
 /* ---------- plain view of any screen that has no native layout yet ---------- */
 // float = a pop-up over the game: only the squares the pop-up has drawn are shown, in a panel sized to fit them
-function drawTerm(float) {
+function drawTerm(float, root) {
+  root = root || $('#term'); const hub = root.id !== 'term';
   let x0 = 0, y0 = 0, x1 = G.w - 1, y1 = G.h - 1;
   if (float) {
     x0 = y0 = 1e9; x1 = y1 = -1;
@@ -703,14 +922,15 @@ function drawTerm(float) {
   if (PAGER) { skip[PAGER.head] = 1; if (PAGER.foot >= 0) skip[PAGER.foot] = 1; if (PAGER.head === y0) y0++; if (PAGER.foot === y1) y1--;
     while (y1 > y0 && !(G.s[y1] || '').replace(/[\x01 ]/g, '')) y1--; }
   const rcH = rc ? `<canvas class="rmob" data-n="${esc(rc[1])}"></canvas><b>${esc(rc[1])}</b><span class="pgn">creature recall</span>` : '';
-  setHtml($('#termh'), rc ? rcH : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
-  const rcv = rc && $('#termh .rmob');
+  setHtml(root.querySelector('.t-h'), rc ? rcH : PAGER ? pagerHead(PAGER) : BROWSE && BROWSE.title >= 0 ? `<b>${esc(BROWSE.name)}</b><span class="pgn">click a line to pick it · double-click to recall</span>` : '');
+  const rcv = rc && root.querySelector('.t-h .rmob');
   if (rcv && !rcv._ok) {
     const c = rcv, d = 2 * SCALE * (devicePixelRatio || 1); c.width = c.height = Math.round(72 * d); const g = c.getContext('2d'); g.scale(d, d); sprite.flat = true; c._ok = sprite(g, 'mon', rc[1], 0, 0, 72); sprite.flat = false;
   }
-  setHtml($('#termf'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : /^\s*Window Flags/.test((G.s[y0] || '').replace(/\x01/g, ' ')) ? '<span class="pgw">these pick what the game\'s extra text windows show; this interface already shows it all in its own panels, so they change nothing here</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>back</span>' : '');
-  const cv = $('#termc'), availW = VW - 120, availH = VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
-  let fs = Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, 24));
+  setHtml(root.querySelector('.t-f'), PAGER ? pagerFoot(PAGER) : BROWSE ? browseFoot(BROWSE) : rc ? (/press any key/i.test(G.s.join('')) ? '<span class="pgw">any key or a click goes on</span>' : '<span class="pgb" data-key="r"><span class="key">r</span>back</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>stop looking</span><span class="pgw">a click goes back</span>') : /^\s*Window Flags/.test((G.s[y0] || '').replace(/\x01/g, ' ')) ? '<span class="pgw">these pick what the game\'s extra text windows show; this interface already shows it all in its own panels, so they change nothing here</span><span class="pgb" data-key="Esc"><span class="key">Esc</span>back</span>' : '');
+  const cv = root.querySelector('.t-c'), sideW = hub && root.previousElementSibling ? root.previousElementSibling.offsetWidth + 24 : 0;
+  const availW = hub ? 1452 - sideW : VW - 120, availH = hub ? HUB_H - 58 - 40 - (PAGER || BROWSE ? 92 : 0) : VH - 110 - (PAGER ? 96 : 0), nw = x1 - x0 + 1, nh = y1 - y0 + 1;
+  let fs = hub ? Math.floor(Math.min(availH / Math.max(nh, 30) / 1.18, availW / Math.max(nw, 80) / .602)) : Math.floor(Math.min(availH / G.h / 1.18, availW / G.w / .602)); fs = Math.max(9, Math.min(fs, hub ? 19 : 24));
   const cw = Math.round(fs * .602 * 100) / 100, chh = Math.round(fs * 1.18), d = SCALE * (devicePixelRatio || 1);
   cv.style.width = cw * nw + 'px'; cv.style.height = chh * nh + 'px'; cv.width = Math.round(cw * nw * d); cv.height = Math.round(chh * nh * d);
   const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.font = `500 ${fs}px "DejaVu Sans Mono","Cascadia Mono",Consolas,monospace`; g.textBaseline = 'middle';
@@ -719,6 +939,7 @@ function drawTerm(float) {
   TERMGEO = { x0, y0, cw, chh };
   return true;
 }
+const HUB_H = 950;
 let TERMGEO = null, PAGER = null, BROWSE = null, RECALL = false;
 // list browsers (knowledge, visuals): the bottom line reads "<dir>, 'r' to recall, ..., ESC"
 function browseInfo(y0, y1) {
@@ -731,12 +952,13 @@ function browseInfo(y0, y1) {
   if (/ENTER to accept/.test(line)) keys.push(['\r', 'accept']);
   let title = -1, name = '';
   for (let y = y0; y < foot; y++) { const t = (G.s[y] || '').replace(/\x01/g, ' ').trim(); if (!t) continue; if (t.length < 48 && !/[|=]{2}|:/.test(t)) { title = y; name = t; } break; }
-  const recall = keys.find(k => /recall/.test(k[1]));
-  return { foot, keys, title, name, recall: recall ? recall[0] : '' };
+  const recall = keys.find(k => /recall/.test(k[1])), know = /^(Knowledge|Visuals)/i.test(name);
+  name = ({ 'knowledge - objects': 'Items you know', 'knowledge - monsters': 'Bestiary', 'knowledge - features': 'Terrain', 'visuals - features': 'Terrain', 'knowledge - egos': 'Enchanted kinds', 'knowledge - artifacts': 'Artifacts' })[name.toLowerCase()] || name;
+  return { foot, keys: keys.filter(k => !know || !/visuals|copy|pict|lighting/i.test(k[1])).map(k => /recall/.test(k[1]) ? [k[0], 'read about it'] : k), title, name, recall: recall ? recall[0] : '' };
 }
 function browseFoot(b) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  return k('Esc', 'data-key="Esc"', 'close') + '<span class="pgb"><span class="key">⇅</span>move</span>' + b.keys.map(([key, what]) => k(key === '\r' ? 'Enter' : esc(key), `data-key="${esc(key)}"`, esc(what))).join('') + '<span class="pgw">wheel moves</span>';
+  return k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : 'close') + '<span class="pgb"><span class="key">⇅</span>move</span>' + b.keys.map(([key, what]) => k(key === '\r' ? 'Enter' : esc(key), `data-key="${esc(key)}"`, esc(what))).join('') + '<span class="pgw">wheel moves</span>';
 }
 function pagerInfo(y0, y1) {
   let head = -1, foot = -1, cap = '', at = 0, of = 0, keys = '';
@@ -745,18 +967,24 @@ function pagerInfo(y0, y1) {
   for (let y = y1; y > head; y--) { const m = /\[(Press [^\]]*)\]/.exec((G.s[y] || '').replace(/\x01/g, ' ')); if (m) { foot = y; keys = m[1]; break; } }
   return { head, foot, cap, at, of, keys, page: foot > head ? foot - head - 1 : y1 - head };
 }
+const PAGE_NAMES = { 'kill count': 'Kills', 'current pets': 'Companions', 'alive uniques': 'Named foes still alive', 'wanted monsters': 'Bounties', 'self knowledge': 'About you', 'melee': 'Weapon damage',
+  'race/class extra information': 'Class notes', 'current proficiency': 'Weapon skill', 'spell proficiency': 'Spell skill', 'shooting': 'Shooting damage' };
 function pagerHead(p) {
-  let cap = p.cap.replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1);
+  let cap = p.cap.replace(/^dump\d*\.doc$/i, 'A last record').replace(/^Help file '(.+?)'$/i, 'Help · $1').replace(/\.txt$/i, '').replace(/_contents$/i, '').replace(/_/g, ' ').replace(/^FrogComposband [^,]*,\s*/, ''); cap = cap.charAt(0).toUpperCase() + cap.slice(1); cap = PAGE_NAMES[cap.toLowerCase()] || cap;
   const of = Math.max(p.of, 1), a = Math.min(p.at, of), b = Math.min(of, p.at + p.page), w = Math.max(4, Math.min(100, p.page / of * 100)), l = of > p.page ? (a / Math.max(1, of - p.page)) * (100 - w) : 0;
-  return `<b>${esc(cap)}</b><span class="pgn">${of > p.page ? `lines ${a + 1}–${b} of ${of}` : `${of} lines`}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>`;
+  const key = /Proficiency|Extra Information/i.test(p.cap) ? '<span class="pgn pgkey"><b>Un</b> untrained <b>Be</b> beginner <b>Sk</b> skilled <b>Ex</b> expert <b>Ma</b> master</span>' : '';
+  return `<b>${esc(cap)}</b>${key}${of > p.page ? `<span class="pgn">lines ${a + 1}–${b} of ${of}</span><i class="pgbar"><i style="left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"></i></i>` : ''}`;
 }
 function pagerFoot(p) {
   const k = (lab, attr, what) => `<span class="pgb" ${attr}><span class="key">${lab}</span>${what}</span>`;
-  let h = k('Esc', 'data-key="Esc"', 'close');
+  const hlp = /^Help file '/.test(p.cap || ''), deep = hlp && !/^Help file 'start\.txt'/.test(p.cap);   // the help keeps its own trail: Esc steps back a page, ! goes to its first page, q leaves it
+  let h = k('Esc', 'data-key="Esc"', typeof HUB !== 'undefined' && HUB.cur === 'journal' ? 'back to the journal' : deep ? 'back' : 'close');
+  if (deep) h += k('!', 'data-key="!"', 'all topics') + k('q', 'data-key="q"', 'close');
+  if (hlp && p.of > p.page) h += k('&lt;', 'data-key="&lt;"', 'previous part') + k('&gt;', 'data-key="&gt;"', 'next part');
   if (p.of > p.page) h += k('PgUp', 'data-ks="FF55"', 'page up') + k('PgDn', 'data-ks="FF56"', 'page down') + k('Home', 'data-ks="FF50"', 'top') + k('End', 'data-ks="FF57"', 'end');
-  if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'mode');
-  if (/\?/.test(p.keys)) h += k('?', 'data-key="?"', 'help');
-  return h + '<span class="pgw">wheel scrolls</span>';
+  if (/M to toggle/.test(p.keys)) h += k('M', 'data-key="M"', 'next view');
+  if (/\?/.test(p.keys) && !hlp) h += k('?', 'data-key="?"', 'help');
+  return h + (p.of > p.page ? '<span class="pgw">wheel scrolls</span>' : '');
 }
 
 /* ---------- frame ---------- */
@@ -765,25 +993,54 @@ function draw() {
   const inGame = !!(S && S.p && S.map);
   document.body.classList.add('main');
   $('#stage').style.setProperty('--vw', VW + 'px');
+  let ask = null;
   if (inGame) {
     if (!built) buildMain();
     const nl = setHtml($('#L'), leftHtml()), nr = setHtml($('#R'), rightHtml()); setHtml($('#C'), consoleHtml()); setHtml($('#plaque'), plaqueHtml()); setHtml($('#hbplate'), HB.mode === 'B' ? hotbarHtml() : ''); document.body.classList.toggle('hbA', HB.mode === 'A');
-    const pt = $('#port'); if (pt && nl) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); drawMob(g, MOBS['@'], 0, 0, 72); }
-    if (nr) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
+    const df = $('#dfig'); if (df && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); df.width = df.height = 240 * d; const g = df.getContext('2d'); g.scale(d, d); g.imageSmoothingEnabled = false; sprite.flat = true; sprite(g, 'mon', S.p.form, 0, 0, 240); sprite.flat = false; }
+    const pt = $('#port'); if (pt && (nl || TS_NEW)) { const d = 2 * SCALE * (devicePixelRatio || 1); pt.width = pt.height = 72 * d; const g = pt.getContext('2d'); g.scale(d, d); sprite.flat = true; if (!heroSprite(g, 4, 2, 64)) drawMob(g, MOBS['@'], 0, 0, 72); sprite.flat = false; }
+    if (nr || TS_NEW) document.querySelectorAll('.mobc').forEach(c => drawMobCanvas(c, +c.dataset.r, c.clientWidth || 38));
+    TS_NEW = false;
     askView(); drawMap();
-    const bn = $('#banner'), live = G.icky || G.ov ? '' : liveHtml();
+    setHtml($('#here'), hereHtml()); tipStale();
+    const bn = $('#banner'); ask = pageEditing() ? null : askHtml(); const live = ask || G.icky || G.ov || pageEditing() ? '' : liveHtml();
+    if (typeof LV !== 'undefined' && LV.el) LV.el.hidden = !!ask || (S && S.p && S.p.hp < 0);   // a question comes first: the level card waits behind it
     const car = live && G.cv && G.cy < S.rmsg[1] + S.rmsg[3] ? '<i class="caret"></i>' : '', at = live.indexOf('<span class="lkeys">');
-    setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car); bn.className = live ? 'on' : '';
+    if (ask) { setHtml(bn, ask.html); bn.className = 'on ask ' + ask.cls; }
+    else {
+      // a plain statement (already in the log below) bows out after a few seconds; anything that waits on you stays
+      const said = live.replace(/<[^>]+>/g, '').trim(), calm = live && !car && at < 0 && !/class="(lk|btn|qk)/.test(live) && /[.!](?:[)"']| \(x\d+\))?$/.test(said) && !/-more-/i.test(said);
+      const lm = S.msgs && S.msgs[S.msgs.length - 1], mk = lm ? lm.turn + ':' + lm.n + ':' + S.msgs.length : '';   // the same words said again count as new
+      if (setHtml(bn, at >= 0 ? live.slice(0, at) + car + live.slice(at) : live + car) || mk !== BN_MK) BN_FLIP ^= 1; BN_MK = mk;
+      bn.className = live ? 'on' + (calm ? ' calm' + BN_FLIP : '') : '';
+    }
+    tipStale();
   }
-  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), nh = inGame ? nativeHtml() : (titleHtml() || birthHtml()); let show = false;
+  PAGER = null; BROWSE = null; RECALL = false; const t = $('#term'), nat = $('#native'), raw = inGame ? nativeHtml() : (titleHtml() || optsHtml() || birthHtml()); let show = false;
+  // in play, every page shares one frame: a native panel is wrapped in it, and a page of the game's own text is drawn inside it
+  if (typeof HUB !== 'undefined' && !G.icky) HUB.cap = '';
+  if (typeof HUB !== 'undefined') HUB.cur = '';
+  const edit = inGame && !raw && pageEditing(), page = inGame && !raw && G.icky && !ask, nh = edit ? editorHtml() : page ? hubPageHtml(UI && UI.kind === 'char' && uiOnTop() ? charHtml() : '') : inGame ? (hubWrap(raw) || (G.ov && !G.icky && !ask ? floatHtml() : '') || (G.icky || G.ov || ask ? '' : hubHoldHtml())) : raw;
+  if (!page) CHARVIEW = 'summary';
+  // a tab was clicked: the page you were on stays up (with the new tab lit) until the page asked for has arrived, so
+  // the window never shows an empty frame or the pages the game passes through on the way
+  const hubArrived = typeof HUB !== 'undefined' && !!HUB.want && HUB.cur === HUB.want && !!nh && !/<div class="hubb(?: term)?"><\/div>|<div class="hubterm"><\/div>/.test(nh);
+  const hubWait = inGame && typeof HUB !== 'undefined' && !!HUB.want && HUB.hold > Date.now() && !hubArrived && !ask && !edit && /^<div class="pane npanel hub">/.test(nat._nh || '');
+  if (typeof HUB !== 'undefined' && HUB.hold) { if (HUB.want) { if (hubArrived || HUB.hold <= Date.now()) { HUB.hold = 0; HUB.want = ''; } } else if (!page && !raw && !edit) HUB.gap = 1; else if (HUB.gap) { HUB.hold = 0; HUB.gap = 0; } }   // the page asked for has arrived: the held frame has done its work
   const natWas = nat.classList.contains('on'), termWas = t.classList.contains('on');
-  const natChanged = setHtml(nat, nh); if (natChanged) showTip('', {}); if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } nat.classList.toggle('on', !!nh);
-  if (nh && NATIVE_SIDE) show = drawTerm(!!G.ov);
+  // something worn or taken off from the gear tab: the tab stays as it is until the game has done it, then shows the result (no blink in between)
+  const held = hubWait || inGame && typeof GEARHOLD !== 'undefined' && !ask && nat._nh != null && (ctxAnswering() || (GEARHOLD && Date.now() < GEARHOLD && nat._nh && !/ data-gs=/.test(nh)));
+  if (!held) nat._nh = nh;
+  if (hubWait) for (const e of nat.querySelectorAll('.hubtab')) e.classList.toggle('on', e.dataset.hub === HUB.want);
+  const natChanged = !held && setHtml(nat, nh); if (natChanged) { showTip('', {}); if (!nat.querySelector('.hub')) panelHold(nat); } if (natChanged && nh && inGame) nativeAfter(); if (!inGame && (natChanged || TS && !nat._t) && nat.querySelector('.tmob')) { titleAfter(); nat._t = !!TS; } if (!inGame && (natChanged || TS && !nat._p) && nat.querySelector('canvas.ptart')) { pickAfter(); nat._p = !!TS; } nat.classList.toggle('on', !!(held ? nat._nh : nh));
+  if (held) show = false;
+  else if (page) show = false;
   else if (nh) show = false;
   else if (!inGame) show = drawTerm(false);
+  else if (ask && G.ov) show = false;
   else if (G.icky || G.ov) show = drawTerm(!!G.ov);
-  t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov));
-  const side = !!(nh && NATIVE_SIDE); t.classList.toggle('side', side); nat.classList.toggle('side', side);
+  if (!held) { t.classList.toggle('on', !!show); t.classList.toggle('float', !!(show && inGame && G.ov)); }
+
   // a panel opening eases in rather than snapping; one already open just updates
   for (const [el, was] of [[nat, natWas], [t, termWas]]) if (!was && el.classList.contains('on')) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); const n = el._pop = (el._pop || 0) + 1; setTimeout(() => { if (el._pop === n) el.classList.remove('pop'); }, 220); }
   // the ease-in is for opening only: once it has played, the class goes, or every redraw (a new panel element) would fade in again

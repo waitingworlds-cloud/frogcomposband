@@ -305,12 +305,21 @@ static void shell_command(char *line)
             Term_keypress(ESCAPE); Term_keypress('\\'); Term_keypress('`');
             return;
         }
-        if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated || p_ptr->wild_mode) return;
+        if (!inkey_flag || character_icky || ui_screen_depth() || !character_generated) return;
+        if (p_ptr->wild_mode)
+        {
+            /* on the world map a click is one step that way; the interface repeats it to walk further */
+            int sx = dx > 0 ? 1 : dx < 0 ? -1 : 0, sy = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+            if (kind != 1 || (!sx && !sy)) return;
+            Term_keypress('\\'); Term_keypress(';');
+            Term_keypress('0' + (sy < 0 ? 7 : sy > 0 ? 1 : 4) + sx + 1);
+            return;
+        }
         if (kind == 1 && !dx && !dy)
         {
             /* clicking yourself: in a shop doorway, go back in; elsewhere pick up what is here */
             Term_keypress('\\');
-            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : 'g');
+            Term_keypress(cave_have_flag_grid(&cave[py][px], FF_STORE) ? SPECIAL_KEY_STORE : cave_have_flag_grid(&cave[py][px], FF_BLDG) ? SPECIAL_KEY_BUILDING : 'g');
         }
         else if (kind == 1 && ABS(dx) <= 1 && ABS(dy) <= 1)
         {
@@ -321,6 +330,35 @@ static void shell_command(char *line)
         {
             click_kind = kind; click_x = px + dx; click_y = py + dy;
             Term_keypress('\\'); Term_keypress('`');
+        }
+    }
+    else if (line[0] == 'B' && line[1] == ' ')
+    {
+        /* the shop's buy and sell cards: "B b <shelf slot> <count>" or "B s <p|q> <slot> <count>".
+         * Only taken while the shop waits for a command; the shop then does the trade as if b or s
+         * had been pressed, with the item and count already answered */
+        int slot = 0, amt = 0; char wh = 'p';
+        if (line[2] == 'b' && sscanf(line + 4, "%d %d", &slot, &amt) == 2)
+        {
+            if (shell_shop_request('b', 0, slot, amt)) Term_keypress('b');
+        }
+        else if (line[2] == 's' && sscanf(line + 4, "%c %d %d", &wh, &slot, &amt) == 3)
+        {
+            if (shell_shop_request('s', wh, slot, amt)) Term_keypress('s');
+        }
+    }
+    else if (line[0] == 'H' && line[1] == ' ')
+    {
+        /* the home's and museum's cards: "H g <shelf slot> <count>" takes, "H d <p|q> <slot> <count>" leaves */
+        extern bool shell_home_request(int req, int where, int slot, int amt);
+        int slot = 0, amt = 0; char wh = 'p';
+        if (line[2] == 'g' && sscanf(line + 4, "%d %d", &slot, &amt) == 2)
+        {
+            if (shell_home_request('g', 0, slot, amt)) Term_keypress('g');
+        }
+        else if (line[2] == 'd' && sscanf(line + 4, "%c %d %d", &wh, &slot, &amt) == 3)
+        {
+            if (shell_home_request('d', wh, slot, amt)) Term_keypress('d');
         }
     }
     else if (line[0] == 'T' && line[1] == ' ')
@@ -439,6 +477,7 @@ static void send_dict(void)
     dict_seed = seed_flavor;
 }
 
+static bool o_obj_fit = FALSE;   /* set while the things you carry are listed */
 static void o_obj(obj_ptr o, char label)
 {
     char name[MAX_NLEN];
@@ -457,6 +496,12 @@ static void o_obj(obj_ptr o, char label)
     if (object_is_artifact(o) && obj_is_known(o)) o_kint("art", 1);
     else if (o->name2 && obj_is_known(o)) o_kint("ego", 1);
     if (!obj_is_known(o)) o_kint("unk", 1);
+    if (o_obj_fit)
+    {   /* which of your slots would take it: one bit per slot, so a click on a slot can offer what fits there */
+        long fit = 0; int i;
+        for (i = 1; i <= equip_max() && i <= 30; i++) if (equip_verify_slot(i, o)) fit |= 1L << (i - 1);
+        if (fit) o_kint("fit", fit);
+    }
     o_close('}');
     o_raw(",");
 }
@@ -594,6 +639,23 @@ void shell_ui_levelmap(void)
         }
     }
     o_close(']');
+    /* the names of the towns and dungeons you know of: the map itself only says "town" and "entrance" */
+    o_raw(",\"pl\":[");
+    if (!dun_level) for (y = 0; y < cur_hgt; y++)
+    {
+        for (x = 0; x < cur_wid; x++)
+        {
+            cave_type *c = &cave[y][x];
+            cptr nm = NULL;
+            int f;
+            if (!(c->info & CAVE_MARK) || !c->special) continue;
+            f = c->mimic ? c->mimic : c->feat;
+            if (have_flag(f_info[f].flags, FF_ENTRANCE)) { if (c->special < max_d_idx) nm = d_name + d_info[c->special].name; }
+            else if (p_ptr->wild_mode && f == feat_town) nm = town_name(c->special);
+            if (nm && *nm) { o_fmt("[%d,%d,", x, y); o_str(nm); o_raw("],"); }
+        }
+    }
+    o_close(']');
     o_raw("}");
     o_send();
     ui_live = TRUE;
@@ -631,6 +693,21 @@ static void send_state(void)
     o_raw("\"p\":{");
     o_kstr("name", player_name);
     o_kstr("race", get_race()->name);
+    /* a monster-mode character: the creature it is at the moment (it changes as it grows) */
+    if (p_ptr->current_r_idx > 0 && p_ptr->current_r_idx < max_r_idx) o_kstr("form", r_name + r_info[p_ptr->current_r_idx].name);
+    if (get_race()->subname && get_race()->subname[0]) o_kstr("sub", get_race()->subname);
+    {
+        /* how many powers (race, calling, mutations) the character has, so the interface offers them only when there are some */
+        static int pw_ct = 0, pw_key = -1, pw_age = 0;
+        int key = p_ptr->lev * 1000 + p_ptr->prace * 7 + p_ptr->mimic_form;
+        if (key != pw_key || ++pw_age > 40)
+        {
+            extern int get_power_table(power_info *spells);
+            power_info pw[MAX_SPELLS];
+            pw_ct = get_power_table(pw); pw_key = key; pw_age = 0;
+        }
+        if (pw_ct) o_kint("powers", pw_ct);
+    }
     o_kstr("cls", get_class()->name);
     o_kstr("pers", get_personality()->name);
     o_kstr("realm", p_ptr->realm1 ? realm_names[p_ptr->realm1] : "");
@@ -643,7 +720,14 @@ static void send_state(void)
     o_kint("ac", p_ptr->dis_ac + p_ptr->dis_to_a);
     o_kint("speed", p_ptr->pspeed - 110); o_kint("lite", p_ptr->cur_lite);
     o_kint("wgt", py_total_weight()); o_kint("wlim", weight_limit());
-    o_kstr("place", map_name());
+    o_kstr("place", map_name()); if (p_ptr->wild_mode) o_kint("wild", 1);
+    /* which dungeon mouth or town you stand on, by name */
+    if (!dun_level && in_bounds2(py, px) && cave[py][px].special)
+    {
+        cave_type *c = &cave[py][px];
+        if (have_flag(f_info[c->feat].flags, FF_ENTRANCE)) { if (c->special < max_d_idx) o_kstr("entr", d_name + d_info[c->special].name); }
+        else if (p_ptr->wild_mode && c->feat == feat_town) o_kstr("town", town_name(c->special));
+    }
     o_kint("dlvl", dun_level);
     {
         int d, h, m;
@@ -717,6 +801,7 @@ static void send_state(void)
         if (r->flags1 & RF1_UNIQUE) o_kint("uniq", 1);
         if (MON_CSLEEP(m)) o_kint("asleep", 1);
         if (MON_MONFEAR(m)) o_kint("afraid", 1);
+        if ((r->flags1 & RF1_NEVER_MOVE) && !r->spells) o_kint("still", 1);   /* rooted to the spot and no magic: only a danger beside it */
         if (is_pet(m)) o_kint("pet", 1);
         else if (is_friendly(m)) o_kint("friendly", 1);
         if (target_who == i) o_kint("target", 1);
@@ -772,7 +857,9 @@ static void send_state(void)
     for (i = 1; i <= pack_max(); i++)
     {
         obj_ptr o = pack_obj(i);
+        o_obj_fit = TRUE;
         if (o) o_obj(o, slot_label(i));
+        o_obj_fit = FALSE;
     }
     o_close(']');
     o_raw(",");
@@ -834,6 +921,32 @@ static void send_frame(void)
             cptr e = _gf_elem(shell_proj_gf);
             if (e) o_fmt("\"gf\":\"%s\",", e);
         }
+        /* A screen drawn over a saved one is told apart from it cell by cell, so a letter that happens to match the
+           screen underneath would be lost. On a full screen (a sheet, a list, a page of help) what is drawn is a block
+           of rows: within each block, everything between its left and right edge belongs to it. */
+        static short fill_x0[SHELL_MAX_H], fill_x1[SHELL_MAX_H];
+        if (ov && character_icky)
+        {
+            int y0 = -1;
+            for (y = 0; y <= h; y++)
+            {
+                int rx0 = -1, rx1 = -1;
+                if (y < h)
+                {
+                    for (x = 0; x < w; x++)
+                        if (t->scr->a[y][x] != t->mem->a[y][x] || t->scr->c[y][x] != t->mem->c[y][x]) { if (rx0 < 0) rx0 = x; rx1 = x; }
+                    fill_x0[y] = rx0; fill_x1[y] = rx1;
+                }
+                if (rx0 >= 0) { if (y0 < 0) y0 = y; }
+                else if (y0 >= 0)
+                {
+                    int bx0 = w, bx1 = -1, yy;
+                    for (yy = y0; yy < y; yy++) { if (fill_x0[yy] < bx0) bx0 = fill_x0[yy]; if (fill_x1[yy] > bx1) bx1 = fill_x1[yy]; }
+                    for (yy = y0; yy < y; yy++) { fill_x0[yy] = bx0; fill_x1[yy] = bx1; }
+                    y0 = -1;
+                }
+            }
+        }
         o_raw("\"rows\":[");
         for (y = 0; y < h; y++)
         {
@@ -844,7 +957,8 @@ static void send_frame(void)
             {
                 rc[x] = c[x] ? c[x] : ' ';
                 /* a cell a pop-up has not touched is sent as "see through" */
-                if (ov && a[x] == t->mem->a[y][x] && c[x] == t->mem->c[y][x]) rc[x] = 1;
+                if (ov && a[x] == t->mem->a[y][x] && c[x] == t->mem->c[y][x]
+                    && !(character_icky && fill_x0[y] >= 0 && x >= fill_x0[y] && x <= fill_x1[y])) rc[x] = 1;
             }
             if (old_valid && !memcmp(a, old_a[y], w) && !memcmp(rc, old_c[y], w)) continue;
             memcpy(old_a[y], a, w);

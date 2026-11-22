@@ -50,12 +50,13 @@ function hbOnUi(m) {
   if (m.kind === 'spells' && HB.who) { let ch = false; for (const s of HB.slots) { if (!s || s.t !== 's') continue; const r = (m.rows || []).find(r => r.n === s.n); if (r && r.cost != null && (s.cost !== r.cost || s.unit !== (m.unit || 'SP'))) { s.cost = r.cost; s.unit = m.unit || 'SP'; ch = true; } } if (ch) hbSave(); }
   if (!SPELLPICK || m.kind !== 'spells') return;
   const want = SPELLPICK; SPELLPICK = null; if (Date.now() - want.t > 5000) return;
-  const r = (m.rows || []).find(r => r.n === want.n); if (r && r.k) sendText(r.k);
+  const r = (m.rows || []).find(r => r.n === want.n); if (r && r.k) { CAST = { n: r.n, t: Date.now() }; sendText(r.k); }
 }
 // remember what was picked and which command opened it, so a spell dragged from the list knows its book
 function hbNote(bytes) {
   const top = typeof uiOnTop === 'function' && UI && uiOnTop();
   if (top && UI.kind === 'items' && bytes.length === 1) { const it = (UI.items || []).find(i => i.k === String.fromCharCode(bytes[0])); if (it && it.o) LASTPICK = { o: it.o, t: Date.now() }; return; }
+  if (top && typeof shopLike === 'function' && shopLike() && bytes.length === 1) SHOP.key = { k: String.fromCharCode(bytes[0]), t: Date.now() };
   if (top || !playing()) return;
   if (bytes.length === 2 && bytes[0] === 92) LASTCMD = { k: String.fromCharCode(bytes[1]), raw: false, t: Date.now() };
   else if (bytes.length === 1 && bytes[0] > 32 && bytes[0] < 127) LASTCMD = { k: String.fromCharCode(bytes[0]), raw: true, t: Date.now() };
@@ -100,7 +101,7 @@ function hbCtx(ev) {
   const h = ev.target.closest && ev.target.closest('[data-hb]');
   if (h && playing()) { hbLoad(); const i = +h.dataset.hb, s = HB.slots[i]; if (!s) return ['Hotbar slot ' + HB_KEYS[i], [{ k: '', n: 'Drag a spell or an item here', dim: true, run: () => {} }]];
     return [s.n, [{ k: 'u', n: s.t === 'o' ? s.verb : 'Cast', run: () => hbUse(i) }, { k: 'c', n: 'Clear this slot', run: () => hbClear(i) }]]; }
-  const sp = ev.target.closest && ev.target.closest('.spc[data-sp]');
+  const sp = ev.target.closest && ev.target.closest('.sprow[data-sp]');
   if (sp && UI && UI.kind === 'spells') { const r = UI.rows.find(r => r.n === sp.dataset.sp); if (r) return [r.n, [{ k: 'm', n: 'Cast it', run: () => sendText(r.k) }, { k: 'h', n: 'Put on the hotbar', run: () => hbSet(-1, hbFromSpell(r)) }]]; }
   return null;
 }
@@ -111,7 +112,7 @@ document.addEventListener('mousedown', ev => {
   if (ev.button !== 0 || CTX) return;
   const h = ev.target.closest && ev.target.closest('[data-hb]');
   if (h) { hbLoad(); const i = +h.dataset.hb; if (HB.slots[i]) HBDRAG = { from: i, s: HB.slots[i], x: ev.clientX, y: ev.clientY, on: false }; return; }
-  const sp = ev.target.closest && ev.target.closest('.spc[data-sp]');
+  const sp = ev.target.closest && ev.target.closest('.sprow[data-sp]');
   if (sp && UI && UI.kind === 'spells') { const r = UI.rows.find(r => r.n === sp.dataset.sp); if (r) HBDRAG = { from: -1, s: hbFromSpell(r), x: ev.clientX, y: ev.clientY, on: false }; }
 }, true);
 document.addEventListener('mousemove', ev => {
